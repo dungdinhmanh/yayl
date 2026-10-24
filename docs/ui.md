@@ -45,7 +45,7 @@
 ## Download view
 
 - Rail avatar: rounded square, progress border only. **Chosen** in `download-animations.html`.
-- Game avatar badge (HoYoPlay style): downloading shows a large arrow close to the circle, slides down, holds ~0.6s, continues down, loops, with a progress ring; paused switches the badge to a pause icon. **Chosen** and applied to the rail game avatar.
+- Game avatar badge (HoYoPlay style): a full dark circle with a large arrow close to the edge; it slides down, holds ~0.6s, continues down, and loops. Paused switches the badge to a pause icon. Progress is shown by the avatar border, not a second ring. **Chosen** and applied to the rail game avatar.
 - Banner art + dark overlay, stats panel, progress.
 - Phase stepper: Chuẩn bị → Tải xuống → Xác minh → Cài đặt → Hoàn tất.
 - Current file, file count, CDN, connection count, speed, ETA.

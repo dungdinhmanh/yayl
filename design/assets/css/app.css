@@ -5591,33 +5591,8 @@ body[data-layout="topbar"] .backdrop-art {
   display: grid;
 }
 
-.game-dl-ring {
-  position: absolute;
-  inset: -2px;
-  width: 30px;
-  height: 30px;
-  transform: rotate(-90deg);
-  pointer-events: none;
-}
-
-.game-dl-ring-bg {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 2;
-}
-
-.game-dl-ring-fill {
-  fill: none;
-  stroke: #ffffff;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 100;
-  transition: stroke-dashoffset 0.45s linear;
-}
-
 .game-dl-icon {
   position: relative;
-  z-index: 1;
   display: grid;
   place-items: center;
   width: 100%;
@@ -5626,8 +5601,8 @@ body[data-layout="topbar"] .backdrop-art {
 }
 
 .game-dl-icon svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
 }
 
 .game-dl-pause {

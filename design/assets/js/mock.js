@@ -171,10 +171,8 @@
     });
   }
 
-  var GAME_BADGE_RING =
-    '<svg class="game-dl-ring" viewBox="0 0 28 28" aria-hidden="true"><circle class="game-dl-ring-bg" cx="14" cy="14" r="12.5" pathLength="100"></circle><circle class="game-dl-ring-fill" cx="14" cy="14" r="12.5" pathLength="100" data-game-dl-fill></circle></svg>';
   var GAME_BADGE_ARROW =
-    '<span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m6.5 11 5.5 5.5L17.5 11"/></svg></span>';
+    '<span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v13"/><path d="m6.5 13 5.5 5.5L17.5 13"/></svg></span>';
   var GAME_BADGE_PAUSE =
     '<span class="game-dl-icon game-dl-pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"></rect><rect x="13.5" y="5" width="4" height="14" rx="1"></rect></svg></span>';
 
@@ -184,7 +182,7 @@
       var badge = document.createElement("span");
       badge.className = "game-dl-badge";
       badge.setAttribute("aria-hidden", "true");
-      badge.innerHTML = GAME_BADGE_RING + GAME_BADGE_ARROW + GAME_BADGE_PAUSE;
+      badge.innerHTML = GAME_BADGE_ARROW + GAME_BADGE_PAUSE;
       wrap.appendChild(badge);
     });
   }
@@ -328,10 +326,6 @@
       var railFill = card.querySelector("[data-rail-fill]");
       if (railFill) {
         railFill.style.strokeDashoffset = String(100 - progress);
-      }
-      var gameFill = card.querySelector("[data-game-dl-fill]");
-      if (gameFill) {
-        gameFill.style.strokeDashoffset = String(100 - progress);
       }
     });
 
