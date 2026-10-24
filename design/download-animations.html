@@ -139,8 +139,43 @@
             </section>
           </div>
 
-          <div class="eyebrow" style="margin-top:26px;" data-i18n="anim.iconSection">Icon tải xuống</div>
+          <div class="eyebrow" style="margin-top:26px;" data-i18n="anim.iconSection">Badge tải xuống (kiểu HoYoPlay)</div>
           <div class="anim-grid" style="margin-top:12px;">
+            <section class="panel kit-card is-chosen">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <span class="anim-chosen" data-i18n="anim.chosen">Đã chọn</span>
+              <div class="anim-row">
+                <span class="game-badge-demo">
+                  <img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                  <span class="game-dl-badge">
+                    <svg class="game-dl-ring" viewBox="0 0 28 28" aria-hidden="true"><circle class="game-dl-ring-bg" cx="14" cy="14" r="12.5" pathLength="100"></circle><circle class="game-dl-ring-fill" cx="14" cy="14" r="12.5" pathLength="100" style="stroke-dashoffset:58"></circle></svg>
+                    <span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m6.5 11 5.5 5.5L17.5 11"/></svg></span>
+                  </span>
+                </span>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.badgeDownload">Badge đang tải</div>
+                  <p class="anim-desc" data-i18n="anim.badgeDownloadDesc">Mũi tên lớn sát khung tròn, trượt xuống, dừng khoảng 0.6s rồi đi tiếp xuống, lặp lại. Có vòng tiến trình.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card is-chosen">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <span class="anim-chosen" data-i18n="anim.chosen">Đã chọn</span>
+              <div class="anim-row">
+                <span class="game-badge-demo is-paused">
+                  <img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                  <span class="game-dl-badge">
+                    <svg class="game-dl-ring" viewBox="0 0 28 28" aria-hidden="true"><circle class="game-dl-ring-bg" cx="14" cy="14" r="12.5" pathLength="100"></circle><circle class="game-dl-ring-fill" cx="14" cy="14" r="12.5" pathLength="100" style="stroke-dashoffset:58"></circle></svg>
+                    <span class="game-dl-icon game-dl-pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"></rect><rect x="13.5" y="5" width="4" height="14" rx="1"></rect></svg></span>
+                  </span>
+                </span>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.badgePaused">Badge tạm dừng</div>
+                  <p class="anim-desc" data-i18n="anim.badgePausedDesc">Khi tạm dừng, badge đổi thành nút pause; vòng tiến trình giữ nguyên.</p>
+                </div>
+              </div>
+            </section>
             <section class="panel kit-card">
               <div class="kit-label" data-i18n="anim.pick">Phương án</div>
               <div class="anim-row">
@@ -167,9 +202,8 @@
               </div>
             </section>
 
-            <section class="panel kit-card is-chosen">
+            <section class="panel kit-card">
               <div class="kit-label" data-i18n="anim.pick">Phương án</div>
-              <span class="anim-chosen" data-i18n="anim.chosen">Đã chọn</span>
               <div class="anim-row">
                 <span class="dl-icon is-bounce">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/></svg>

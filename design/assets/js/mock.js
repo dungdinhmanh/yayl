@@ -171,17 +171,21 @@
     });
   }
 
-  var NAV_DL_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/></svg>';
+  var GAME_BADGE_RING =
+    '<svg class="game-dl-ring" viewBox="0 0 28 28" aria-hidden="true"><circle class="game-dl-ring-bg" cx="14" cy="14" r="12.5" pathLength="100"></circle><circle class="game-dl-ring-fill" cx="14" cy="14" r="12.5" pathLength="100" data-game-dl-fill></circle></svg>';
+  var GAME_BADGE_ARROW =
+    '<span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m6.5 11 5.5 5.5L17.5 11"/></svg></span>';
+  var GAME_BADGE_PAUSE =
+    '<span class="game-dl-icon game-dl-pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"></rect><rect x="13.5" y="5" width="4" height="14" rx="1"></rect></svg></span>';
 
-  function ensureNavDownloadAnim() {
-    document.querySelectorAll('.nav-item[href="download.html"], .icon-btn[href="download.html"]').forEach(function (item) {
-      if (item.querySelector(".nav-dl-anim")) return;
-      var span = document.createElement("span");
-      span.className = "nav-dl-anim";
-      span.setAttribute("aria-hidden", "true");
-      span.innerHTML = NAV_DL_SVG;
-      item.appendChild(span);
+  function ensureGameBadges() {
+    document.querySelectorAll(".game-thumb-wrap").forEach(function (wrap) {
+      if (wrap.querySelector(".game-dl-badge")) return;
+      var badge = document.createElement("span");
+      badge.className = "game-dl-badge";
+      badge.setAttribute("aria-hidden", "true");
+      badge.innerHTML = GAME_BADGE_RING + GAME_BADGE_ARROW + GAME_BADGE_PAUSE;
+      wrap.appendChild(badge);
     });
   }
 
@@ -320,9 +324,14 @@
         isActive && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
       var progress = isDownloading ? (states[app.current.state] && states[app.current.state].progress) || 42 : 0;
       card.classList.toggle("is-downloading", isDownloading);
+      card.dataset.dlState = isDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "";
       var railFill = card.querySelector("[data-rail-fill]");
       if (railFill) {
         railFill.style.strokeDashoffset = String(100 - progress);
+      }
+      var gameFill = card.querySelector("[data-game-dl-fill]");
+      if (gameFill) {
+        gameFill.style.strokeDashoffset = String(100 - progress);
       }
     });
 
@@ -408,10 +417,6 @@
     if (typeof Y.renderPage === "function") {
       Y.renderPage(app);
     }
-    var isDownloading = ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
-    document.querySelectorAll('.nav-item[href="download.html"], .icon-btn[href="download.html"]').forEach(function (item) {
-      item.classList.toggle("is-downloading", isDownloading);
-    });
     applyToolbar();
   }
 
@@ -622,7 +627,7 @@
   function setupCommon() {
     document.querySelectorAll("img").forEach(wireImage);
     ensureRailProgress();
-    ensureNavDownloadAnim();
+    ensureGameBadges();
 
     document.querySelectorAll(".game-card[data-game-id], .top-tab[data-game-id]").forEach(function (button) {
       button.addEventListener("click", function () {
