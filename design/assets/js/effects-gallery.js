@@ -31,10 +31,15 @@
     "M0 13 Q75 5 150 13 T300 13 T450 13 T600 13 T750 13 T900 13 T1050 13 T1200 13 " +
     "T1350 13 T1500 13 T1650 13 T1800 13 T1950 13 T2100 13 T2250 13 T2400 13 V26 H0 Z";
 
+  var WAVE_LINE =
+    "M0 13 Q75 3 150 13 T300 13 T450 13 T600 13 T750 13 T900 13 T1050 13 T1200 13 " +
+    "T1350 13 T1500 13 T1650 13 T1800 13 T1950 13 T2100 13 T2250 13 T2400 13";
+
   function waves(count, d) {
     var path = d || WAVE_D;
     var out = "";
     for (var i = 0; i < count; i += 1) out += '<path d="' + path + '"></path>';
+    out += '<path class="fxcrest" d="' + WAVE_LINE + '"></path>';
     return '<svg class="fxwaves" viewBox="0 0 2400 26" preserveAspectRatio="none" aria-hidden="true">' + out + "</svg>";
   }
 
@@ -43,6 +48,7 @@
     btn.setAttribute("data-fx", id);
     btn.innerHTML =
       (inner || "") +
+      '<span class="fxgloss"></span>' +
       '<span class="fxlabel">' +
       (labelHtml || txt("anim.buttonLoading") + ' &middot; <b class="fxpct">42%</b>') +
       "</span>";
@@ -273,7 +279,15 @@
     stage.appendChild(btn);
     var fill = btn.querySelector(".fxfill-h");
     function update(p) {
-      fill.style.background = "hsl(" + (120 - p * 120).toFixed(0) + " 85% 55%)";
+      var hue = 120 - p * 120;
+      fill.style.background =
+        "linear-gradient(90deg, hsl(" +
+        (hue - 14).toFixed(0) +
+        " 80% 46%), hsl(" +
+        hue.toFixed(0) +
+        " 88% 58%), hsl(" +
+        (hue + 12).toFixed(0) +
+        " 92% 68%))";
     }
     update(0.42);
     return { update: update };
@@ -468,6 +482,39 @@
     return {};
   }
 
+  function fxLiquidPro(stage) {
+    stage.appendChild(makeBtn("liquid-pro", '<div class="fxfill-v fx-lux">' + waves(3) + "</div>"));
+    return {};
+  }
+
+  function fxBarPro(stage) {
+    stage.appendChild(
+      makeBtn(
+        "bar-pro",
+        '<div class="fxfill-h fx-luxbar"><span class="fxsheen"></span><span class="fxedge"></span></div>'
+      )
+    );
+    return {};
+  }
+
+  function fxRingPro(stage) {
+    return ringProgress(stage, '<span class="fxsweep"></span><span class="fxorbit"><i></i></span>');
+  }
+
+  function fxBlocksPro(stage) {
+    var N = 14;
+    var wrap = el("div", "fxblocks fxblocks--pro");
+    for (var i = 0; i < N; i += 1) wrap.appendChild(el("span", "fxblock"));
+    stage.appendChild(wrap);
+    var blocks = wrap.children;
+    function update(p) {
+      var on = Math.round(p * N);
+      for (var i = 0; i < N; i += 1) blocks[i].classList.toggle("is-on", i < on);
+    }
+    update(0.42);
+    return { update: update };
+  }
+
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
@@ -505,7 +552,12 @@
     { group: "style", id: "steam-thin", name: { vi: "Steam / Epic mảnh", en: "Steam / Epic thin" }, desc: { vi: "Thanh mảnh + vệt sáng quét, tối giản.", en: "A thin bar with a shimmer sweep." }, lib: ["CSS"], w: 1, build: fxThin },
     { group: "style", id: "hoyoplay", name: { vi: "HoYoPlay / Hypergryph", en: "HoYoPlay / Hypergryph" }, desc: { vi: "Icon mũi tên + fill + số, kiểu launcher game.", en: "Arrow icon + fill + number, game-launcher style." }, lib: ["CSS", "SVG"], w: 1, build: fxHoyoPlay },
     { group: "style", id: "gooey", name: { vi: "Gooey (SVG filter)", en: "Gooey (SVG filter)" }, desc: { vi: "Giọt dính như thạch nhờ filter blur + contrast.", en: "Blobs merge like jelly via a blur+contrast filter." }, lib: ["SVG filter"], w: 2, build: fxGooey },
-    { group: "style", id: "glass", name: { vi: "Glass refraction", en: "Glass refraction" }, desc: { vi: "Khúc xạ bằng feTurbulence + feDisplacementMap — nặng, không khuyến khích.", en: "Refraction via feTurbulence + feDisplacementMap — heavy, not recommended." }, lib: ["SVG filter"], w: 3, build: fxGlass }
+    { group: "style", id: "glass", name: { vi: "Glass refraction", en: "Glass refraction" }, desc: { vi: "Khúc xạ bằng feTurbulence + feDisplacementMap — nặng, không khuyến khích.", en: "Refraction via feTurbulence + feDisplacementMap — heavy, not recommended." }, lib: ["SVG filter"], w: 3, build: fxGlass },
+
+    { group: "premium", id: "liquid-pro", name: { vi: "Liquid Pro (tinh chỉnh)", en: "Liquid Pro (refined)" }, desc: { vi: "Bản tinh chỉnh: nước dâng 3 lớp sóng + đỉnh sáng + đổi sắc nhẹ.", en: "Refined: 3-layer liquid with a lit crest and a soft hue shift." }, lib: ["CSS", "SVG"], w: 1, build: fxLiquidPro },
+    { group: "premium", id: "bar-pro", name: { vi: "Bar Pro (tinh chỉnh)", en: "Bar Pro (refined)" }, desc: { vi: "Kết hợp gradient chạy + vệt sáng + đầu neon.", en: "Running gradient + sheen + neon edge combined." }, lib: ["CSS"], w: 1, build: fxBarPro },
+    { group: "premium", id: "ring-pro", name: { vi: "Ring Pro (tinh chỉnh)", en: "Ring Pro (refined)" }, desc: { vi: "Vòng + vệt quét + điểm chạy, viền dày và có quầng sáng.", en: "Ring with sweep + orbiting dot, thicker and glowing." }, lib: ["CSS", "SVG"], w: 1, build: fxRingPro },
+    { group: "premium", id: "blocks-pro", name: { vi: "Blocks Pro (tinh chỉnh)", en: "Blocks Pro (refined)" }, desc: { vi: "Khối có bevel + quầng sáng, trông nổi khối hơn.", en: "Blocks with a bevel and glow for more depth." }, lib: ["CSS", "JS"], w: 1, build: fxBlocksPro }
   ];
 
   var GROUPS = [
@@ -514,7 +566,8 @@
     { id: "ring", key: "fx.groupRing" },
     { id: "text", key: "fx.groupText" },
     { id: "block", key: "fx.groupBlock" },
-    { id: "style", key: "fx.groupStyle" }
+    { id: "style", key: "fx.groupStyle" },
+    { id: "premium", key: "fx.groupPremium" }
   ];
 
   var demos = [];
@@ -570,8 +623,37 @@
     }
   }
 
-  function setProgress(value) {
-    var v = Math.max(0, Math.min(100, value));
+  var currentValue = 42;
+  var simTimer = null;
+  var simStart = 0;
+  var simFrom = 0;
+  var simSpan = 0;
+
+  function durationMs() {
+    var sel = document.getElementById("fxDuration");
+    return sel ? parseInt(sel.value, 10) : 6000;
+  }
+
+  function updateElapsed() {
+    var node = document.getElementById("fxElapsed");
+    if (!node) return;
+    var total = durationMs() / 1000;
+    node.textContent = ((currentValue / 100) * total).toFixed(1) + "s / " + total.toFixed(1) + "s";
+  }
+
+  function setPlaying(on) {
+    var btn = document.getElementById("fxPlay");
+    var label = document.getElementById("fxPlayLabel");
+    if (btn) {
+      btn.classList.toggle("is-playing", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    if (label) label.textContent = on ? txt("fx.pause") : txt("fx.simulate");
+  }
+
+  function setProgress(value, fromSim) {
+    var v = Math.max(0, Math.min(100, Math.round(value)));
+    currentValue = v;
     var p = v / 100;
     var i;
     var btns = document.querySelectorAll(".fxbtn");
@@ -579,19 +661,76 @@
     var stages = document.querySelectorAll(".fxstage");
     for (i = 0; i < stages.length; i += 1) stages[i].style.setProperty("--p", String(p));
     var pcts = document.querySelectorAll(".fxpct");
-    for (i = 0; i < pcts.length; i += 1) pcts[i].textContent = Math.round(v) + "%";
+    for (i = 0; i < pcts.length; i += 1) pcts[i].textContent = v + "%";
     for (i = 0; i < demos.length; i += 1) if (demos[i].update) demos[i].update(p);
     var out = document.getElementById("fxOut");
-    if (out) out.textContent = Math.round(v) + "%";
+    if (out) out.textContent = v + "%";
+    var range = document.getElementById("fxRange");
+    if (range && !fromSim) range.value = String(v);
+    updateElapsed();
+  }
+
+  function stopSim() {
+    if (simTimer) {
+      window.clearInterval(simTimer);
+      simTimer = null;
+    }
+    setPlaying(false);
+  }
+
+  function simTick() {
+    var elapsed = Date.now() - simStart;
+    var ratio = simSpan <= 0 ? 1 : Math.min(1, elapsed / simSpan);
+    setProgress(simFrom + (100 - simFrom) * ratio, true);
+    if (ratio >= 1) {
+      stopSim();
+      setProgress(100, true);
+    }
+  }
+
+  function startSim() {
+    stopSim();
+    simFrom = currentValue;
+    simSpan = Math.max(80, durationMs() * (1 - currentValue / 100));
+    simStart = Date.now();
+    simTimer = window.setInterval(simTick, 40);
+    setPlaying(true);
+    simTick();
   }
 
   function initControl() {
     var range = document.getElementById("fxRange");
-    if (!range) return;
-    range.addEventListener("input", function () {
-      setProgress(parseInt(range.value, 10));
-    });
-    setProgress(parseInt(range.value, 10));
+    if (range) {
+      range.addEventListener("input", function () {
+        if (simTimer) stopSim();
+        setProgress(parseInt(range.value, 10), true);
+      });
+    }
+
+    var playBtn = document.getElementById("fxPlay");
+    if (playBtn) {
+      playBtn.addEventListener("click", function () {
+        if (simTimer) {
+          stopSim();
+        } else {
+          if (currentValue >= 100) setProgress(0);
+          startSim();
+        }
+      });
+    }
+
+    var resetBtn = document.getElementById("fxReset");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function () {
+        stopSim();
+        setProgress(0);
+      });
+    }
+
+    var durSel = document.getElementById("fxDuration");
+    if (durSel) durSel.addEventListener("change", updateElapsed);
+
+    setProgress(parseInt(range ? range.value : "42", 10));
   }
 
   function init() {

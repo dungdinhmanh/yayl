@@ -48,10 +48,32 @@
           <h1 class="page-title" data-i18n="fx.title">Tất cả hiệu ứng tiến trình</h1>
           <p class="page-subtitle" data-i18n="fx.desc">30 kiểu hiệu ứng cho nút tải và tiến trình.</p>
 
-          <div class="dlfx-control" style="max-width:520px;">
-            <label for="fxRange" data-i18n="fx.progress">Tiến trình</label>
-            <input id="fxRange" type="range" min="0" max="100" value="42" step="1">
-            <output id="fxOut">42%</output>
+          <div class="fxdock">
+            <div class="fxdock__bar">
+              <div class="fxdock__row">
+                <label for="fxRange" data-i18n="fx.progress">Tiến trình</label>
+                <input id="fxRange" type="range" min="0" max="100" value="42" step="1">
+                <output id="fxOut" class="fxdock__val">42%</output>
+              </div>
+              <div class="fxdock__row">
+                <button id="fxPlay" class="fxdock__play" type="button" aria-pressed="false">
+                  <svg class="fxdock__ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8 18.8V5.2Z"/></svg>
+                  <svg class="fxdock__ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>
+                  <span id="fxPlayLabel" data-i18n="fx.simulate">Giả lập tải</span>
+                </button>
+                <label for="fxDuration" data-i18n="fx.duration">Thời gian</label>
+                <select id="fxDuration">
+                  <option value="3000">3s</option>
+                  <option value="6000" selected>6s</option>
+                  <option value="12000">12s</option>
+                  <option value="30000">30s</option>
+                </select>
+                <output id="fxElapsed" class="fxdock__elapsed">0.0s / 6.0s</output>
+                <button id="fxReset" class="fxdock__reset" type="button" title="Reset" aria-label="Reset">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.1"/><path d="M20 4v7h-7"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="fxlegend">
