@@ -68,21 +68,107 @@ Practical consequence for YAYL: we should verify our hub/game-switcher pattern a
 - Brightened small uppercase labels (`meta-label`, `download-stat-label`) and phase copy.
 - Legal/help text no longer uses the darkest muted token.
 
-## Recommended next UI pass (not applied yet)
+## Source analysis (cloned locally)
 
-These need a layout decision before porting to React:
+Clones are kept outside the repo at `D:\yayl\refs\Starward` and `D:\yayl\refs\TwintailLauncher`. They are reference material only.
 
-1. **Top-right stats pill** on Home: Playtime + Last played, glass style, always visible.
-2. **Bottom-right primary action** on Home: primary button + settings gear + folder icon; move the meta cards to a bottom-left game card.
-3. **Left icon rail** as a third Home variant (`home-immersive.html`) inspired by Starward/TTL:
-   - 76px rail, top game avatars, full-bleed art, bottom-left game card, bottom-right actions.
-   - Keep sidebar and top-tabs variants for comparison.
-4. **Download page**: add Network / Peak / Disk stats and split Download vs Install progress rows.
-5. **Download queue**: a list with reorder / start-now / cancel. Future milestone, but design the slot now.
-6. **Settings overlay**: keep left sub-nav; add a custom dialog style consistent with the app.
-7. **Game switcher**: portrait avatars with a selected ring; show update badge on the avatar.
-8. **Art treatment**: dark gradient must always cover the text side; add a contrast setting for bright art.
-9. **Windows transparency**: design assumes `backdrop-filter` works; add a solid fallback for Windows 10 without transparency effects.
+### Twintail Launcher (Tauri + React)
+
+Key files reviewed:
+
+- `src/styles/tokens.ts` — design tokens.
+- `src/components/layout/ActionBar.tsx` — bottom-right primary action group.
+- `src/components/layout/PlayStatsOverlay.tsx` — top-right playtime/last-played pill.
+- `src/components/layout/GameInfoOverlay.tsx` — bottom-left game card with version and update badge.
+- `src/components/GameButton.tsx` — state-driven primary button (install/update/pause/resume/queued/launch).
+- `src/components/pages/DownloadsPage.tsx` — network/peak/disk stats, split download/install bars, speed graph, queue, pause/resume.
+- `src/components/sidebar/SidebarDownloads.tsx` — download icon with progress ring and queue badge.
+- `src/components/layout/BackgroundLayer.tsx` — preload and crossfade key art, dim overlay when a page/popup is open.
+
+Design facts worth copying:
+
+- Surfaces: `#09090b`, `#0c0c0c`, `#0f0f11`; border `rgba(255,255,255,.05/.1/.2)`.
+- Text: white at 90% / 70% / 50% / 30%.
+- Radius: 6 / 8 / 12 / 16 px, plus pill.
+- Sidebar: 64px icon rail. Action bar `bottom: 2rem; right: 4rem`. Game info `bottom: 2rem; left: 6rem`.
+- Primary button is a pill, 224–256px wide, 48px tall, icon + label; color changes by state (purple launch, blue install, green update, amber resume, yellow pause, gray queued).
+- Download page shows Network / Peak / Disk, a 60-slot speed graph, two progress bars (download + install), ETA, current file, and a queue with start-now/cancel/reorder.
+- Settings is an overlay with a left sub-nav and cards; custom dialogs replace system prompts.
+
+### Starward (WinUI 3)
+
+Key files reviewed:
+
+- `src/Starward/Features/GameSelector/GameSelector.xaml` — game switcher, 40px game icon, 192×108 cards, auto-search installed games.
+- `src/Starward/Features/PlayTime/PlayTimeButton.xaml` — 44px acrylic pill with a clock icon and total playtime; opens the stats dialog.
+- `src/Starward/Features/GameLauncher/GameLauncherPage.xaml`.
+- `src/Starward/Features/GameLauncher/GameNoticeWindow.xaml` — WebView2 host for official announcements.
+- `src/Starward.Core/GameNotice/GameNoticeClient.cs` — official announcement URLs and `getAlertAnn` API; supports a "new notice" alert state.
+- `src/Starward/Features/Setting/*` — General/Download/File/Gamepad/Screenshot/Advanced/About pages.
+
+Design facts worth copying:
+
+- Transparent header; window controls in a 24px dark pill (`rgba(0,0,0,.46)`).
+- No brand or status text in the header.
+- Game selector uses 40px icons and 192×108 cards, not a giant wordmark.
+- Playtime is a single small pill, not a stat block.
+- Official announcements are surfaced, not invented.
+
+### Official launcher (Arknights EN, extracted)
+
+Key files reviewed:
+
+- `out/renderer/assets/main-367052a6.js` — `BannerAndNews` component and `requestBannerAndNews()`.
+- `out/renderer/assets/index-1bfaee97.css` — banner/news/social/header/game-control styles.
+- `out/renderer/assets/GameControl-537c4a49.css` — bottom action bar.
+
+Facts:
+
+- Data sources: `/api/launcher/operations/resource` for `operations_banner_list` and `news_list`/`notice_list`; `/api/launcher/social/media/resource` for social links.
+- Banner: `460×220`, positioned `left: 44px; top: 150px`.
+- News panel: `460×144`, tabs + title/date list.
+- Header: 56px transparent; only window controls, in a `24px` high `rgba(0,0,0,.46)` pill.
+- Bottom control: 165px gradient; primary button `min-width: 200px; min-height: 68px; font-size: 24px`; game version in the bottom-right at `14px`, `opacity: .5`.
+- Social media icons at `right: 40px; top: 62px`.
+- The key art already contains the game logo. The official launcher does **not** render a second HTML title.
+
+## Applied in this pass
+
+The mockups were rebuilt around the reference facts above.
+
+Home (both variants):
+
+- Removed the header status text, the "Sẵn sàng" status pill, the hero note, the server state block, the meta cards, the folder button, and the hero version/size chips.
+- The key art logo is now the only identity on screen; no duplicate HTML title.
+- Added the official-style **banner + news** widget (`460×220` banner, tabs + dated news list) using `/api/launcher/operations/resource` data shape.
+- Added a TTL-style **playtime / last played** pill at the top-right.
+- Added a bottom action bar with a settings gear and one state-driven primary button; a text link appears only when a secondary action is useful (play current version, use existing install, pause/resume, error details, retry, minimize).
+- Added a compact bottom-left game card for install/download/repair states only.
+- Version is a small bottom-right label (official style).
+- Variant A is now a 76px **icon rail** (game avatars + Home/Downloads/Settings), matching TTL/Starward.
+- Variant B uses **top game avatars** only (names moved to tooltips).
+
+Settings:
+
+- Removed the "Chuyển game" section.
+- Removed the header status pill.
+- Game tab now opens with a game hero (art + icon + name + version + update badge + install size), then a single "Bản cài" section with path and tools.
+- The active game comes from Home; the rail game avatars still allow switching.
+
+Download:
+
+- Removed the header status note.
+- Added a **queue** panel with a queued item and priority/cancel actions.
+- Kept the ring, speed chart, phase list, and CRC footer.
+
+## Still open
+
+1. **Download page**: add Network / Peak / Disk stats and split Download vs Install progress rows, like TTL.
+2. **Notice alert**: show a small dot on the news tab when Starward-style `getAlertAnn` reports unseen notices.
+3. **Social links**: top-right icons from `/api/launcher/social/media/resource`.
+4. **Windows transparency**: add a solid fallback when `backdrop-filter` is unavailable.
+5. **Game switcher**: show an update badge on the avatar itself.
+6. **Settings overlay**: keep the current sub-nav but move it to the custom dialog style used by TTL.
 
 ## Skill note
 

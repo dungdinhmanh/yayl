@@ -204,6 +204,61 @@
 
   YAYL.DOWNLOAD_STATES = ["downloading", "paused", "verifying", "error", "complete"];
 
+  YAYL.NEWS = {
+    banners: [
+      {
+        id: "summer",
+        image: "assets/img/news/banner-event.svg",
+        kicker: { vi: "SỰ KIỆN", en: "EVENT" },
+        title: { vi: "Mùa hè rực rỡ", en: "Radiant Summer" },
+        link: "#"
+      },
+      {
+        id: "update",
+        image: "assets/img/news/banner-update.svg",
+        kicker: { vi: "CẬP NHẬT", en: "UPDATE" },
+        title: { vi: "042.1.0 đã sẵn sàng", en: "042.1.0 is ready" },
+        link: "#"
+      },
+      {
+        id: "login",
+        image: "assets/img/news/banner-login.svg",
+        kicker: { vi: "SỰ KIỆN", en: "EVENT" },
+        title: { vi: "Đăng nhập nhận quà", en: "Login rewards" },
+        link: "#"
+      }
+    ],
+    tabs: [
+      {
+        id: "notice",
+        label: { vi: "Thông báo", en: "Notices" },
+        items: [
+          { title: { vi: "Bảo trì máy chủ định kỳ 25/10", en: "Scheduled maintenance on Oct 25" }, date: "2026/10/24", link: "#" },
+          { title: { vi: "Cập nhật chính sách bảo mật", en: "Privacy policy update" }, date: "2026/10/22", link: "#" },
+          { title: { vi: "Sửa lỗi hiển thị trang chủ", en: "Home screen display fix" }, date: "2026/10/20", link: "#" }
+        ]
+      },
+      {
+        id: "events",
+        label: { vi: "Sự kiện", en: "Events" },
+        items: [
+          { title: { vi: "Mùa hè rực rỡ — giai đoạn 2", en: "Radiant Summer — phase 2" }, date: "2026/10/23", link: "#" },
+          { title: { vi: "Truy tìm kho báu cùng Stella Sora", en: "Treasure hunt with Stella Sora" }, date: "2026/10/18", link: "#" },
+          { title: { vi: "Đăng nhập 7 ngày nhận quà", en: "7-day login rewards" }, date: "2026/10/15", link: "#" }
+        ]
+      },
+      {
+        id: "updates",
+        label: { vi: "Cập nhật", en: "Updates" },
+        items: [
+          { title: { vi: "Ghi chú bản cập nhật 042.1.0", en: "Patch notes 042.1.0" }, date: "2026/10/24", link: "#" },
+          { title: { vi: "Cân bằng nhân vật và kỹ năng", en: "Character and skill balance" }, date: "2026/10/21", link: "#" },
+          { title: { vi: "Tối ưu hiệu năng trên PC", en: "PC performance improvements" }, date: "2026/10/17", link: "#" }
+        ]
+      }
+    ]
+  };
+
   YAYL.ICONS = {
     play:
       '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>',

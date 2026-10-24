@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body data-page="settings" data-layout="sidebar" data-game="arknights" data-state="ready">
+<body data-page="settings" data-layout="rail" data-game="arknights" data-state="ready">
   <div class="app">
     <div class="backdrop">
       <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
@@ -25,9 +25,6 @@
           <div class="brand-name">YAYL</div>
           <div class="brand-sub" data-i18n="app.launcher">LAUNCHER</div>
         </div>
-      </div>
-      <div class="titlebar-center">
-        <span class="titlebar-note" data-i18n="settings.title">CÀI ĐẶT</span>
       </div>
       <div class="window-controls">
         <button class="win-btn" type="button" data-window-action="minimize" data-i18n-title="window.minimize" aria-label="Thu nhỏ">
@@ -109,10 +106,6 @@
                 <div class="eyebrow" data-i18n="settings.title">CÀI ĐẶT</div>
                 <h1 class="page-title" data-i18n="settings.title">Cài đặt</h1>
                 <p class="page-subtitle" data-i18n="settings.subtitle">Tùy chỉnh cách YAYL hoạt động. Thay đổi được lưu tự động.</p>
-              </div>
-              <div class="status-pill is-ready">
-                <span class="status-dot"></span>
-                <span data-i18n="settings.footer">Thay đổi được lưu tự động</span>
               </div>
             </div>
 
@@ -251,10 +244,26 @@
                 </section>
 
                 <section class="settings-panel" data-settings-panel="game" hidden>
+                  <div class="game-hero">
+                    <img class="game-hero-art" id="settingsGameArt" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                    <div class="game-hero-scrim"></div>
+                    <div class="game-hero-body">
+                      <img class="game-hero-icon" id="settingsGameIcon" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                      <div class="game-hero-info">
+                        <div class="game-hero-name" id="settingsGameName">Arknights</div>
+                        <div class="game-hero-meta">
+                          <span class="mono" id="settingsGameVersion">v042.0.0</span>
+                          <span data-settings-disk>Ổ D: còn 182 GB · Cần 24.8 GB</span>
+                          <span class="game-hero-badge" data-settings-update hidden>Bản mới 042.1.0</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="settings-section">
                     <div class="settings-section-header">
-                      <div class="settings-section-title" data-i18n="settings.game.title">Cài đặt trò chơi</div>
-                      <div class="settings-section-desc" data-i18n="settings.game.desc">Đường dẫn, kiểm tra và sửa chữa từng game.</div>
+                      <div class="settings-section-title" data-i18n="settings.game.installTitle">Bản cài</div>
+                      <div class="settings-section-desc" data-i18n="settings.game.installDesc">Đường dẫn, dung lượng và công cụ cho game đang chọn.</div>
                     </div>
                     <div class="settings-rows">
                       <div class="setting-row">
@@ -272,45 +281,18 @@
                       </div>
                       <div class="setting-row">
                         <div class="setting-copy">
-                          <div class="setting-label">Arknights · <span data-settings-game-version>042.0.0</span></div>
-                          <div class="setting-desc" data-settings-disk>Ổ D: còn 182 GB · Cần 24.8 GB</div>
-                        </div>
-                        <div class="setting-control">
-                          <button class="btn btn-ghost btn-sm" type="button" id="openGameFolder" data-i18n="settings.game.openFolder">Mở thư mục</button>
-                        </div>
-                      </div>
-                      <div class="setting-row">
-                        <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.game.tools">Công cụ</div>
                           <div class="setting-desc" data-i18n="settings.game.tools.desc">Kiểm tra CRC, sửa file lỗi hoặc gỡ game.</div>
                         </div>
                         <div class="setting-control">
                           <div class="settings-actions">
+                            <button class="btn btn-ghost btn-sm" type="button" id="openGameFolder" data-i18n="settings.game.openFolder">Mở thư mục</button>
                             <button class="btn btn-secondary btn-sm" type="button" id="quickVerify" data-i18n="settings.game.quickVerify">Kiểm tra nhanh</button>
                             <button class="btn btn-secondary btn-sm" type="button" id="fullRepair" data-i18n="settings.game.fullRepair">Sửa toàn bộ</button>
                             <button class="btn btn-ghost btn-sm" type="button" id="importGame" data-i18n="settings.game.import">Nhập từ launcher gốc</button>
                             <button class="btn btn-danger btn-sm" type="button" id="uninstallGame" data-i18n="settings.game.uninstall">Gỡ cài đặt</button>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="settings-section">
-                    <div class="settings-section-header">
-                      <div class="settings-section-title" data-i18n="settings.game.switch">Chuyển game</div>
-                      <div class="settings-section-desc" data-i18n="settings.game.switchDesc">Bản mock hiển thị 2 profile EN. JP/KR sẽ xuất hiện sau.</div>
-                    </div>
-                    <div class="settings-rows">
-                      <div class="game-settings-tabs">
-                        <button class="game-settings-tab is-active" type="button" data-settings-game="arknights" data-game-id="arknights">
-                          <img src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
-                          Arknights EN
-                        </button>
-                        <button class="game-settings-tab" type="button" data-settings-game="stella" data-game-id="stella">
-                          <img src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
-                          Stella Sora EN
-                        </button>
                       </div>
                     </div>
                   </div>

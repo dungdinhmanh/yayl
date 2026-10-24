@@ -42,7 +42,7 @@ The visual language is being validated as static HTML before it is ported to Rea
 design/index.html
 ```
 
-Start with `design/home-sidebar.html` and `design/home-topbar.html` to compare the two home layouts.
+Start with `design/home-sidebar.html` (icon rail + news) and `design/home-topbar.html` (top avatars + news) to compare the two home layouts.
 
 To copy the extracted official backgrounds into the lab for realistic review:
 

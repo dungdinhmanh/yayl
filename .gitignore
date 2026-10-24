@@ -25,6 +25,8 @@ Thumbs.db
 /design/assets/img/*
 !/design/assets/img/.gitkeep
 !/design/assets/img/README.md
+!/design/assets/img/news/
+!/design/assets/img/news/**
 
 # Local screenshots / recordings
 /design/screenshots/*

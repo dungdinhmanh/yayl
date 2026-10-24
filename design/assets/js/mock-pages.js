@@ -555,6 +555,20 @@
     var gameVersion = document.querySelector("[data-settings-game-version]");
     if (gameVersion) gameVersion.textContent = game.version;
 
+    var heroArt = byId("settingsGameArt");
+    if (heroArt) app.setArt(heroArt, app.current.game);
+    var heroIcon = byId("settingsGameIcon");
+    if (heroIcon) app.setArt(heroIcon, app.current.game);
+    var heroName = byId("settingsGameName");
+    if (heroName) heroName.textContent = game.name;
+    var heroVersion = byId("settingsGameVersion");
+    if (heroVersion) heroVersion.textContent = "v" + game.version;
+    var heroBadge = document.querySelector("[data-settings-update]");
+    if (heroBadge) {
+      heroBadge.hidden = game.latest === game.version;
+      heroBadge.textContent = app.t("home.updateChip", { version: game.latest });
+    }
+
     document.querySelectorAll("[data-settings-game]").forEach(function (tab) {
       tab.classList.toggle("is-active", tab.getAttribute("data-settings-game") === app.current.game);
     });
@@ -960,5 +974,283 @@
     }
 
     Y.renderPage = function () {};
+  };
+
+  /* ------------------------------------------------------------------------
+     Lean home: news, stats, single primary action
+     ------------------------------------------------------------------------ */
+
+  var newsIndex = 0;
+  var newsTabId = "notice";
+  var newsTimer = null;
+
+  function homeSubText(game, state, meta) {
+    if (state === "install") return game.size + " · " + app.t("home.meta.required");
+    if (state === "update") return app.t("home.current") + " " + game.version + " → " + game.latest;
+    if (state === "downloading") return "12.4 MB/s · " + app.t("download.eta") + " 08:12";
+    if (state === "paused") return app.t("download.etaPaused");
+    if (state === "verifying") return app.t("download.etaVerifying");
+    if (state === "error") return app.t("home.error.code");
+    if (state === "offline") return app.t("common.offline");
+    if (state === "running") return app.t("common.running");
+    return app.t("common.ready");
+  }
+
+  function homeSecondaryText(game, state) {
+    if (state === "update") return { key: "home.action.playAnyway" };
+    if (state === "install") return { key: "home.action.useExisting" };
+    if (state === "downloading") return { key: "home.action.pause" };
+    if (state === "paused") return { key: "home.action.resume" };
+    if (state === "error") return { key: "home.action.errorDetails" };
+    if (state === "offline") return { key: "home.action.retry" };
+    if (state === "running") return { key: "home.action.minimize" };
+    return null;
+  }
+
+  function renderNews() {
+    var news = Y.NEWS;
+    var lang = app.current.lang;
+    var banner = byId("newsBanner");
+    var tabs = byId("newsTabs");
+    var list = byId("newsList");
+    if (!news || !banner || !tabs || !list) return;
+
+    function showBanner(index) {
+      newsIndex = index;
+      banner.querySelectorAll(".banner-slide").forEach(function (slide, i) {
+        slide.classList.toggle("is-active", i === index);
+      });
+      banner.querySelectorAll("[data-banner-dot]").forEach(function (dot, i) {
+        dot.classList.toggle("is-active", i === index);
+      });
+    }
+
+    if (banner.dataset.ready !== "1") {
+      banner.innerHTML = news.banners
+        .map(function (item, index) {
+          return (
+            '<div class="banner-slide' + (index === 0 ? " is-active" : "") + '" data-banner-index="' + index + '">' +
+            '<img src="' + item.image + '" alt="">' +
+            '<div class="banner-copy"><div class="banner-kicker" data-banner-kicker></div><div class="banner-title" data-banner-title></div></div>' +
+            "</div>"
+          );
+        })
+        .join("") +
+        '<div class="banner-dots">' +
+        news.banners
+          .map(function (item, index) {
+            return '<button class="banner-dot' + (index === 0 ? " is-active" : "") + '" type="button" data-banner-dot="' + index + '" aria-label="Slide ' + (index + 1) + '"></button>';
+          })
+          .join("") +
+        "</div>";
+      banner.querySelectorAll("[data-banner-dot]").forEach(function (dot) {
+        dot.addEventListener("click", function () {
+          showBanner(Number(dot.getAttribute("data-banner-dot")));
+        });
+      });
+      banner.dataset.ready = "1";
+      if (newsTimer) window.clearInterval(newsTimer);
+      newsTimer = window.setInterval(function () {
+        showBanner((newsIndex + 1) % news.banners.length);
+      }, 6000);
+    }
+
+    banner.querySelectorAll(".banner-slide").forEach(function (slide, index) {
+      var item = news.banners[index];
+      var kicker = slide.querySelector("[data-banner-kicker]");
+      var title = slide.querySelector("[data-banner-title]");
+      if (kicker) kicker.textContent = item.kicker[lang];
+      if (title) title.textContent = item.title[lang];
+    });
+
+    if (tabs.dataset.ready !== "1") {
+      tabs.innerHTML = news.tabs
+        .map(function (tab) {
+          return '<button class="news-tab" type="button" data-news-tab="' + tab.id + '"></button>';
+        })
+        .join("");
+      tabs.querySelectorAll("[data-news-tab]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          newsTabId = button.getAttribute("data-news-tab");
+          renderNews();
+        });
+      });
+      tabs.dataset.ready = "1";
+    }
+
+    tabs.querySelectorAll("[data-news-tab]").forEach(function (button) {
+      var id = button.getAttribute("data-news-tab");
+      var tab = news.tabs.filter(function (item) {
+        return item.id === id;
+      })[0];
+      button.textContent = tab ? tab.label[lang] : id;
+      button.classList.toggle("is-active", id === newsTabId);
+    });
+
+    var active = news.tabs.filter(function (item) {
+      return item.id === newsTabId;
+    })[0] || news.tabs[0];
+    list.innerHTML = (active.items || [])
+      .map(function (item) {
+        return (
+          '<a class="news-item" href="' + item.link + '">' +
+          '<span class="news-title">' + item.title[lang] + "</span>" +
+          '<span class="news-date">' + item.date + "</span>" +
+          "</a>"
+        );
+      })
+      .join("");
+  }
+
+  function renderHome() {
+    var game = app.game();
+    var state = app.current.state;
+    var meta = app.meta();
+    var vars = stateVars(game, meta);
+
+    var stats = byId("heroStats");
+    if (stats) stats.hidden = state === "install";
+    document.querySelectorAll("[data-stat-playtime]").forEach(function (el) {
+      el.textContent = game.playtime[app.current.lang];
+    });
+    document.querySelectorAll("[data-stat-last]").forEach(function (el) {
+      el.textContent = game.lastPlayed[app.current.lang];
+    });
+
+    var primary = byId("primaryAction");
+    if (primary) {
+      primary.className = "home-play is-" + state;
+      primary.disabled = !!meta.disabled;
+      primary.setAttribute("aria-disabled", meta.disabled ? "true" : "false");
+      var label = primary.querySelector("[data-button-label]");
+      var sub = primary.querySelector("[data-button-sub]");
+      var icon = primary.querySelector("[data-button-icon]");
+      if (label) label.textContent = app.t(meta.primary, vars);
+      if (sub) sub.textContent = homeSubText(game, state, meta);
+      if (icon) {
+        icon.innerHTML = meta.primaryIcon === "spinner" ? '<span class="spinner"></span>' : app.icon(meta.primaryIcon);
+      }
+    }
+
+    var secondary = byId("secondaryAction");
+    if (secondary) {
+      var secondaryText = homeSecondaryText(game, state);
+      secondary.hidden = !secondaryText;
+      if (secondaryText) secondary.textContent = app.t(secondaryText.key, secondaryText.vars || {});
+    }
+
+    var card = byId("gameInfoCard");
+    var showCard = ["install", "downloading", "paused", "verifying", "error"].indexOf(state) !== -1;
+    if (card) card.hidden = !showCard;
+    if (showCard) {
+      var thumb = byId("gameInfoThumb");
+      if (thumb) app.setArt(thumb, app.current.game);
+      var name = byId("gameInfoName");
+      if (name) name.textContent = game.name;
+      var version = byId("gameInfoVersion");
+      if (version) version.textContent = "v" + game.version;
+      var infoState = byId("gameInfoState");
+      if (infoState) infoState.textContent = homeSubText(game, state, meta);
+      var badge = byId("gameInfoBadge");
+      if (badge) {
+        var badgeText =
+          state === "install"
+            ? app.t("home.status.install")
+            : state === "downloading"
+            ? app.t("home.status.downloading")
+            : state === "paused"
+            ? app.t("home.status.paused")
+            : state === "verifying"
+            ? app.t("home.status.verifying")
+            : state === "error"
+            ? app.t("home.status.error")
+            : "";
+        badge.hidden = !badgeText;
+        badge.textContent = badgeText;
+      }
+    }
+
+    var versionEl = byId("homeVersion");
+    if (versionEl) versionEl.textContent = "v" + game.version;
+
+    renderNews();
+  }
+
+  pages.home = function (appRef) {
+    var primary = byId("primaryAction");
+    var secondary = byId("secondaryAction");
+    var settings = byId("homeSettingsBtn");
+
+    function goDownload() {
+      window.location.href =
+        "download.html?state=" +
+        encodeURIComponent(appRef.current.state === "paused" ? "paused" : "downloading") +
+        "&game=" +
+        encodeURIComponent(appRef.current.game) +
+        "&lang=" +
+        encodeURIComponent(appRef.current.lang);
+    }
+
+    if (primary) {
+      primary.addEventListener("click", function () {
+        var state = appRef.current.state;
+        if (state === "update" || state === "install" || state === "downloading" || state === "paused" || state === "verifying") {
+          goDownload();
+          return;
+        }
+        if (state === "error") {
+          appRef.showToast(appRef.t("home.toast.repair.title"), appRef.t("home.toast.repair.text"));
+          return;
+        }
+        if (state === "offline") {
+          appRef.showToast(appRef.t("home.toast.offline.title"), appRef.t("home.toast.offline.text"), "error");
+          return;
+        }
+        if (state === "running") return;
+        appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
+      });
+    }
+
+    if (secondary) {
+      secondary.addEventListener("click", function () {
+        var state = appRef.current.state;
+        if (state === "update") {
+          appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
+          return;
+        }
+        if (state === "install") {
+          appRef.showToast(appRef.t("home.toast.folder.title"), appRef.t("home.toast.folder.text", { path: appRef.game().root }));
+          return;
+        }
+        if (state === "downloading") {
+          appRef.setState("paused");
+          appRef.showToast(appRef.t("home.toast.pause.title"), appRef.t("home.toast.pause.text"));
+          return;
+        }
+        if (state === "paused") {
+          appRef.setState("downloading");
+          return;
+        }
+        if (state === "error") {
+          appRef.showToast(appRef.t("home.toast.details.title"), appRef.t("home.toast.details.text"), "error");
+          return;
+        }
+        if (state === "offline") {
+          appRef.showToast(appRef.t("home.toast.retry.title"), appRef.t("home.toast.retry.text"));
+          return;
+        }
+        if (state === "running") {
+          appRef.showToast(appRef.t("home.toast.minimize.title"), appRef.t("home.toast.minimize.text"));
+        }
+      });
+    }
+
+    if (settings) {
+      settings.addEventListener("click", function () {
+        window.location.href = "settings.html?game=" + encodeURIComponent(appRef.current.game) + "&lang=" + encodeURIComponent(appRef.current.lang);
+      });
+    }
+
+    Y.renderPage = renderHome;
   };
 })();

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body data-page="download" data-layout="sidebar" data-game="arknights" data-state="downloading">
+<body data-page="download" data-layout="rail" data-game="arknights" data-state="downloading">
   <div class="app">
     <div class="backdrop">
       <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
@@ -25,9 +25,6 @@
           <div class="brand-name">YAYL</div>
           <div class="brand-sub" data-i18n="app.launcher">LAUNCHER</div>
         </div>
-      </div>
-      <div class="titlebar-center">
-        <span class="titlebar-note" data-i18n="download.eyebrow">TẢI XUỐNG</span>
       </div>
       <div class="window-controls">
         <button class="win-btn" type="button" data-window-action="minimize" data-i18n-title="window.minimize" aria-label="Thu nhỏ">
@@ -280,6 +277,30 @@
                 </div>
               </aside>
             </div>
+
+            <section class="panel download-queue-panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title" data-i18n="download.queue.title">Hàng đợi</div>
+                  <div class="panel-subtitle" data-i18n="download.queue.subtitle">Các bản cài khác đang chờ.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="queue-list">
+                  <div class="queue-item">
+                    <img class="queue-thumb" src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
+                    <div class="queue-copy">
+                      <div class="queue-name">Stella Sora EN · 2.1.0</div>
+                      <div class="queue-meta" data-i18n="download.queue.queued">Đang chờ · Cập nhật</div>
+                    </div>
+                    <div class="queue-actions">
+                      <button class="btn btn-secondary btn-sm" type="button" data-i18n="download.queue.startNow">Ưu tiên</button>
+                      <button class="btn btn-ghost btn-sm" type="button" data-i18n="common.cancel">Hủy</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             <div class="download-footer">
               <div class="download-footer-note">

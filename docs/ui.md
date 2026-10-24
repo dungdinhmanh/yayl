@@ -12,53 +12,55 @@
 
 ## Home layouts
 
-### A — Sidebar + hero (recommended)
+### A — Icon rail + news (recommended)
 
-- 232 px sidebar: game switcher, Home/Downloads/Settings, connection status, version.
-- Full-bleed hero art behind the main area.
-- Game wordmark, region, version, status pill, primary CTA, secondary actions.
-- Three meta cards at the bottom: playtime, install path, last played.
-- Scales to more games/regions and future pages.
+- 76 px icon rail: game avatars, Home/Downloads/Settings icons. No labels, no server status, no version text.
+- Full-bleed key art is the identity; the art already contains the game logo.
+- Left side: official-style **banner carousel + news list** from `/api/launcher/operations/resource`.
+- Top-right: compact **playtime / last played** pill.
+- Bottom-right: one state-driven primary action + settings gear; a text link appears only when useful.
+- Bottom-right corner: small version label.
+- Bottom-left: compact game card only for install/download/repair states.
 
-### B — Top tabs + hero
+### B — Top avatars + news
 
-- Top bar: logo, game tabs, settings icon, window controls.
-- Full-bleed hero with a bottom action/stat strip.
-- Closer to the official launcher; less room for future navigation.
+- Top bar: small YAYL mark, game avatars (names in tooltips), downloads/settings icons, window controls.
+- Same lean home content as A: banner + news, stats pill, single primary action.
 - Kept as a comparison variant in `design/home-topbar.html`.
 
 ## Home states
 
-| State | Primary | Secondary | Notes |
+| State | Primary | Secondary link | Sub-label |
 |---|---|---|---|
-| Not installed | Cài đặt | Chọn thư mục | Show required size and free space |
-| Update available | Cập nhật | Chơi ngay (if ≥ minimum) | Show current → latest and download size |
-| Ready | Chơi | Kiểm tra | Standard state |
-| Running | Đang chạy | Thu nhỏ | Pulsing indicator; launch disabled |
-| Downloading | Đang tải · 42% | Tạm dừng | Progress dock links to download view |
-| Paused | Tiếp tục tải | Hủy | Preserve partial files |
-| Verifying | Đang xác minh… | — | Indeterminate or per-file progress |
-| Repair required | Sửa nhanh | Xem lỗi | Error banner explains the cause |
-| Offline | Chơi | Thử lại | Cached state; update/repair disabled |
-| API/auth error | Thử lại | Xem chi tiết | Stable error code, no raw message |
+| Not installed | Cài đặt | Dùng bản đã cài | install size |
+| Update available | Cập nhật | Chơi bản hiện tại | current → latest |
+| Ready | Chơi | — | Sẵn sàng |
+| Running | Đang chạy (disabled) | Thu nhỏ | Đang chơi |
+| Downloading | Đang tải · 42% | Tạm dừng | speed · ETA |
+| Paused | Tiếp tục tải | — | Đã tạm dừng |
+| Verifying | Đang xác minh… | — | CRC-64/XZ |
+| Repair required | Sửa nhanh | Xem lỗi | YAYL-CRC-03 |
+| Offline | Chơi | Thử lại | Offline |
 
 ## Download view
 
-- Circular progress + percentage, speed, ETA, downloaded/total.
+- Banner art + dark overlay, stats panel, progress.
 - Phase stepper: Chuẩn bị → Tải xuống → Xác minh → Cài đặt → Hoàn tất.
-- Current file, file count, CDN, connection count.
+- Current file, file count, CDN, connection count, speed, ETA.
+- Queue panel: queued install (priority/cancel).
 - Actions: pause/resume, cancel (confirm), minimize.
 - Error card: code, file, retry, switch CDN, open log.
-- Full file list lives behind a details action; do not render thousands of rows by default.
+- Future: Network / Peak / Disk row and split download/install bars (Twintail style).
 
 ## Settings
 
 - General: language, autostart, close behavior, minimize-on-play, motion, background mode.
-- Game: per-game path, detect, open folder, quick verify, full repair, uninstall, import.
+- Game: game hero, install path, size, open folder, quick verify, full repair, import, uninstall.
 - Network: proxy mode/URL, concurrency, bandwidth limit, CDN preference, timeout.
 - Advanced: log level, log folder, clear cache, diagnostics export, reset.
 - About: version, build, license, GitHub, disclaimer, update check (later).
 - Changes auto-save; show a short “Đã lưu” confirmation. Destructive actions confirm with the affected path.
+- No "switch game" section; game switching happens on Home.
 
 ## First run
 
