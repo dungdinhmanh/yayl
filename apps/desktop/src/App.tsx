@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { GAMES, type GameState } from "./data";
+import { useLayoutEffect, useMemo, useState } from "react";
+import { GAMES, HOME_STATES, type GameState } from "./data";
 import { I18N } from "./i18n";
 import Rail from "./components/Rail";
 import Home from "./pages/Home";
@@ -8,13 +8,33 @@ import DevBar from "./components/DevBar";
 export type GameId = keyof typeof GAMES;
 export type Lang = "vi" | "en";
 
+const GAME_IDS = Object.keys(GAMES) as GameId[];
+const QUERY = new URLSearchParams(window.location.search);
+
+function queryGame(): GameId {
+  const value = QUERY.get("game") as GameId | null;
+  return value && GAME_IDS.includes(value) ? value : "arknights";
+}
+
+function queryState(): GameState | null {
+  const value = QUERY.get("state") as GameState | null;
+  return value && (HOME_STATES as readonly string[]).includes(value) ? value : null;
+}
+
+function queryLang(): Lang {
+  return QUERY.get("lang") === "en" ? "en" : "vi";
+}
+
 export default function App() {
-  const [gameId, setGameId] = useState<GameId>("arknights");
-  const [states, setStates] = useState<Record<GameId, GameState>>(() => ({
-    arknights: "ready",
-    stella: "ready",
-  }));
-  const [lang, setLang] = useState<Lang>("vi");
+  const [gameId, setGameId] = useState<GameId>(queryGame);
+  const [states, setStates] = useState<Record<GameId, GameState>>(() => {
+    const initial = {} as Record<GameId, GameState>;
+    for (const id of GAME_IDS) initial[id] = "ready";
+    const fromQuery = queryState();
+    if (fromQuery) initial[queryGame()] = fromQuery;
+    return initial;
+  });
+  const [lang, setLang] = useState<Lang>(queryLang);
 
   const state = states[gameId];
 
@@ -22,7 +42,8 @@ export default function App() {
     setStates((current) => ({ ...current, [gameId]: next }));
   };
 
-  useEffect(() => {
+  // Layout effect so the root attributes are in place before paint.
+  useLayoutEffect(() => {
     document.body.dataset.game = gameId;
     document.body.dataset.state = state;
     document.body.dataset.layout = "rail";

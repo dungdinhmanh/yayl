@@ -79,6 +79,15 @@ bun run dev
 # http://localhost:5173
 ```
 
+Open a specific prototype state with query parameters, for example:
+
+```text
+http://localhost:5173/?state=downloading&game=arknights&lang=en
+```
+
+`state` accepts any home state (`ready`, `update`, `install`, `downloading`, `paused`, `verifying`,
+`running`, `error`, `offline`), `game` is `arknights` or `stella`, and `lang` is `vi` or `en`.
+
 Rust and Tauri setup will be documented once the desktop scaffold lands.
 
 ## Legal
