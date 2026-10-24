@@ -44,6 +44,8 @@
 
 ## Download view
 
+- Rail avatar: rounded square, progress border only. **Chosen** in `download-animations.html`.
+- Download icon: small white circle + down arrow; three motion options are in `download-animations.html` for review.
 - Banner art + dark overlay, stats panel, progress.
 - Phase stepper: Chuẩn bị → Tải xuống → Xác minh → Cài đặt → Hoàn tất.
 - Current file, file count, CDN, connection count, speed, ETA.
