@@ -89,6 +89,17 @@ Do not force a theme step; dark is the only v1 theme.
 - Small screens are not supported. The launcher locks to **1100×650** minimum; the lab shows a full-screen guard below 960×600.
 - Test every change at both 1280×720 and 1100×650, and at 125%/150% DPI.
 
+## Locked decisions
+
+- **Home:** rail variant A (76px icon rail + news) is the primary layout. Top-avatar variant B is kept as an alternate.
+- **Avatar progress:** rounded-square avatar with a border progress ring that starts at top center and runs clockwise. No second ring.
+- **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`.
+- **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape.
+- **Text contrast:** the brighter tokens (`--muted #b8c2d1`, `--muted-2 #919cad`, `--muted-3 #707b8d`).
+- **Minimum readable sizes:** 10px uppercase labels, 11px meta/date, 12px body/controls.
+- **Minimum window:** 1100×650, with the lab size guard below 960×600.
+- **Server switch:** still a concept in `design/server-switch.html`; not locked.
+
 ## Design tokens
 
 Defined in `design/assets/css/tokens.css`.

@@ -8,12 +8,13 @@ The order is deliberate: validate the UI as static HTML, then port it to React, 
 - [x] Document architecture, protocol reference, and roadmap.
 - [x] Build `design/` static UI lab:
   - [x] Design tokens and shared components.
-  - [x] Home variant A: sidebar + hero.
-  - [x] Home variant B: top tabs + hero.
+  - [x] Home variant A: rail + news.
+  - [x] Home variant B: top avatars + news.
   - [x] Download, settings, first-run, UI kit.
   - [x] Vietnamese/English toggle and state switcher.
-  - [ ] Review at 1280×720, 1100×650, 150% zoom.
-- [ ] Choose home layout and lock design tokens.
+  - [x] Download badge component, animation options, server-switch concept.
+  - [x] Review at 1280×720, 1100×650, 150% zoom.
+- [x] Choose home layout and lock design tokens (rail primary, top avatars alternate).
 - [ ] Minimal Tauri + React scaffold (blank window) to verify the toolchain.
 
 **Exit:** approved static mockups and a building Tauri shell.
