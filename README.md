@@ -71,6 +71,14 @@ bun install
 bun run design:open
 ```
 
+The React prototype lives in `apps/desktop`:
+
+```powershell
+cd apps/desktop
+bun run dev
+# http://localhost:5173
+```
+
 Rust and Tauri setup will be documented once the desktop scaffold lands.
 
 ## Legal
