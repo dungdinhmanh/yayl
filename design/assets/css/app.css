@@ -1,3 +1,5 @@
+@import url("components/download-badge.css");
+
 /* ==========================================================================
    YAYL UI lab — shared styles
    ========================================================================== */
@@ -5570,83 +5572,6 @@ body[data-layout="topbar"] .backdrop-art {
   }
 }
 
-/* Game avatar download badge, HoYoPlay style. */
-.game-dl-badge {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  z-index: 3;
-  display: none;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(6, 9, 14, 0.96);
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-}
-
-.game-card.is-downloading .game-dl-badge {
-  display: grid;
-}
-
-.game-dl-icon {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.game-dl-icon svg {
-  width: 11px;
-  height: 11px;
-}
-
-.game-dl-arrow svg path {
-  stroke-width: 2.8;
-}
-
-.game-dl-pause {
-  display: none;
-}
-
-.game-card.is-downloading[data-dl-state="paused"] .game-dl-arrow {
-  display: none;
-}
-
-.game-card.is-downloading[data-dl-state="paused"] .game-dl-pause {
-  display: grid;
-}
-
-.game-card.is-downloading:not([data-dl-state="paused"]) .game-dl-arrow svg {
-  animation: game-dl-arrow 1.9s ease-in-out infinite;
-}
-
-@keyframes game-dl-arrow {
-  0% {
-    transform: translateY(-130%);
-    opacity: 0;
-  }
-  16% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  52% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  78% {
-    transform: translateY(130%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(130%);
-    opacity: 0;
-  }
-}
 
 /* Game badge preview on the animation page. */
 .game-badge-demo {
@@ -5666,49 +5591,31 @@ body[data-layout="topbar"] .backdrop-art {
   object-position: center 25%;
 }
 
-.game-badge-demo .game-dl-badge {
+.game-badge-demo .dl-badge {
   display: grid;
 }
 
-.game-badge-demo.is-paused .game-dl-arrow {
-  display: none;
-}
-
-.game-badge-demo.is-paused .game-dl-pause {
+.game-badge-demo .dl-badge[data-state="idle"] {
   display: grid;
 }
 
-.game-badge-demo:not(.is-paused) .game-dl-arrow svg {
-  animation: game-dl-arrow 1.9s ease-in-out infinite;
+/* Size scale demo */
+.badge-scale-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
 }
 
-/* The chosen download icon, applied to the Downloads nav item while active. */
-.nav-dl-anim {
-  display: none;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0b0f17;
+.badge-scale-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
 }
 
-.nav-dl-anim svg {
-  width: 14px;
-  height: 14px;
-  animation: dl-icon-bounce 1.5s ease-out infinite;
-}
-
-.nav-item.is-downloading > svg,
-.icon-btn.is-downloading > svg {
-  display: none;
-}
-
-.nav-item.is-downloading .nav-dl-anim,
-.icon-btn.is-downloading .nav-dl-anim {
-  display: grid;
-}
 
 /* The launcher locks its minimum size. The lab shows the same guard. */
 @media (max-width: 960px), (max-height: 600px) {

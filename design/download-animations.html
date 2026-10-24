@@ -147,10 +147,7 @@
               <div class="anim-row">
                 <span class="game-badge-demo">
                   <img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
-                  <span class="game-dl-badge">
-                    
-                    <span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v13"/><path d="m6.5 13 5.5 5.5L17.5 13"/></svg></span>
-                  </span>
+                  <span class="dl-badge dl-badge--corner" data-state="downloading" data-auto></span>
                 </span>
                 <div class="anim-copy">
                   <div class="anim-name" data-i18n="anim.badgeDownload">Badge đang tải</div>
@@ -165,10 +162,7 @@
               <div class="anim-row">
                 <span class="game-badge-demo is-paused">
                   <img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
-                  <span class="game-dl-badge">
-                    
-                    <span class="game-dl-icon game-dl-pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"></rect><rect x="13.5" y="5" width="4" height="14" rx="1"></rect></svg></span>
-                  </span>
+                  <span class="dl-badge dl-badge--corner" data-state="paused" data-auto></span>
                 </span>
                 <div class="anim-copy">
                   <div class="anim-name" data-i18n="anim.badgePaused">Badge tạm dừng</div>
@@ -176,6 +170,17 @@
                 </div>
               </div>
             </section>
+
+            <section class="panel kit-card is-full">
+              <div class="kit-label" data-i18n="anim.scaleTitle">Scale bằng 1 biến</div>
+              <div class="badge-scale-row">
+                <span class="badge-scale-item"><span class="dl-badge" data-state="downloading" data-size="16px" data-auto></span>16px</span>
+                <span class="badge-scale-item"><span class="dl-badge" data-state="downloading" data-size="20px" data-auto></span>20px</span>
+                <span class="badge-scale-item"><span class="dl-badge" data-state="downloading" data-size="26px" data-auto></span>26px</span>
+                <span class="badge-scale-item"><span class="dl-badge" data-state="downloading" data-size="32px" data-auto></span>32px</span>
+              </div>
+            </section>
+
             <section class="panel kit-card">
               <div class="kit-label" data-i18n="anim.pick">Phương án</div>
               <div class="anim-row">
@@ -224,6 +229,7 @@
 
   <script src="assets/js/mock-data.js"></script>
   <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/download-badge.js"></script>
   <script src="assets/js/mock.js"></script>
   <script src="assets/js/mock-pages.js"></script>
 </body>

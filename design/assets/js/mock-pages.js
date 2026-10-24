@@ -1265,4 +1265,15 @@
       });
     });
   };
+
+  pages.animations = function () {
+    document.querySelectorAll(".dl-badge[data-auto]").forEach(function (placeholder) {
+      if (!window.YAYL_BADGE) return;
+      var state = placeholder.getAttribute("data-state") || "idle";
+      var corner = placeholder.classList.contains("dl-badge--corner");
+      var size = placeholder.getAttribute("data-size") || "";
+      var badge = window.YAYL_BADGE.create(state, { corner: corner, size: size });
+      placeholder.replaceWith(badge);
+    });
+  };
 })();

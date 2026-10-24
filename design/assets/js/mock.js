@@ -171,19 +171,11 @@
     });
   }
 
-  var GAME_BADGE_ARROW =
-    '<span class="game-dl-icon game-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v13"/><path d="m6.5 13 5.5 5.5L17.5 13"/></svg></span>';
-  var GAME_BADGE_PAUSE =
-    '<span class="game-dl-icon game-dl-pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"></rect><rect x="13.5" y="5" width="4" height="14" rx="1"></rect></svg></span>';
-
   function ensureGameBadges() {
     document.querySelectorAll(".game-thumb-wrap").forEach(function (wrap) {
-      if (wrap.querySelector(".game-dl-badge")) return;
-      var badge = document.createElement("span");
-      badge.className = "game-dl-badge";
-      badge.setAttribute("aria-hidden", "true");
-      badge.innerHTML = GAME_BADGE_ARROW + GAME_BADGE_PAUSE;
-      wrap.appendChild(badge);
+      if (wrap.querySelector(".dl-badge")) return;
+      if (!window.YAYL_BADGE) return;
+      wrap.appendChild(window.YAYL_BADGE.create("idle", { corner: true }));
     });
   }
 
@@ -322,7 +314,13 @@
         isActive && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
       var progress = isDownloading ? (states[app.current.state] && states[app.current.state].progress) || 42 : 0;
       card.classList.toggle("is-downloading", isDownloading);
-      card.dataset.dlState = isDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "";
+      var dlBadge = card.querySelector(".dl-badge");
+      if (dlBadge && window.YAYL_BADGE) {
+        window.YAYL_BADGE.setState(
+          dlBadge,
+          isDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "idle"
+        );
+      }
       var railFill = card.querySelector("[data-rail-fill]");
       if (railFill) {
         railFill.style.strokeDashoffset = String(100 - progress);

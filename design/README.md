@@ -76,6 +76,7 @@ first-run.html?step=2
 - No `fetch()` of local JSON; use the data in `assets/js/mock-data.js`.
 - No external fonts, icon CDNs, or analytics.
 - `assets/css/tokens.css` is the source of truth for design tokens.
+- `assets/css/components/` contains standalone, scalable components. The download badge lives there and is scaled with `--dl-badge-size`.
 - Official art is local-only and gitignored. Never commit it.
 
 When a layout is approved here, it gets ported to the React app with the same tokens.
