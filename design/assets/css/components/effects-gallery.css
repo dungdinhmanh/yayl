@@ -1,0 +1,989 @@
+/* ==========================================================================
+   Effects gallery — every progress effect in one review page.
+   Progress is driven by --p (0..1), set on .fxbtn / .fxstage by the page script.
+   ========================================================================== */
+
+.fxdefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.fxlegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-4);
+  padding: 12px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.fxlegend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-11);
+  color: var(--muted);
+}
+
+.fxlegend__item b {
+  color: var(--text);
+  font-size: var(--fs-11);
+  font-weight: 700;
+}
+
+.fxtag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: var(--fs-10);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.fxweight {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fxweight i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.fxweight i.w-1 {
+  background: #45d6a0;
+}
+
+.fxweight i.w-2 {
+  background: #f5b544;
+}
+
+.fxweight i.w-3 {
+  background: #ff5d7a;
+}
+
+.fxgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.fxgroup {
+  grid-column: 1 / -1;
+  margin: 18px 0 -6px;
+  color: var(--muted-2);
+  font-size: var(--fs-11);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fxcard {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.fxcard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fxcard__name {
+  font-size: var(--fs-13);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.fxcard__tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.fxw {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.fxw i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.fxw--1 i.is-on {
+  background: #45d6a0;
+}
+
+.fxw--2 i.is-on {
+  background: #f5b544;
+}
+
+.fxw--3 i.is-on {
+  background: #ff5d7a;
+}
+
+.fxstage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 118px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    var(--bg-1);
+}
+
+.fxdesc {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-12);
+  line-height: 1.5;
+}
+
+/* --- shared button + fills --- */
+.fxbtn {
+  --p: 0.42;
+  position: relative;
+  width: 300px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
+    var(--bg-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), var(--shadow-sm);
+  isolation: isolate;
+}
+
+.fxlabel {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: var(--fs-12);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+
+.fxlabel b {
+  font-variant-numeric: tabular-nums;
+}
+
+.fxlabel svg {
+  width: 16px;
+  height: 16px;
+}
+
+.fxfill-v {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(var(--p) * 100%);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.7), rgba(var(--accent-rgb), 0.98));
+}
+
+.fxfill-h {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--p) * 100%);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.22), rgba(var(--accent-rgb), 0.62));
+}
+
+.fxwaves {
+  position: absolute;
+  top: -13px;
+  left: 0;
+  display: block;
+  width: 200%;
+  height: 26px;
+}
+
+.fxwaves path {
+  fill: rgba(var(--accent-rgb), 0.68);
+  animation: fxwave 4.2s linear infinite;
+}
+
+.fxwaves path:nth-child(2) {
+  fill: rgba(var(--accent-rgb), 0.84);
+  animation-duration: 3.2s;
+  animation-direction: reverse;
+}
+
+.fxwaves path:nth-child(3) {
+  fill: rgba(var(--accent-rgb), 0.5);
+  animation-duration: 5.4s;
+}
+
+@keyframes fxwave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-12.5%);
+  }
+}
+
+@keyframes fxspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- 1 wave-multi --- */
+/* shared fill + waves */
+
+/* --- 2 bubbles --- */
+.fxbubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.fxbubble {
+  position: absolute;
+  bottom: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/* --- 3 tide --- */
+.fxtide {
+  position: absolute;
+  right: 0;
+  bottom: -3px;
+  left: 0;
+  height: calc(var(--p) * 100% + 6px);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.7), rgba(var(--accent-rgb), 0.98));
+  animation: fxtide 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes fxtide {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-5px);
+  }
+}
+
+/* --- 4 bigdrop --- */
+.fxdropwrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.fxdrop {
+  position: absolute;
+  top: -12px;
+  width: 7px;
+  height: 11px;
+  margin-left: -3.5px;
+  border-radius: 60% 60% 50% 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), #ffffff);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.55);
+}
+
+.fxsplash {
+  position: absolute;
+  width: 30px;
+  height: 12px;
+  margin-left: -15px;
+  margin-top: -6px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+}
+
+/* --- 5 reflect --- */
+.fxreflect {
+  position: absolute;
+  top: -18px;
+  right: 0;
+  left: 0;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent);
+  filter: blur(2px);
+}
+
+/* --- 6 slime --- */
+.fxslime {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(var(--p) * 100%);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.72), rgba(var(--accent-rgb), 0.98));
+  border-radius: 46% 54% 0 0 / 22% 26% 0 0;
+  animation: fxslime 5s ease-in-out infinite;
+}
+
+@keyframes fxslime {
+  0%,
+  100% {
+    border-radius: 46% 54% 0 0 / 22% 26% 0 0;
+    transform: translateX(-1px);
+  }
+  50% {
+    border-radius: 58% 42% 0 0 / 28% 20% 0 0;
+    transform: translateX(1px);
+  }
+}
+
+/* --- 7 gradient-run --- */
+.fxbtn[data-fx="gradient-run"] .fxfill-h {
+  background-image: linear-gradient(90deg, rgba(var(--accent-rgb), 0.25), rgba(var(--accent-rgb), 0.92), rgba(var(--accent-rgb), 0.25));
+  background-size: 220% 100%;
+  animation: fxgrad 2.4s linear infinite;
+}
+
+@keyframes fxgrad {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 220% 0;
+  }
+}
+
+/* --- 8 stripes --- */
+.fxbtn[data-fx="stripes"] .fxfill-h {
+  background-image: repeating-linear-gradient(115deg, rgba(var(--accent-rgb), 0.92) 0 10px, rgba(var(--accent-rgb), 0.42) 10px 20px);
+  animation: fxstripes 0.9s linear infinite;
+}
+
+@keyframes fxstripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+
+/* --- 9 segmented --- */
+.fxbtn[data-fx="segmented"] .fxfill-h {
+  background: rgba(var(--accent-rgb), 0.85);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 18px);
+}
+
+/* --- 10 border-sweep --- */
+.fxoutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fxoutline rect {
+  fill: none;
+  stroke-width: 2;
+}
+
+.fxoutline__bg {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.fxoutline__fg {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.7));
+}
+
+.fxoutline__spark {
+  stroke: #ffffff;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px #ffffff);
+  animation: fxsweep 1.6s linear infinite;
+}
+
+@keyframes fxsweep {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -720;
+  }
+}
+
+/* --- 11 comet --- */
+.fxbtn[data-fx="comet"] .fxfill-h::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 84px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85));
+  filter: blur(3px);
+  animation: fxcomet 1.5s ease-in-out infinite;
+}
+
+@keyframes fxcomet {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(5px);
+  }
+}
+
+/* --- 12 scanline --- */
+.fxbtn[data-fx="scanline"] .fxfill-h {
+  background: rgba(var(--accent-rgb), 0.55);
+}
+
+.fxbtn[data-fx="scanline"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 5px);
+  pointer-events: none;
+}
+
+.fxscan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--p) * 100% - 1px);
+  z-index: 6;
+  width: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+  animation: fxscanmove 1.3s ease-in-out infinite;
+}
+
+@keyframes fxscanmove {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- 13 sand --- */
+.fxcanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- 14 heat --- */
+.fx-heat {
+  transition: background 260ms linear;
+}
+
+/* --- 15..17 ring family --- */
+.fxring {
+  position: relative;
+  width: 78px;
+  height: 78px;
+}
+
+.fxring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.fxring circle {
+  fill: none;
+  stroke-width: 6;
+}
+
+.fxring__bg {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.fxring__fg {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.6));
+  transition: stroke-dashoffset 200ms linear;
+}
+
+.fxring__pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: var(--fs-13);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.fxorbit {
+  position: absolute;
+  inset: -3px;
+  animation: fxspin 2.6s linear infinite;
+}
+
+.fxorbit i {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+}
+
+.fxsweep {
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(var(--accent-rgb), 0.85) 60deg, transparent 120deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  animation: fxspin 1.8s linear infinite;
+}
+
+/* --- 18 hourglass --- */
+.fxhour {
+  position: relative;
+  width: 52px;
+  height: 80px;
+}
+
+.fxhour__top,
+.fxhour__bot {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 35px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fxhour__top {
+  top: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.fxhour__bot {
+  bottom: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.fxhour__top i,
+.fxhour__bot i {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+}
+
+.fxhour__top i {
+  height: calc((1 - var(--p)) * 100%);
+}
+
+.fxhour__bot i {
+  height: calc(var(--p) * 100%);
+}
+
+.fxhour__stream {
+  position: absolute;
+  top: 33px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  margin-left: -1px;
+  background: var(--accent);
+  animation: fxscanmove 0.6s linear infinite;
+}
+
+/* --- 19 odometer --- */
+.fxodo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+.fxdigit {
+  position: relative;
+  width: 18px;
+  height: 30px;
+  overflow: hidden;
+}
+
+.fxdigit__col {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 380ms var(--ease-out);
+}
+
+.fxdigit__col span {
+  display: block;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.fxodo__sign {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* --- 20 text-wipe --- */
+.fxwipe {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, var(--text) calc(var(--p) * 100%), rgba(255, 255, 255, 0.2) calc(var(--p) * 100%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- 21 breathe dots --- */
+.fxdotwrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fxdots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fxdots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: fxbreathe 1.2s ease-in-out infinite;
+}
+
+.fxdots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.fxdots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes fxbreathe {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.fxdotwrap__pct {
+  color: var(--text);
+  font-size: var(--fs-16);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 22 blocks --- */
+.fxblocks {
+  display: flex;
+  gap: 4px;
+}
+
+.fxblock {
+  width: 15px;
+  height: 34px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 180ms, box-shadow 180ms, transform 180ms;
+}
+
+.fxblock.is-on {
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+  transform: translateY(-2px);
+}
+
+/* --- 23 pixel grid --- */
+.fxpixels {
+  display: grid;
+  grid-template-columns: repeat(14, 11px);
+  gap: 3px;
+}
+
+.fxpixel {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.09);
+  transition: background 160ms, box-shadow 160ms;
+}
+
+.fxpixel.is-on {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.55);
+}
+
+/* --- 24 energy channel --- */
+.fxbtn[data-fx="energy"]::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  z-index: 2;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 999px;
+}
+
+.fxchannel {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  left: 12px;
+  z-index: 3;
+  height: 4px;
+  margin-top: -2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fxchannel i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: calc(var(--p) * 100%);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.4), var(--accent));
+}
+
+.fxchannel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  animation: fxenergy 1.2s linear infinite;
+}
+
+@keyframes fxenergy {
+  from {
+    left: -40px;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* --- 25 turbine --- */
+.fxturbine {
+  position: relative;
+  width: 76px;
+  height: 76px;
+}
+
+.fxturbine svg {
+  width: 100%;
+  height: 100%;
+  animation: fxspin 1.6s linear infinite;
+}
+
+.fxturbine svg rect {
+  fill: rgba(var(--accent-rgb), 0.85);
+}
+
+.fxturbine__pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: var(--fs-13);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 26 material wavy --- */
+.fxbtn[data-fx="material-wavy"] .fxfill-h {
+  background: rgba(var(--accent-rgb), 0.78);
+}
+
+.fxbtn[data-fx="material-wavy"] .fxfill-h::after {
+  content: "";
+  position: absolute;
+  top: -18%;
+  right: -9px;
+  bottom: -18%;
+  width: 18px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.78);
+  animation: fxwavy 1.6s ease-in-out infinite;
+}
+
+@keyframes fxwavy {
+  0%,
+  100% {
+    transform: scaleY(0.62);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* --- 27 steam thin --- */
+.fxthin {
+  position: relative;
+  width: 300px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.fxthin i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: calc(var(--p) * 100%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), var(--accent));
+}
+
+.fxthin::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  animation: fxenergy 1.4s linear infinite;
+}
+
+/* --- 28 hoyoplay --- */
+.fxbtn[data-fx="hoyoplay"] .fxfill-h {
+  background: rgba(var(--accent-rgb), 0.52);
+}
+
+.fxbtn[data-fx="hoyoplay"] .fxlabel {
+  gap: 8px;
+}
+
+/* --- 29 gooey --- */
+.fxgoo {
+  position: relative;
+  width: 200px;
+  height: 80px;
+  filter: url(#fxGoo);
+}
+
+.fxgoo::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 18px;
+  background: var(--accent);
+}
+
+.fxgoo i {
+  position: absolute;
+  bottom: 8px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: fxgoo 3s ease-in-out infinite;
+}
+
+@keyframes fxgoo {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-26px) scale(0.86);
+  }
+}
+
+/* --- 30 glass --- */
+.fxbtn[data-fx="glass"] .fxfill-h {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.45), rgba(var(--accent-rgb), 0.95));
+  filter: url(#fxGlass);
+}
+
+/* --- reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .fxwaves path,
+  .fxtide,
+  .fxslime,
+  .fxbtn[data-fx="gradient-run"] .fxfill-h,
+  .fxbtn[data-fx="stripes"] .fxfill-h,
+  .fxoutline__spark,
+  .fxbtn[data-fx="comet"] .fxfill-h::after,
+  .fxscan,
+  .fxorbit,
+  .fxsweep,
+  .fxhour__stream,
+  .fxdots i,
+  .fxchannel::after,
+  .fxturbine svg,
+  .fxbtn[data-fx="material-wavy"] .fxfill-h::after,
+  .fxthin::after,
+  .fxgoo i {
+    animation: none;
+  }
+}
