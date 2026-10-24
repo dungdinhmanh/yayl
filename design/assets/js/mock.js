@@ -171,6 +171,20 @@
     });
   }
 
+  var NAV_DL_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/></svg>';
+
+  function ensureNavDownloadAnim() {
+    document.querySelectorAll('.nav-item[href="download.html"], .icon-btn[href="download.html"]').forEach(function (item) {
+      if (item.querySelector(".nav-dl-anim")) return;
+      var span = document.createElement("span");
+      span.className = "nav-dl-anim";
+      span.setAttribute("aria-hidden", "true");
+      span.innerHTML = NAV_DL_SVG;
+      item.appendChild(span);
+    });
+  }
+
   function setArt(img, gameId) {
     if (!img) return;
     var entry = games[gameId] || games.arknights;
@@ -394,6 +408,10 @@
     if (typeof Y.renderPage === "function") {
       Y.renderPage(app);
     }
+    var isDownloading = ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
+    document.querySelectorAll('.nav-item[href="download.html"], .icon-btn[href="download.html"]').forEach(function (item) {
+      item.classList.toggle("is-downloading", isDownloading);
+    });
     applyToolbar();
   }
 
@@ -604,6 +622,7 @@
   function setupCommon() {
     document.querySelectorAll("img").forEach(wireImage);
     ensureRailProgress();
+    ensureNavDownloadAnim();
 
     document.querySelectorAll(".game-card[data-game-id], .top-tab[data-game-id]").forEach(function (button) {
       button.addEventListener("click", function () {

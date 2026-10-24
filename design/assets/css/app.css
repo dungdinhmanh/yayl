@@ -5570,6 +5570,34 @@ body[data-layout="topbar"] .backdrop-art {
   }
 }
 
+/* The chosen download icon, applied to the Downloads nav item while active. */
+.nav-dl-anim {
+  display: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0b0f17;
+}
+
+.nav-dl-anim svg {
+  width: 14px;
+  height: 14px;
+  animation: dl-icon-bounce 1.5s ease-out infinite;
+}
+
+.nav-item.is-downloading > svg,
+.icon-btn.is-downloading > svg {
+  display: none;
+}
+
+.nav-item.is-downloading .nav-dl-anim,
+.icon-btn.is-downloading .nav-dl-anim {
+  display: grid;
+}
+
 /* The launcher locks its minimum size. The lab shows the same guard. */
 @media (max-width: 960px), (max-height: 600px) {
   body::before {

@@ -44,7 +44,7 @@ for (const file of jsFiles) {
   while ((match = regex.exec(source))) referenced.add(match[1]);
   const keyRegex = /["']([a-zA-Z][\w.]*\.[\w.]+)["']/g;
   while ((match = keyRegex.exec(source))) {
-    if (match[1].indexOf(".") !== -1 && /^(home|download|settings|firstRun|kit|common|nav|app|server|window)\./.test(match[1])) {
+    if (match[1].indexOf(".") !== -1 && /^(home|download|settings|firstRun|kit|common|nav|app|server|window|anim)\./.test(match[1]) && !/\.(html|js|css|json)$/.test(match[1])) {
       referenced.add(match[1]);
     }
   }
