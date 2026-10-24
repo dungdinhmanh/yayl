@@ -147,6 +147,30 @@
     }
   }
 
+  var RAIL_PATH = "M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28";
+
+  function ensureRailProgress() {
+    document.querySelectorAll(".game-thumb-wrap").forEach(function (wrap) {
+      if (wrap.querySelector(".rail-progress")) return;
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "rail-progress");
+      svg.setAttribute("viewBox", "0 0 56 56");
+      svg.setAttribute("aria-hidden", "true");
+      var bg = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      bg.setAttribute("class", "rail-progress-bg");
+      bg.setAttribute("pathLength", "100");
+      bg.setAttribute("d", RAIL_PATH);
+      var fill = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      fill.setAttribute("class", "rail-progress-fill");
+      fill.setAttribute("pathLength", "100");
+      fill.setAttribute("d", RAIL_PATH);
+      fill.setAttribute("data-rail-fill", "");
+      svg.appendChild(bg);
+      svg.appendChild(fill);
+      wrap.insertBefore(svg, wrap.firstChild);
+    });
+  }
+
   function setArt(img, gameId) {
     if (!img) return;
     var entry = games[gameId] || games.arknights;
@@ -278,6 +302,14 @@
       }
       var thumb = card.querySelector(".game-thumb");
       if (thumb) setArt(thumb, id);
+      var isDownloading =
+        isActive && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
+      var progress = isDownloading ? (states[app.current.state] && states[app.current.state].progress) || 42 : 0;
+      card.classList.toggle("is-downloading", isDownloading);
+      var railFill = card.querySelector("[data-rail-fill]");
+      if (railFill) {
+        railFill.style.strokeDashoffset = String(100 - progress);
+      }
     });
 
     document.querySelectorAll(".top-tab[data-game-id]").forEach(function (tab) {
@@ -571,6 +603,7 @@
 
   function setupCommon() {
     document.querySelectorAll("img").forEach(wireImage);
+    ensureRailProgress();
 
     document.querySelectorAll(".game-card[data-game-id], .top-tab[data-game-id]").forEach(function (button) {
       button.addEventListener("click", function () {

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — Server switch concept</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="server-switch" data-game="arknights" data-state="ready">
+  <div class="app">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div class="brand-name">YAYL</div>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn" type="button" data-window-action="minimize" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" type="button" data-window-action="maximize" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="win-btn is-close" type="button" data-window-action="close" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="main-scroll">
+        <div class="kit-page">
+          <a class="back-link" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg>
+            UI Lab
+          </a>
+          <div class="eyebrow" data-i18n="server.eyebrow">MÁY CHỦ</div>
+          <h1 class="page-title" data-i18n="server.title">Một icon game, nhiều máy chủ</h1>
+          <p class="page-subtitle" data-i18n="server.desc">Bấm icon game để mở hộp chọn máy chủ. Mỗi máy chủ là một profile riêng: version, thư mục cài, tiến trình tải.</p>
+
+          <div class="server-demo">
+            <div class="server-rail">
+              <button class="server-game is-active" type="button" data-server-game="arknights" title="Arknights">
+                <span class="server-avatar">
+                  <img src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                  <span class="server-badge">EN</span>
+                </span>
+              </button>
+              <button class="server-game" type="button" data-server-game="stella" title="Stella Sora">
+                <span class="server-avatar">
+                  <img src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
+                  <span class="server-badge">EN</span>
+                </span>
+              </button>
+            </div>
+
+            <div class="server-popover">
+              <div class="server-popover-head" data-i18n="server.choose">Chọn máy chủ</div>
+              <button class="server-item is-active" type="button" data-server="en">
+                <span class="server-flag">EN</span>
+                <span class="server-copy"><span class="server-name">Global</span><span class="server-meta" data-i18n="server.installed">Đã cài</span></span>
+                <span class="server-ping">24ms</span>
+              </button>
+              <button class="server-item" type="button" data-server="jp">
+                <span class="server-flag">JP</span>
+                <span class="server-copy"><span class="server-name">日本</span><span class="server-meta" data-i18n="server.notInstalled">Chưa cài</span></span>
+                <span class="server-ping">92ms</span>
+              </button>
+              <button class="server-item" type="button" data-server="kr">
+                <span class="server-flag">KR</span>
+                <span class="server-copy"><span class="server-name">한국</span><span class="server-meta" data-i18n="server.notInstalled">Chưa cài</span></span>
+                <span class="server-ping">68ms</span>
+              </button>
+              <button class="server-item" type="button" data-server="tw">
+                <span class="server-flag">TW</span>
+                <span class="server-copy"><span class="server-name">繁中</span><span class="server-meta" data-i18n="server.notInstalled">Chưa cài</span></span>
+                <span class="server-ping">110ms</span>
+              </button>
+            </div>
+          </div>
+
+          <section class="lab-notes" style="margin-top:24px;">
+            <div class="lab-note">
+              <h3 data-i18n="server.note">Ý tưởng, chưa chốt. Có thể đổi cách hiển thị.</h3>
+              <ul>
+                <li data-i18n="server.idea1">Icon game có badge máy chủ (EN/JP/KR) ở góc.</li>
+                <li data-i18n="server.idea2">Bấm icon → popover danh sách máy chủ, có trạng thái cài / ping / version.</li>
+                <li data-i18n="server.idea3">Giữ chuột hoặc right-click để mở nhanh; click thường để mở popover.</li>
+                <li data-i18n="server.idea4">Máy chủ đang tải có viền tiến trình quanh icon.</li>
+              </ul>
+            </div>
+            <div class="lab-note">
+              <h3>Data model</h3>
+              <p><code>gameId → { servers: [{ id, label, biz, apiHost, cdnHost, version, installed, path }] }</code></p>
+              <p>Mỗi máy chủ có manifest/config riêng. Chuyển máy chủ = đổi profile, không đổi file cài của máy chủ khác.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/mock.js"></script>
+  <script src="assets/js/mock-pages.js"></script>
+</body>
+</html>

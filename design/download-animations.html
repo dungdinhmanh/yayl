@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — Download avatar animations</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="animations" data-game="arknights" data-state="downloading">
+  <div class="app">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div class="brand-name">YAYL</div>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn" type="button" data-window-action="minimize" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" type="button" data-window-action="maximize" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="win-btn is-close" type="button" data-window-action="close" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="main-scroll">
+        <div class="kit-page">
+          <a class="back-link" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg>
+            UI Lab
+          </a>
+          <div class="eyebrow" data-i18n="anim.eyebrow">HOẠT ẢNH TẢI</div>
+          <h1 class="page-title" data-i18n="anim.title">Chọn hoạt ảnh avatar</h1>
+          <p class="page-subtitle" data-i18n="anim.desc">Cùng một khung avatar vuông bo tròn + viền tiến trình. Chọn kiểu chuyển động bạn muốn cho trạng thái đang tải.</p>
+
+          <div class="anim-grid" style="margin-top:24px;">
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <div class="anim-row">
+                <div class="demo-avatar anim-ring">
+                  <svg class="demo-progress" viewBox="0 0 56 56" aria-hidden="true">
+                    <path class="demo-progress-bg" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></path>
+                    <path class="demo-progress-fill" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28" style="stroke-dashoffset:58"></path>
+                  </svg>
+                  <img class="demo-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                </div>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.ring">Chỉ viền tiến trình</div>
+                  <p class="anim-desc" data-i18n="anim.ringDesc">Không thêm chuyển động. Nhẹ nhất, phù hợp nếu muốn giao diện tĩnh.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <div class="anim-row">
+                <div class="demo-avatar anim-pulse">
+                  <svg class="demo-progress" viewBox="0 0 56 56" aria-hidden="true">
+                    <path class="demo-progress-bg" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></path>
+                    <path class="demo-progress-fill" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28" style="stroke-dashoffset:58"></path>
+                  </svg>
+                  <img class="demo-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                </div>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.pulse">Viền + nhịp thở</div>
+                  <p class="anim-desc" data-i18n="anim.pulseDesc">Avatar nhấp nhô rất nhẹ, viền tiến trình vẫn chạy.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <div class="anim-row">
+                <div class="demo-avatar anim-shimmer">
+                  <svg class="demo-progress" viewBox="0 0 56 56" aria-hidden="true">
+                    <path class="demo-progress-bg" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></path>
+                    <path class="demo-progress-fill" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28" style="stroke-dashoffset:58"></path>
+                  </svg>
+                  <img class="demo-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                </div>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.shimmer">Viền + vệt sáng</div>
+                  <p class="anim-desc" data-i18n="anim.shimmerDesc">Một vệt sáng chéo chạy qua avatar theo chu kỳ.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <div class="anim-row">
+                <div class="demo-avatar anim-dots">
+                  <svg class="demo-progress" viewBox="0 0 56 56" aria-hidden="true">
+                    <path class="demo-progress-bg" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></path>
+                    <path class="demo-progress-fill" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28" style="stroke-dashoffset:58"></path>
+                  </svg>
+                  <img class="demo-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                  <span class="demo-dots"><i></i><i></i><i></i></span>
+                </div>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.dots">Viền + 3 chấm</div>
+                  <p class="anim-desc" data-i18n="anim.dotsDesc">Ba chấm nhấp nhô ở đáy avatar, dễ nhận biết đang tải.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="anim.pick">Phương án</div>
+              <div class="anim-row">
+                <div class="demo-avatar anim-orbit">
+                  <svg class="demo-progress" viewBox="0 0 56 56" aria-hidden="true">
+                    <path class="demo-progress-bg" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></path>
+                    <path class="demo-progress-fill" pathLength="100" d="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28" style="stroke-dashoffset:58"></path>
+                    <circle class="demo-orbit" r="3">
+                      <animateMotion dur="2.4s" repeatCount="indefinite" path="M28 3 H39 A14 14 0 0 1 53 17 V39 A14 14 0 0 1 39 53 H17 A14 14 0 0 1 3 39 V17 A14 14 0 0 1 17 3 H28"></animateMotion>
+                    </circle>
+                  </svg>
+                  <img class="demo-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                </div>
+                <div class="anim-copy">
+                  <div class="anim-name" data-i18n="anim.orbit">Viền + điểm sáng chạy</div>
+                  <p class="anim-desc" data-i18n="anim.orbitDesc">Một điểm sáng chạy dọc theo viền tiến trình.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <p class="anim-note" data-i18n="anim.note">Chưa chốt kiểu nào. Đây là các phương án để duyệt.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/mock.js"></script>
+  <script src="assets/js/mock-pages.js"></script>
+</body>
+</html>

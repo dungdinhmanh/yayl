@@ -1253,4 +1253,16 @@
 
     Y.renderPage = renderHome;
   };
+
+  pages["server-switch"] = function (appRef) {
+    document.querySelectorAll("[data-server]").forEach(function (item) {
+      item.addEventListener("click", function () {
+        document.querySelectorAll("[data-server]").forEach(function (other) {
+          other.classList.toggle("is-active", other === item);
+        });
+        var badge = document.querySelector(".server-game.is-active .server-badge");
+        if (badge) badge.textContent = item.getAttribute("data-server").toUpperCase();
+      });
+    });
+  };
 })();

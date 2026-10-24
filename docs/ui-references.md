@@ -161,6 +161,34 @@ Download:
 - Added a **queue** panel with a queued item and priority/cancel actions.
 - Kept the ring, speed chart, phase list, and CRC footer.
 
+## Server switch idea
+
+The user asked for a single game icon that opens a server picker on click. Research:
+
+- **Starward** represents a server as a `GameBizIcon`: game icon + server icon + `ServerName` + install path + size. The server row is a button with a server glyph and name, and a flyout lists all servers for the game. A pin toggle keeps a server at the top.
+- **Twintail Launcher** treats each region/`biz` as a separate install profile (`installSettings.manifest_id`, `region_code`) and switches the current game by setting `currentGame` to that biz.
+- **Official launchers** ship one app per region; the news/config endpoints are per-host, so servers are isolated.
+
+Proposed YAYL model:
+
+```text
+gameId -> {
+  servers: [
+    { id, label, biz, apiHost, cdnHost, version, installed, path, ping }
+  ]
+}
+```
+
+Interaction:
+
+- One icon per game in the rail. A small corner badge shows the active server (`EN`, `JP`, `KR`, `TW`).
+- Click the icon (or right-click / long-press) to open a server popover.
+- The popover lists servers with installed state, version, and ping. Selecting one switches the profile, art, version, and download state.
+- If the selected server is not installed, the primary action becomes Install for that server.
+- The downloading server shows the progress border around the icon.
+
+A concept mock is in `design/server-switch.html`. It is not decided; it is for review.
+
 ## Still open
 
 1. **Download page**: add Network / Peak / Disk stats and split Download vs Install progress rows, like TTL.

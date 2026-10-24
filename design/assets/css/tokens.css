@@ -46,6 +46,7 @@
   /* Type */
   --font-ui: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --fs-10: 10px;
   --fs-11: 11px;
   --fs-12: 12px;
   --fs-13: 13px;
@@ -59,10 +60,20 @@
   --fs-36: 36px;
   --fs-48: 48px;
 
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
   /* Layout */
   --titlebar-h: 40px;
   --sidebar-w: 232px;
-  --content-pad: 40px;
+  --content-pad: clamp(22px, 2.8vw, 40px);
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;

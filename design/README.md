@@ -34,6 +34,8 @@ Static HTML/CSS/JS prototypes for the YAYL launcher. **No build step. No server.
 | `settings.html` | Settings (General, Game, Network, Advanced, About) |
 | `first-run.html` | Onboarding (language, games, done) |
 | `ui-kit.html` | Buttons, forms, status, progress, modal |
+| `download-animations.html` | Five download-avatar animation options to review |
+| `server-switch.html` | One game icon + server picker concept |
 
 ## Query parameters
 

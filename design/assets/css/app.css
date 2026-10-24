@@ -225,7 +225,7 @@ body[data-game="stella"] .backdrop-art {
 .brand-sub {
   margin-top: 3px;
   color: var(--muted-2);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.22em;
   line-height: 1;
@@ -333,7 +333,7 @@ body[data-game="stella"] .backdrop-art {
 
 .top-tab-region {
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
 }
@@ -409,7 +409,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 9px;
   margin: 0 0 8px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -524,7 +524,7 @@ body[data-game="stella"] .backdrop-art {
   min-width: 0;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -534,7 +534,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(255, 255, 255, 0.08);
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -545,7 +545,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 5px;
   min-width: 0;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .game-state-line .mini-dot {
@@ -590,7 +590,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(var(--card-accent-rgb), 0.16);
   color: var(--card-accent);
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -653,7 +653,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(var(--accent-rgb), 0.16);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   text-align: center;
 }
@@ -698,7 +698,7 @@ body[data-game="stella"] .backdrop-art {
   margin-left: auto;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 10px;
 }
 
 .sidebar-version {
@@ -710,7 +710,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 4px;
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 10px;
 }
 
 .lab-tag {
@@ -719,7 +719,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 4px;
   color: var(--accent);
   font-family: var(--font-ui);
-  font-size: 7.5px;
+  font-size: 10.5px;
   font-weight: 750;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -810,7 +810,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 4px;
   background: rgba(var(--accent-rgb), 0.09);
   color: var(--accent);
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -985,7 +985,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 999px;
   background: rgba(8, 11, 17, 0.5);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1037,7 +1037,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(8, 11, 17, 0.32);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -1243,7 +1243,7 @@ body[data-game="stella"] .backdrop-art {
 .meta-label {
   margin-bottom: 3px;
   color: var(--muted);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1267,7 +1267,7 @@ body[data-game="stella"] .backdrop-art {
 .meta-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .meta-action {
@@ -1330,13 +1330,13 @@ body[data-game="stella"] .backdrop-art {
 .progress-dock-title span {
   color: var(--info);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .progress-dock-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .progress-dock .progress-track {
@@ -1492,7 +1492,7 @@ body[data-game="stella"] .backdrop-art {
   margin-top: 7px;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 /* --------------------------------------------------------------------------
@@ -1562,7 +1562,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
@@ -1647,7 +1647,7 @@ body[data-game="stella"] .backdrop-art {
 .ring-label {
   margin-top: 7px;
   color: var(--muted-2);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1660,7 +1660,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-stats-title {
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1696,7 +1696,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-stat-label {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1725,7 +1725,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(0, 0, 0, 0.14);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .download-current-file svg {
@@ -1756,7 +1756,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 10px;
   margin-bottom: 10px;
   color: var(--muted-2);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1887,7 +1887,7 @@ body[data-game="stella"] .backdrop-art {
 .phase-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .phase-item.is-active .phase-sub {
@@ -1913,7 +1913,7 @@ body[data-game="stella"] .backdrop-art {
   min-width: 0;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .recent-file svg {
@@ -1933,16 +1933,15 @@ body[data-game="stella"] .backdrop-art {
   margin-left: auto;
   color: var(--muted-3);
   font-style: normal;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .download-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 14px;
   padding-top: 2px;
-  padding-right: 0;
 }
 
 .download-footer-note {
@@ -2010,7 +2009,7 @@ body[data-game="stella"] .backdrop-art {
 .download-error-text {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .download-error-actions {
@@ -2145,7 +2144,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 460px;
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -2167,7 +2166,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
   margin-top: 4px;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .settings-footer svg {
@@ -2220,7 +2219,7 @@ body[data-game="stella"] .backdrop-art {
 
 .path-field .input {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .path-field .btn {
@@ -2418,7 +2417,7 @@ body[data-game="stella"] .backdrop-art {
   margin-top: 4px;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .about-desc {
@@ -2443,7 +2442,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.65;
 }
 
@@ -2486,7 +2485,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .onboarding-brand .brand-sub {
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .onboarding-body {
@@ -2510,7 +2509,7 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 6px;
   color: var(--muted-3);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2544,7 +2543,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .onboarding-step.is-active .step-num {
@@ -2561,7 +2560,7 @@ body[data-game="stella"] .backdrop-art {
 
 .onboarding-eyebrow {
   color: var(--accent);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -2636,7 +2635,7 @@ body[data-game="stella"] .backdrop-art {
 .language-sub {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .onboarding-actions {
@@ -2657,7 +2656,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 12px;
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .onboarding-visual {
@@ -2709,7 +2708,7 @@ body[data-game="stella"] .backdrop-art {
   display: block;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -2733,7 +2732,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 999px;
   background: rgba(5, 8, 13, 0.34);
   color: var(--muted);
-  font-size: 8.5px;
+  font-size: 10px;
   backdrop-filter: blur(8px);
 }
 
@@ -2797,7 +2796,7 @@ body[data-game="stella"] .backdrop-art {
 .game-select-meta {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .check-box {
@@ -2834,7 +2833,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 10px;
   margin-bottom: 6px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2843,7 +2842,7 @@ body[data-game="stella"] .backdrop-art {
 .onboarding-path-label span {
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -2855,7 +2854,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 6px;
   margin-top: 7px;
   color: var(--muted-3);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .disk-note svg {
@@ -2903,7 +2902,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .summary-row span {
@@ -2943,7 +2942,7 @@ body[data-game="stella"] .backdrop-art {
 .kit-label {
   margin-bottom: 12px;
   color: var(--muted-2);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -2978,7 +2977,7 @@ body[data-game="stella"] .backdrop-art {
   display: block;
   color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .type-sample {
@@ -3032,7 +3031,7 @@ body[data-game="stella"] .backdrop-art {
 .kit-toast-text {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .kit-modal {
@@ -3110,7 +3109,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .lab-brand .brand-sub {
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .lab-hero {
@@ -3171,7 +3170,7 @@ body[data-game="stella"] .backdrop-art {
 
 .lab-side-title {
   color: var(--muted-2);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -3263,7 +3262,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(5, 8, 13, 0.4);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3350,7 +3349,7 @@ body[data-game="stella"] .backdrop-art {
   border-top: 1px solid var(--border-soft);
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 10px;
 }
 
 /* --------------------------------------------------------------------------
@@ -3372,7 +3371,7 @@ body[data-game="stella"] .backdrop-art {
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(18px);
   font-family: var(--font-ui);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .mock-group {
@@ -3390,7 +3389,7 @@ body[data-game="stella"] .backdrop-art {
 
 .mock-label {
   color: var(--muted-3);
-  font-size: 7.5px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -3410,7 +3409,7 @@ body[data-game="stella"] .backdrop-art {
   background-repeat: no-repeat;
   background-position: right 6px center;
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 10.5px;
   cursor: pointer;
 }
 
@@ -3420,7 +3419,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .mock-toggle:hover,
@@ -3495,7 +3494,7 @@ body[data-game="stella"] .backdrop-art {
 .toast-text {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 @keyframes toast-in {
@@ -3586,7 +3585,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(0, 0, 0, 0.2);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10.5px;
   word-break: break-all;
 }
 
@@ -3689,7 +3688,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
   margin-top: 12px;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.5;
   cursor: pointer;
 }
@@ -3718,7 +3717,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(8, 11, 17, 0.9);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   color: var(--accent);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.14em;
   backdrop-filter: blur(16px);
@@ -3806,7 +3805,7 @@ body[data-game="stella"] .backdrop-art {
 
 .mock-field label {
   color: var(--muted-2);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 600;
 }
 
@@ -3823,7 +3822,7 @@ body[data-game="stella"] .backdrop-art {
   background-repeat: no-repeat;
   background-position: right 6px center;
   color: var(--text-soft);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .mock-panel-actions {
@@ -3841,14 +3840,14 @@ body[data-game="stella"] .backdrop-art {
   padding-top: 9px;
   border-top: 1px solid var(--border-soft);
   color: var(--muted-3);
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.55;
 }
 
 .mock-panel-note code {
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 
 /* Utility */
@@ -3971,7 +3970,7 @@ body[data-game="stella"] .backdrop-art {
   }
 
   .meta-value.is-mono {
-    font-size: 9.5px;
+    font-size: 11px;
   }
 
   .settings-shell {
@@ -4245,7 +4244,7 @@ body[data-game="stella"] .backdrop-art {
   }
 
   .recent-file {
-    font-size: 8.5px;
+    font-size: 10px;
   }
 
   .download-footer {
@@ -4329,6 +4328,7 @@ body[data-layout="rail"] .game-card {
   padding: 0;
   border: 0;
   background: none;
+  color: var(--card-accent);
 }
 
 body[data-layout="rail"] .game-card:hover,
@@ -4341,25 +4341,65 @@ body[data-layout="rail"] .game-card.is-active::before {
   display: none;
 }
 
+body[data-layout="rail"] .game-badge {
+  display: none;
+}
+
 body[data-layout="rail"] .game-thumb-wrap {
-  width: 48px;
-  height: 48px;
-  border: 2px solid transparent;
-  border-radius: 50%;
-  transition: border-color var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  transition: box-shadow var(--dur-fast), transform var(--dur-fast);
 }
 
 body[data-layout="rail"] .game-card:hover .game-thumb-wrap {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 body[data-layout="rail"] .game-card.is-active .game-thumb-wrap {
-  border-color: var(--card-accent);
-  box-shadow: 0 0 0 2px rgba(var(--card-accent-rgb), 0.16), 0 0 20px rgba(var(--card-accent-rgb), 0.36);
+  box-shadow: 0 0 0 1px rgba(var(--card-accent-rgb), 0.3), 0 0 22px rgba(var(--card-accent-rgb), 0.28);
+}
+
+body[data-layout="rail"] .rail-progress {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+body[data-layout="rail"] .rail-progress-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 3;
+}
+
+body[data-layout="rail"] .rail-progress-fill {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 6px rgba(var(--card-accent-rgb), 0.55));
+  transition: stroke-dashoffset var(--dur-slow) linear, opacity var(--dur-base);
+}
+
+body[data-layout="rail"] .game-card:not(.is-downloading) .rail-progress-fill {
+  opacity: 0;
 }
 
 body[data-layout="rail"] .game-thumb {
-  border-radius: 50%;
+  position: absolute;
+  inset: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  object-fit: cover;
   object-position: center 25%;
 }
 
@@ -4493,7 +4533,7 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .banner-kicker {
   color: var(--accent);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 750;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -4596,7 +4636,7 @@ body[data-layout="rail"] .backdrop-scrim {
   flex: 0 0 auto;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 /* Playtime / last played pill */
@@ -4625,7 +4665,7 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .hero-stat-label {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -4681,7 +4721,7 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .game-info-meta .mono {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .game-info-badge {
@@ -4689,7 +4729,7 @@ body[data-layout="rail"] .backdrop-scrim {
   border-radius: 5px;
   background: rgba(var(--accent-rgb), 0.15);
   color: var(--accent);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4801,7 +4841,7 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-play-sub {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   opacity: 0.72;
   line-height: 1.1;
@@ -4840,7 +4880,7 @@ body[data-layout="rail"] .backdrop-scrim {
   z-index: 8;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 /* Settings: game hero */
@@ -4914,7 +4954,7 @@ body[data-layout="rail"] .backdrop-scrim {
   border-radius: 5px;
   background: rgba(var(--accent-rgb), 0.16);
   color: var(--accent);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4962,7 +5002,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .queue-meta {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .queue-actions {
@@ -5104,5 +5144,336 @@ body[data-layout="topbar"] .backdrop-art {
 
   .hero-stats {
     display: none;
+  }
+}
+
+/* Download avatar animation options */
+.anim-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.anim-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.demo-avatar {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  border-radius: 16px;
+}
+
+.demo-progress {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.demo-progress-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 3;
+}
+
+.demo-progress-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.55));
+}
+
+.demo-thumb {
+  position: absolute;
+  inset: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  object-fit: cover;
+  object-position: center 25%;
+}
+
+.anim-copy {
+  min-width: 0;
+}
+
+.anim-name {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.anim-desc {
+  max-width: 340px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.anim-note {
+  margin-top: 18px;
+  color: var(--muted-2);
+  font-size: 10.5px;
+}
+
+.demo-orbit {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.8));
+}
+
+.demo-dots {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.demo-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: demo-bounce 1.1s ease-in-out infinite;
+}
+
+.demo-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.demo-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes demo-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.anim-pulse .demo-thumb {
+  animation: demo-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes demo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.anim-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 11px;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.38) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: demo-shimmer 1.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes demo-shimmer {
+  0% {
+    background-position: 220% 0;
+  }
+  100% {
+    background-position: -220% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .anim-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Server switch concept */
+.server-demo {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 22px;
+}
+
+.server-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(5, 8, 13, 0.62);
+  backdrop-filter: blur(16px);
+}
+
+.server-game {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.server-avatar {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+
+.server-avatar img {
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  object-fit: cover;
+  object-position: center 25%;
+}
+
+.server-game.is-active .server-avatar img {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(var(--accent-rgb), 0.35);
+}
+
+.server-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.server-popover {
+  width: 300px;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: rgba(6, 9, 14, 0.96);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px);
+}
+
+.server-popover-head {
+  padding: 6px 8px 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.server-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-soft);
+  text-align: left;
+  cursor: pointer;
+}
+
+.server-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.server-item.is-active {
+  background: rgba(var(--accent-rgb), 0.14);
+}
+
+.server-flag {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.server-item.is-active .server-flag {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.server-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.server-name {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.server-meta {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+
+.server-ping {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .server-demo {
+    flex-direction: column;
+  }
+}
+
+/* The launcher locks its minimum size. The lab shows the same guard. */
+@media (max-width: 960px), (max-height: 600px) {
+  body::before {
+    content: "YAYL needs at least 1100 × 650";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(4, 6, 10, 0.97);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-align: center;
   }
 }

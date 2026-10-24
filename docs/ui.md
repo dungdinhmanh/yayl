@@ -78,6 +78,14 @@ Do not force a theme step; dark is the only v1 theme.
 - Default 1280×720; minimum 1100×650.
 - Rounded window corners where the OS supports them; fall back cleanly.
 
+## Spacing and type
+
+- Spacing scale: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 (`--space-1` … `--space-10`).
+- Content padding: `clamp(22px, 2.8vw, 40px)` instead of a fixed 40px.
+- Minimum readable font sizes: 10px uppercase labels, 11px meta/date, 12px body/controls.
+- Small screens are not supported. The launcher locks to **1100×650** minimum; the lab shows a full-screen guard below 960×600.
+- Test every change at both 1280×720 and 1100×650, and at 125%/150% DPI.
+
 ## Design tokens
 
 Defined in `design/assets/css/tokens.css`.
