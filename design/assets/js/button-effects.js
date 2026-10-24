@@ -1,96 +1,105 @@
 /* YAYL update-button animation proposals.
-   Uses anime.js when available; falls back to the CSS keyframes otherwise. */
+   The fill level is driven by --p so every demo reflects real progress.
+   anime.js adds the falling drops; the rest is CSS. */
 (function () {
   "use strict";
 
-  function init() {
-    if (!window.anime) return;
-    var demos = document.querySelectorAll(".btn-demo");
-    if (!demos.length) return;
-    document.body.classList.add("has-anime");
+  function prefersReduced() {
+    return (
+      document.body.dataset.motion === "reduced" ||
+      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    );
+  }
 
-    demos.forEach(function (demo) {
-      var fill = demo.querySelector(".btn-demo-fill");
-
-      if (demo.classList.contains("is-drops")) {
-        var layer = document.createElement("span");
-        layer.className = "btn-demo-layer";
-        demo.appendChild(layer);
-        for (var i = 0; i < 6; i += 1) {
-          var drop = document.createElement("span");
-          drop.className = "btn-demo-drop";
-          drop.style.left = 10 + i * 30 + "px";
-          layer.appendChild(drop);
-        }
-        anime({
-          targets: layer.querySelectorAll(".btn-demo-drop"),
-          translateY: [0, 46],
-          opacity: [0, 1, 0],
-          duration: 950,
-          delay: anime.stagger(130),
-          loop: true,
-          easing: "easeInQuad"
-        });
-      }
-
-      if (demo.classList.contains("is-liquid")) {
-        var wave = document.createElement("span");
-        wave.className = "btn-demo-wave";
-        demo.appendChild(wave);
-        anime({
-          targets: wave,
-          translateX: ["-45%", "115%"],
-          duration: 1800,
-          direction: "alternate",
-          loop: true,
-          easing: "easeInOutSine"
-        });
-        if (fill) {
-          anime({
-            targets: fill,
-            translateY: [8, -2],
-            scaleX: [1.03, 1],
-            duration: 2400,
-            direction: "alternate",
-            loop: true,
-            easing: "easeInOutSine"
-          });
-        }
-      }
-
-      if (demo.classList.contains("is-wave")) {
-        var band = document.createElement("span");
-        band.className = "btn-demo-band";
-        demo.appendChild(band);
-        anime({
-          targets: band,
-          translateX: ["-120%", "220%"],
-          duration: 1300,
-          loop: true,
-          easing: "linear"
-        });
-      }
-
-      if (demo.classList.contains("is-dots")) {
-        var track = document.createElement("span");
-        track.className = "btn-demo-layer";
-        demo.appendChild(track);
-        for (var d = 0; d < 4; d += 1) {
-          var dot = document.createElement("span");
-          dot.className = "btn-demo-particle";
-          track.appendChild(dot);
-        }
-        anime({
-          targets: track.querySelectorAll(".btn-demo-particle"),
-          translateX: [-16, 196],
-          opacity: [0, 1, 0],
-          duration: 1200,
-          delay: anime.stagger(160),
-          loop: true,
-          easing: "linear"
-        });
-      }
+  function setProgress(value) {
+    var p = Math.max(0, Math.min(100, value)) / 100;
+    document.querySelectorAll(".dlbtn").forEach(function (btn) {
+      btn.style.setProperty("--p", String(p));
     });
+    document.querySelectorAll("[data-pct]").forEach(function (el) {
+      el.textContent = Math.round(p * 100) + "%";
+    });
+    var out = document.getElementById("dlfxOut");
+    if (out) out.textContent = Math.round(p * 100) + "%";
+  }
+
+  function initControl() {
+    var range = document.getElementById("dlfxRange");
+    if (!range) return;
+    range.addEventListener("input", function () {
+      setProgress(parseInt(range.value, 10));
+    });
+    setProgress(parseInt(range.value, 10));
+  }
+
+  function initDrops() {
+    var btn = document.querySelector('.dlbtn[data-fx="drops"]');
+    if (!btn) return;
+    var label = btn.querySelector(".dlbtn__label");
+    var layer = document.createElement("span");
+    layer.className = "dlbtn__layer";
+    btn.insertBefore(layer, label);
+
+    function surfaceY() {
+      var p = parseFloat(getComputedStyle(btn).getPropertyValue("--p")) || 0;
+      return btn.clientHeight * (1 - p);
+    }
+
+    function spawn() {
+      if (prefersReduced()) return;
+      var width = btn.clientWidth;
+      var y = surfaceY();
+      if (y < 12) return;
+      var x = 24 + Math.random() * (width - 48);
+
+      var drop = document.createElement("span");
+      drop.className = "dlbtn__drop";
+      drop.style.left = x + "px";
+      layer.appendChild(drop);
+
+      var ripple = document.createElement("span");
+      ripple.className = "dlbtn__ripple";
+      ripple.style.left = x + "px";
+      ripple.style.top = y + "px";
+      layer.appendChild(ripple);
+
+      if (window.anime) {
+        anime({
+          targets: drop,
+          translateY: [0, y - 6],
+          opacity: [0, 1, 1],
+          duration: 620,
+          easing: "easeInQuad",
+          complete: function () {
+            drop.remove();
+          }
+        });
+        anime({
+          targets: ripple,
+          scale: [0.15, 1.7],
+          opacity: [0, 0.7, 0],
+          duration: 780,
+          delay: 540,
+          easing: "easeOutQuad",
+          complete: function () {
+            ripple.remove();
+          }
+        });
+      } else {
+        drop.remove();
+        ripple.remove();
+      }
+    }
+
+    if (window.anime && !prefersReduced()) {
+      window.setInterval(spawn, 280);
+      spawn();
+    }
+  }
+
+  function init() {
+    initControl();
+    initDrops();
   }
 
   if (document.readyState === "loading") {

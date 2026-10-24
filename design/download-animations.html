@@ -222,37 +222,72 @@
           </div>
 
             <div class="eyebrow" style="margin-top:26px;" data-i18n="anim.buttonSection">Hiệu ứng trong nút tải</div>
-            <div class="anim-grid" style="margin-top:12px;">
+            <p class="anim-desc" style="max-width:74ch;margin:6px 0 0;" data-i18n="anim.buttonIntro">Mỗi phương án đều bám theo tiến trình thật. Kéo thanh bên dưới để xem mức tải thay đổi.</p>
+
+            <div class="dlfx-control">
+              <label for="dlfxRange" data-i18n="anim.buttonProgress">Tiến trình</label>
+              <input id="dlfxRange" type="range" min="0" max="100" value="42" step="1">
+              <output id="dlfxOut">42%</output>
+            </div>
+
+            <div class="anim-grid" style="margin-top:16px;">
               <section class="panel kit-card">
                 <div class="kit-label" data-i18n="anim.pick">Phương án</div>
                 <div class="anim-row">
-                  <span class="btn-demo is-drops"><span class="btn-demo-fill" style="width:42%"></span><span class="btn-demo-label">Đang tải · 42%</span></span>
-                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonDrops">Giọt nước</div><p class="anim-desc" data-i18n="anim.buttonDropsDesc">Từng giọt rơi xuống và tích đầy ở đáy nút.</p></div>
+                  <div class="dlbtn" data-fx="liquid">
+                    <div class="dlbtn__liquid">
+                      <svg class="dlbtn__surface" viewBox="0 0 2400 26" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="is-back" d="M0 13 Q75 3 150 13 T300 13 T450 13 T600 13 T750 13 T900 13 T1050 13 T1200 13 T1350 13 T1500 13 T1650 13 T1800 13 T1950 13 T2100 13 T2250 13 T2400 13 V26 H0 Z"></path>
+                        <path class="is-front" d="M0 15 Q75 5 150 15 T300 15 T450 15 T600 15 T750 15 T900 15 T1050 15 T1200 15 T1350 15 T1500 15 T1650 15 T1800 15 T1950 15 T2100 15 T2250 15 T2400 15 V26 H0 Z"></path>
+                      </svg>
+                    </div>
+                    <span class="dlbtn__label"><span data-i18n="anim.buttonLoading">Đang tải</span> · <b data-pct>42%</b></span>
+                  </div>
+                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonLiquid">Chất lỏng dâng</div><p class="anim-desc" data-i18n="anim.buttonLiquidDesc">Mực nước dâng đúng theo phần trăm, mặt nước gợn sóng hai lớp.</p></div>
                 </div>
               </section>
+
               <section class="panel kit-card">
                 <div class="kit-label" data-i18n="anim.pick">Phương án</div>
                 <div class="anim-row">
-                  <span class="btn-demo is-liquid"><span class="btn-demo-fill" style="width:42%"></span><span class="btn-demo-label">Đang tải · 42%</span></span>
-                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonLiquid">Chất lỏng dâng</div><p class="anim-desc" data-i18n="anim.buttonLiquidDesc">Nút đầy dần từ đáy lên với gợn sóng.</p></div>
+                  <div class="dlbtn" data-fx="drops">
+                    <div class="dlbtn__liquid">
+                      <svg class="dlbtn__surface" viewBox="0 0 2400 26" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="is-back" d="M0 13 Q75 4 150 13 T300 13 T450 13 T600 13 T750 13 T900 13 T1050 13 T1200 13 T1350 13 T1500 13 T1650 13 T1800 13 T1950 13 T2100 13 T2250 13 T2400 13 V26 H0 Z"></path>
+                      </svg>
+                    </div>
+                    <span class="dlbtn__label"><span data-i18n="anim.buttonLoading">Đang tải</span> · <b data-pct>42%</b></span>
+                  </div>
+                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonDrops">Mưa giọt nước</div><p class="anim-desc" data-i18n="anim.buttonDropsDesc">Mực nước theo tiến trình, giọt rơi xuống tạo gợn lan trên mặt nước.</p></div>
                 </div>
               </section>
+
               <section class="panel kit-card">
                 <div class="kit-label" data-i18n="anim.pick">Phương án</div>
                 <div class="anim-row">
-                  <span class="btn-demo is-wave"><span class="btn-demo-fill" style="width:42%"></span><span class="btn-demo-label">Đang tải · 42%</span></span>
-                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonWave">Sóng chạy</div><p class="anim-desc" data-i18n="anim.buttonWaveDesc">Một dải sóng chạy ngang qua nút.</p></div>
+                  <div class="dlbtn" data-fx="shimmer">
+                    <div class="dlbtn__bar"><span class="dlbtn__sheen"></span></div>
+                    <span class="dlbtn__label"><span data-i18n="anim.buttonLoading">Đang tải</span> · <b data-pct>42%</b></span>
+                  </div>
+                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonShimmer">Vệt sáng quét</div><p class="anim-desc" data-i18n="anim.buttonShimmerDesc">Thanh chạy ngang tới đúng phần trăm, vệt sáng quét qua phần đã tải.</p></div>
                 </div>
               </section>
+
               <section class="panel kit-card">
                 <div class="kit-label" data-i18n="anim.pick">Phương án</div>
                 <div class="anim-row">
-                  <span class="btn-demo is-dots"><span class="btn-demo-fill" style="width:42%"></span><span class="btn-demo-label">Đang tải · 42%</span></span>
-                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonDots">Hạt chạy</div><p class="anim-desc" data-i18n="anim.buttonDotsDesc">Các hạt nhỏ chạy dọc theo đáy nút.</p></div>
+                  <div class="dlbtn" data-fx="edge">
+                    <div class="dlbtn__bar is-edge">
+                      <span class="dlbtn__spark" style="--d:0s"></span>
+                      <span class="dlbtn__spark" style="--d:0.5s"></span>
+                      <span class="dlbtn__spark" style="--d:1s"></span>
+                    </div>
+                    <span class="dlbtn__label"><span data-i18n="anim.buttonLoading">Đang tải</span> · <b data-pct>42%</b></span>
+                  </div>
+                  <div class="anim-copy"><div class="anim-name" data-i18n="anim.buttonEdge">Đầu sóng neon</div><p class="anim-desc" data-i18n="anim.buttonEdgeDesc">Thanh chạy ngang, đầu thanh phát sáng và bắn hạt nhỏ.</p></div>
                 </div>
               </section>
             </div>
-
 
           <p class="anim-note" data-i18n="anim.note">Chưa chốt kiểu nào. Đây là các phương án để duyệt.</p>
         </div>
