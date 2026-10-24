@@ -6,12 +6,12 @@ The order is deliberate: validate the UI as static HTML, then port it to React, 
 
 - [x] Create repository, MIT license, editor config, AGENTS.md.
 - [x] Document architecture, protocol reference, and roadmap.
-- [ ] Build `design/` static UI lab:
-  - [ ] Design tokens and shared components.
-  - [ ] Home variant A: sidebar + hero.
-  - [ ] Home variant B: top tabs + hero.
-  - [ ] Download, settings, first-run, UI kit.
-  - [ ] Vietnamese/English toggle and state switcher.
+- [x] Build `design/` static UI lab:
+  - [x] Design tokens and shared components.
+  - [x] Home variant A: sidebar + hero.
+  - [x] Home variant B: top tabs + hero.
+  - [x] Download, settings, first-run, UI kit.
+  - [x] Vietnamese/English toggle and state switcher.
   - [ ] Review at 1280×720, 1100×650, 150% zoom.
 - [ ] Choose home layout and lock design tokens.
 - [ ] Minimal Tauri + React scaffold (blank window) to verify the toolchain.
