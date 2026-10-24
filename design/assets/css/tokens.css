@@ -13,16 +13,16 @@
   --surface-hover: rgba(255, 255, 255, 0.055);
 
   /* Text */
-  --text: #f4f7fb;
-  --text-soft: #d6dde8;
-  --muted: #98a2b3;
-  --muted-2: #6f7a8c;
-  --muted-3: #4d5768;
+  --text: #f7f9fc;
+  --text-soft: #e3e9f3;
+  --muted: #b8c2d1;
+  --muted-2: #919cad;
+  --muted-3: #707b8d;
 
   /* Lines */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.05);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-soft: rgba(255, 255, 255, 0.065);
+  --border-strong: rgba(255, 255, 255, 0.2);
 
   /* Default accent (Arknights) */
   --accent: #f2b544;

@@ -8,6 +8,7 @@
 - Per-game accent: Arknights amber/orange, Stella Sora violet/cyan.
 - Motion is subtle and short (150–250 ms); reduce-motion is respected.
 - Vietnamese first; English must fit without layout changes.
+- Text contrast is tuned for readability over bright key art; see [ui-references.md](ui-references.md).
 
 ## Home layouts
 

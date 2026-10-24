@@ -1242,7 +1242,7 @@ body[data-game="stella"] .backdrop-art {
 
 .meta-label {
   margin-bottom: 3px;
-  color: var(--muted-2);
+  color: var(--muted);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1695,7 +1695,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .download-stat-label {
-  color: var(--muted-2);
+  color: var(--muted);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1871,7 +1871,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .phase-title {
-  color: var(--muted);
+  color: var(--text-soft);
   font-size: 11.5px;
   font-weight: 600;
 }
@@ -1886,12 +1886,12 @@ body[data-game="stella"] .backdrop-art {
 
 .phase-sub {
   margin-top: 2px;
-  color: var(--muted-3);
+  color: var(--muted-2);
   font-size: 9px;
 }
 
 .phase-item.is-active .phase-sub {
-  color: var(--muted-2);
+  color: var(--muted);
 }
 
 .download-side-divider {
@@ -2438,7 +2438,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border-soft);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
-  color: var(--muted-2);
+  color: var(--muted);
   font-size: 9.5px;
   line-height: 1.65;
 }

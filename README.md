@@ -8,6 +8,8 @@ A lightweight, community-made launcher for **Arknights EN** and **Stella Sora EN
 
 The official launcher works, but it carries a full Electron/Chromium runtime, a large install footprint, and limited quality-of-life features. YAYL keeps the official game protocol and file formats, then rebuilds the shell around a native Rust core and a small React UI.
 
+UI direction is informed by Starward, Twintail Launcher, and HoYoPlay; see [docs/ui-references.md](docs/ui-references.md).
+
 ## Planned stack
 
 | Layer | Choice |
