@@ -5459,6 +5459,117 @@ body[data-layout="topbar"] .backdrop-art {
   }
 }
 
+/* Chosen option + small download icon */
+.kit-card.is-chosen {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.2), 0 18px 40px rgba(var(--accent-rgb), 0.12);
+}
+
+.anim-chosen {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dl-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0b0f17;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+}
+
+.dl-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dl-icon.is-fade {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.dl-icon.is-slide svg {
+  animation: dl-icon-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes dl-icon-slide {
+  0% {
+    transform: translateY(-11px);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(11px);
+    opacity: 0;
+  }
+}
+
+.dl-icon.is-fade svg {
+  animation: dl-icon-fade 1.6s ease-in-out infinite;
+}
+
+@keyframes dl-icon-fade {
+  0% {
+    transform: translateY(-9px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(9px);
+    opacity: 0;
+  }
+}
+
+.dl-icon.is-bounce svg {
+  animation: dl-icon-bounce 1.5s ease-out infinite;
+}
+
+@keyframes dl-icon-bounce {
+  0% {
+    transform: translateY(-9px);
+    opacity: 0;
+  }
+  35% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+}
+
 /* The launcher locks its minimum size. The lab shows the same guard. */
 @media (max-width: 960px), (max-height: 600px) {
   body::before {
