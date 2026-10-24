@@ -12,7 +12,6 @@
   --dl-badge-size: 20px;
   --dl-badge-bg: rgba(6, 9, 14, 0.96);
   --dl-badge-fg: #ffffff;
-  --dl-badge-border: rgba(255, 255, 255, 0.2);
 
   position: relative;
   display: block;
@@ -20,11 +19,11 @@
   width: var(--dl-badge-size);
   height: var(--dl-badge-size);
   overflow: hidden;
-  border: 1px solid var(--dl-badge-border);
+  border: 0;
   border-radius: 999px;
   background: var(--dl-badge-bg);
   color: var(--dl-badge-fg);
-  box-shadow: 0 calc(var(--dl-badge-size) * 0.15) calc(var(--dl-badge-size) * 0.5) rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   pointer-events: none;
   user-select: none;
 }
@@ -35,8 +34,8 @@
 
 .dl-badge--corner {
   position: absolute;
-  right: calc(var(--dl-badge-size) * -0.2);
-  bottom: calc(var(--dl-badge-size) * -0.2);
+  right: calc(var(--dl-badge-size) * -0.5);
+  bottom: calc(var(--dl-badge-size) * -0.5);
 }
 
 .dl-badge__svg {

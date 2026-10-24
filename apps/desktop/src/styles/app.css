@@ -4388,11 +4388,7 @@ body[data-layout="rail"] .rail-progress-fill {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   filter: drop-shadow(0 0 6px rgba(var(--card-accent-rgb), 0.55));
-  transition: stroke-dashoffset var(--dur-slow) linear, opacity var(--dur-base);
-}
-
-body[data-layout="rail"] .game-card:not(.is-downloading) .rail-progress-fill {
-  opacity: 0;
+  transition: stroke-dashoffset var(--dur-slow) linear;
 }
 
 body[data-layout="rail"] .game-thumb {
@@ -4797,23 +4793,44 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-play {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 212px;
   height: 62px;
   padding: 0 24px;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   color: var(--accent-ink);
-  box-shadow: 0 16px 40px rgba(var(--accent-rgb), 0.3);
-  transition: filter var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
+  transition: filter var(--dur-fast), transform var(--dur-fast), background var(--dur-fast);
+}
+
+.home-play-progress {
+  position: absolute;
+  right: 18px;
+  bottom: 8px;
+  left: 18px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.home-play-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0.85;
+  transition: width 280ms linear;
 }
 
 .home-play:hover:not(:disabled) {
   filter: brightness(1.05);
-  transform: translateY(-1px);
 }
 
 .home-play:disabled {
@@ -4850,21 +4867,18 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-play.is-downloading {
-  background: linear-gradient(135deg, #2b9fd8, #5cc8ff);
+  background: #2b9fd8;
   color: #04141f;
-  box-shadow: 0 16px 40px rgba(92, 200, 255, 0.26);
 }
 
 .home-play.is-paused {
-  background: linear-gradient(135deg, #c98b1f, #f5b544);
+  background: #c98b1f;
   color: #171006;
-  box-shadow: 0 16px 40px rgba(245, 181, 68, 0.24);
 }
 
 .home-play.is-error {
-  background: linear-gradient(135deg, #ff5d7a, #b8324c);
+  background: #d64562;
   color: #fff;
-  box-shadow: 0 16px 40px rgba(255, 93, 122, 0.28);
 }
 
 .home-play.is-offline,

@@ -10,8 +10,17 @@ export type Lang = "vi" | "en";
 
 export default function App() {
   const [gameId, setGameId] = useState<GameId>("arknights");
-  const [state, setState] = useState<GameState>("ready");
+  const [states, setStates] = useState<Record<GameId, GameState>>(() => ({
+    arknights: "ready",
+    stella: "ready",
+  }));
   const [lang, setLang] = useState<Lang>("vi");
+
+  const state = states[gameId];
+
+  const setState = (next: GameState) => {
+    setStates((current) => ({ ...current, [gameId]: next }));
+  };
 
   useEffect(() => {
     document.body.dataset.game = gameId;
@@ -70,7 +79,7 @@ export default function App() {
       </header>
 
       <div className="shell">
-        <Rail gameId={gameId} state={state} t={t} onSelect={setGameId} />
+        <Rail gameId={gameId} states={states} t={t} onSelect={setGameId} />
         <main className="main">
           <div className="main-scroll">
             <Home gameId={gameId} state={state} lang={lang} t={t} />

@@ -41,19 +41,27 @@ function subText(game: (typeof GAMES)[GameId], state: GameState, t: Props["t"]) 
 function secondaryKey(state: GameState) {
   if (state === "update") return "home.action.playAnyway";
   if (state === "install") return "home.action.useExisting";
-  if (state === "downloading") return "home.action.pause";
-  if (state === "paused") return "home.action.resume";
   if (state === "error") return "home.action.errorDetails";
   if (state === "offline") return "home.action.retry";
   if (state === "running") return "home.action.minimize";
   return null;
 }
 
+const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
+
 export default function Home({ gameId, state, lang, t }: Props) {
   const game = GAMES[gameId];
   const meta = STATE_META[state];
   const secondary = secondaryKey(state);
   const showCard = ["install", "downloading", "paused", "verifying", "error"].includes(state);
+  const vars = {
+    game: game.name,
+    percent: meta.progress || 42,
+    size: game.updateSize,
+    required: game.required,
+    drive: game.drive,
+    free: game.free,
+  };
 
   return (
     <div className="page home-page">
@@ -88,17 +96,19 @@ export default function Home({ gameId, state, lang, t }: Props) {
       <div className="home-actions">
         {secondary && (
           <button className="home-action-link" type="button">
-            {t(secondary)}
+            {t(secondary, vars)}
           </button>
         )}
-        <button className="home-icon-btn" type="button" aria-label={t("nav.settings")}>
-          {icon("gear")}
-        </button>
         <button className={"home-play is-" + state} type="button" disabled={Boolean((meta as { disabled?: boolean }).disabled)}>
           {icon(meta.primaryIcon)}
           <span className="home-play-copy">
-            <span className="home-play-label">{t(meta.primary)}</span>
+            <span className="home-play-label">{t(meta.primary, vars)}</span>
             <span className="home-play-sub">{subText(game, state, t)}</span>
+            {DOWNLOAD_STATES.includes(state) && (
+              <span className="home-play-progress">
+                <span style={{ width: `${meta.progress}%` }} />
+              </span>
+            )}
           </span>
         </button>
       </div>
