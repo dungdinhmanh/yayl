@@ -30,7 +30,6 @@ Static HTML/CSS/JS prototypes for the YAYL launcher. **No build step. No server.
 | `index.html` | Gallery and review checklist |
 | `home-sidebar.html` | Home, variant A (icon rail + news) |
 | `home-topbar.html` | Home, variant B (top avatars + news) |
-| `download.html` | Download/progress/verify/error |
 | `settings.html` | Settings (General, Game, Network, Advanced, About) |
 | `first-run.html` | Onboarding (language, games, done) |
 | `ui-kit.html` | Buttons, forms, status, progress, modal |
@@ -53,7 +52,6 @@ Examples:
 ```text
 home-sidebar.html?state=install&lang=vi
 home-sidebar.html?state=downloading&game=stella
-download.html?state=verifying
 settings.html?tab=network
 first-run.html?step=2
 ```

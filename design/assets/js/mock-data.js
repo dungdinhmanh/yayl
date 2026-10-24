@@ -204,6 +204,11 @@
 
   YAYL.DOWNLOAD_STATES = ["downloading", "paused", "verifying", "error", "complete"];
 
+  YAYL.GAME_STATES = {
+    arknights: "ready",
+    stella: "ready"
+  };
+
   YAYL.NEWS = {
     banners: [
       {

@@ -42,18 +42,14 @@
 | Repair required | Sửa nhanh | Xem lỗi | YAYL-CRC-03 |
 | Offline | Chơi | Thử lại | Offline |
 
-## Download view
+## Download state
 
-- Rail avatar: rounded square, progress border only. **Chosen** in `download-animations.html`.
-- Game avatar badge (HoYoPlay style): a full dark circle with a large arrow close to the edge; it slides down, holds ~0.6s, continues down, and loops. Paused switches the badge to a pause icon. Progress is shown by the avatar border, not a second ring. **Chosen** and applied to the rail game avatar.
-- The badge is a standalone component: `design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`. Scale it with one variable: `--dl-badge-size`. The glyph is drawn inside a single SVG, so browser zoom and DPI scaling cannot shift it.
-- Banner art + dark overlay, stats panel, progress.
-- Phase stepper: Chuẩn bị → Tải xuống → Xác minh → Cài đặt → Hoàn tất.
-- Current file, file count, CDN, connection count, speed, ETA.
-- Queue panel: queued install (priority/cancel).
-- Actions: pause/resume, cancel (confirm), minimize.
-- Error card: code, file, retry, switch CDN, open log.
-- Future: Network / Peak / Disk row and split download/install bars (Twintail style).
+There is no separate Downloads page or tab.
+
+- While downloading, the selected game's avatar border stays the normal selected border; the badge shows the download state, and the primary action button shows progress.
+- A game that is downloading but not selected shows the progress border on its avatar.
+- The primary button shows a percentage and a thin progress bar; animation proposals (water drops, liquid fill, wave, particles) live in `design/download-animations.html` for review.
+- Paused switches the badge to a pause icon and the button to a resume state.
 
 ## Settings
 

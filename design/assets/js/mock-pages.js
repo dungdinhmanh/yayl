@@ -999,8 +999,6 @@
   function homeSecondaryText(game, state) {
     if (state === "update") return { key: "home.action.playAnyway" };
     if (state === "install") return { key: "home.action.useExisting" };
-    if (state === "downloading") return { key: "home.action.pause" };
-    if (state === "paused") return { key: "home.action.resume" };
     if (state === "error") return { key: "home.action.errorDetails" };
     if (state === "offline") return { key: "home.action.retry" };
     if (state === "running") return { key: "home.action.minimize" };
@@ -1130,6 +1128,13 @@
       if (icon) {
         icon.innerHTML = meta.primaryIcon === "spinner" ? '<span class="spinner"></span>' : app.icon(meta.primaryIcon);
       }
+      var progressWrap = primary.querySelector("[data-button-progress]");
+      if (progressWrap) {
+        var progressValue = ["downloading", "paused", "verifying"].indexOf(state) !== -1 ? meta.progress || 42 : 0;
+        progressWrap.hidden = progressValue === 0;
+        var progressFill = progressWrap.querySelector("span");
+        if (progressFill) progressFill.style.width = progressValue + "%";
+      }
     }
 
     var secondary = byId("secondaryAction");
@@ -1179,25 +1184,24 @@
   pages.home = function (appRef) {
     var primary = byId("primaryAction");
     var secondary = byId("secondaryAction");
-    var settings = byId("homeSettingsBtn");
-
-    function goDownload() {
-      window.location.href =
-        "download.html?state=" +
-        encodeURIComponent(appRef.current.state === "paused" ? "paused" : "downloading") +
-        "&game=" +
-        encodeURIComponent(appRef.current.game) +
-        "&lang=" +
-        encodeURIComponent(appRef.current.lang);
-    }
 
     if (primary) {
       primary.addEventListener("click", function () {
         var state = appRef.current.state;
-        if (state === "update" || state === "install" || state === "downloading" || state === "paused" || state === "verifying") {
-          goDownload();
+        if (state === "update" || state === "install") {
+          appRef.setState("downloading");
+          appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
           return;
         }
+        if (state === "downloading") {
+          appRef.setState("paused");
+          return;
+        }
+        if (state === "paused") {
+          appRef.setState("downloading");
+          return;
+        }
+        if (state === "verifying") return;
         if (state === "error") {
           appRef.showToast(appRef.t("home.toast.repair.title"), appRef.t("home.toast.repair.text"));
           return;
@@ -1242,12 +1246,6 @@
         if (state === "running") {
           appRef.showToast(appRef.t("home.toast.minimize.title"), appRef.t("home.toast.minimize.text"));
         }
-      });
-    }
-
-    if (settings) {
-      settings.addEventListener("click", function () {
-        window.location.href = "settings.html?game=" + encodeURIComponent(appRef.current.game) + "&lang=" + encodeURIComponent(appRef.current.lang);
       });
     }
 

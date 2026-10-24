@@ -67,6 +67,17 @@
     format: format
   };
 
+  Y.GAME_STATES = Y.GAME_STATES || {};
+  Y.GAME_STATES[app.current.game] = initialState;
+  Object.defineProperty(app.current, "state", {
+    get: function () {
+      return Y.GAME_STATES[app.current.game] || "ready";
+    },
+    set: function (value) {
+      Y.GAME_STATES[app.current.game] = value;
+    }
+  });
+
   window.YAYL_MOCK.app = app;
 
   function format(key, vars) {
@@ -300,7 +311,7 @@
       var game = games[id];
       if (!game) return;
       var isActive = id === active;
-      var stateId = isActive ? app.current.state : "ready";
+      var stateId = (Y.GAME_STATES && Y.GAME_STATES[id]) || "ready";
       card.dataset.status = statusKind(stateId);
       var versionEl = card.querySelector("[data-card-version]");
       if (versionEl) versionEl.textContent = game.version;
@@ -314,20 +325,20 @@
       }
       var thumb = card.querySelector(".game-thumb");
       if (thumb) setArt(thumb, id);
-      var isDownloading =
-        isActive && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
-      var progress = isDownloading ? (states[app.current.state] && states[app.current.state].progress) || 42 : 0;
-      card.classList.toggle("is-downloading", isDownloading);
+      var downloadActive = ["downloading", "paused", "verifying"].indexOf(stateId) !== -1;
+      var showProgressRing = downloadActive && !isActive;
+      var progress = showProgressRing ? (states[stateId] && states[stateId].progress) || 42 : 0;
+      card.classList.toggle("is-downloading", showProgressRing);
       var dlBadge = card.querySelector(".dl-badge");
       if (dlBadge && window.YAYL_BADGE) {
         window.YAYL_BADGE.setState(
           dlBadge,
-          isDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "idle"
+          downloadActive ? (stateId === "paused" ? "paused" : "downloading") : "idle"
         );
       }
       var railFill = card.querySelector("[data-rail-fill]");
       if (railFill) {
-        railFill.style.strokeDashoffset = String(100 - progress);
+        railFill.style.strokeDashoffset = String(100 - progress) + "px";
       }
     });
 
@@ -335,13 +346,13 @@
       var tabId = tab.getAttribute("data-game-id");
       var thumb = tab.querySelector(".top-tab-thumb");
       if (thumb) setArt(thumb, tabId);
-      var tabDownloading =
-        tabId === active && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
+      var tabState = (Y.GAME_STATES && Y.GAME_STATES[tabId]) || "ready";
+      var tabDownloading = ["downloading", "paused", "verifying"].indexOf(tabState) !== -1;
       var tabBadge = tab.querySelector(".dl-badge");
       if (tabBadge && window.YAYL_BADGE) {
         window.YAYL_BADGE.setState(
           tabBadge,
-          tabDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "idle"
+          tabDownloading ? (tabState === "paused" ? "paused" : "downloading") : "idle"
         );
       }
     });

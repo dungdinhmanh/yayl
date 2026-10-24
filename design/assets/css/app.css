@@ -4394,11 +4394,7 @@ body[data-layout="rail"] .rail-progress-fill {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   filter: drop-shadow(0 0 6px rgba(var(--card-accent-rgb), 0.55));
-  transition: stroke-dashoffset var(--dur-slow) linear, opacity var(--dur-base);
-}
-
-body[data-layout="rail"] .game-card:not(.is-downloading) .rail-progress-fill {
-  opacity: 0;
+  transition: stroke-dashoffset var(--dur-slow) linear;
 }
 
 body[data-layout="rail"] .game-thumb {
@@ -4808,23 +4804,44 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-play {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 212px;
   height: 62px;
   padding: 0 24px;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   color: var(--accent-ink);
-  box-shadow: 0 16px 40px rgba(var(--accent-rgb), 0.3);
-  transition: filter var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
+  transition: filter var(--dur-fast), transform var(--dur-fast), background var(--dur-fast);
+}
+
+.home-play-progress {
+  position: absolute;
+  right: 18px;
+  bottom: 8px;
+  left: 18px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.home-play-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0.85;
+  transition: width 280ms linear;
 }
 
 .home-play:hover:not(:disabled) {
   filter: brightness(1.05);
-  transform: translateY(-1px);
 }
 
 .home-play:disabled {
@@ -4861,21 +4878,18 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-play.is-downloading {
-  background: linear-gradient(135deg, #2b9fd8, #5cc8ff);
+  background: #2b9fd8;
   color: #04141f;
-  box-shadow: 0 16px 40px rgba(92, 200, 255, 0.26);
 }
 
 .home-play.is-paused {
-  background: linear-gradient(135deg, #c98b1f, #f5b544);
+  background: #c98b1f;
   color: #171006;
-  box-shadow: 0 16px 40px rgba(245, 181, 68, 0.24);
 }
 
 .home-play.is-error {
-  background: linear-gradient(135deg, #ff5d7a, #b8324c);
+  background: #d64562;
   color: #fff;
-  box-shadow: 0 16px 40px rgba(255, 93, 122, 0.28);
 }
 
 .home-play.is-offline,
@@ -5472,6 +5486,99 @@ body[data-layout="topbar"] .backdrop-art {
   }
 }
 
+/* Update button animation proposals */
+.btn-demo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 196px;
+  height: 48px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.btn-demo-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.btn-demo-label {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-demo.is-drops .btn-demo-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.7) 0 3px, transparent 4px);
+  background-size: 100% 18px;
+  animation: btn-drops 1.15s linear infinite;
+}
+
+@keyframes btn-drops {
+  from {
+    background-position-y: -18px;
+  }
+  to {
+    background-position-y: 0;
+  }
+}
+
+.btn-demo.is-liquid .btn-demo-fill {
+  border-radius: 45% 45% 0 0;
+  animation: btn-liquid 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes btn-liquid {
+  from {
+    transform: translateY(6px) scaleX(1.05);
+  }
+  to {
+    transform: translateY(-3px) scaleX(1);
+  }
+}
+
+.btn-demo.is-wave .btn-demo-fill {
+  background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.35) 0 8px, transparent 8px 18px);
+  animation: btn-wave 1.1s linear infinite;
+}
+
+@keyframes btn-wave {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: 36px;
+  }
+}
+
+.btn-demo.is-dots .btn-demo-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 2px, transparent 3px);
+  background-size: 22px 100%;
+  animation: btn-dots 1.4s linear infinite;
+}
+
+@keyframes btn-dots {
+  from {
+    background-position-x: -22px;
+  }
+  to {
+    background-position-x: 22px;
+  }
+}
+
 /* Chosen option + small download icon */
 .kit-card.is-chosen {
   border-color: rgba(var(--accent-rgb), 0.45);
@@ -5608,6 +5715,16 @@ body[data-layout="topbar"] .backdrop-art {
 
 .game-badge-demo .dl-badge[data-state="idle"] {
   display: grid;
+}
+
+/* Settings: keep it quiet. The controls matter more than the captions. */
+.settings-page .setting-desc,
+.settings-page .settings-section-desc {
+  display: none;
+}
+
+.settings-page .setting-row {
+  min-height: 52px;
 }
 
 /* Size scale demo */
