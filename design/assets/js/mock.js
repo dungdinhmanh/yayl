@@ -172,10 +172,14 @@
   }
 
   function ensureGameBadges() {
+    if (!window.YAYL_BADGE) return;
     document.querySelectorAll(".game-thumb-wrap").forEach(function (wrap) {
       if (wrap.querySelector(".dl-badge")) return;
-      if (!window.YAYL_BADGE) return;
       wrap.appendChild(window.YAYL_BADGE.create("idle", { corner: true }));
+    });
+    document.querySelectorAll(".top-tab[data-game-id]").forEach(function (tab) {
+      if (tab.querySelector(".dl-badge")) return;
+      tab.appendChild(window.YAYL_BADGE.create("idle", { corner: true }));
     });
   }
 
@@ -328,8 +332,18 @@
     });
 
     document.querySelectorAll(".top-tab[data-game-id]").forEach(function (tab) {
+      var tabId = tab.getAttribute("data-game-id");
       var thumb = tab.querySelector(".top-tab-thumb");
-      if (thumb) setArt(thumb, tab.getAttribute("data-game-id"));
+      if (thumb) setArt(thumb, tabId);
+      var tabDownloading =
+        tabId === active && ["downloading", "paused", "verifying"].indexOf(app.current.state) !== -1;
+      var tabBadge = tab.querySelector(".dl-badge");
+      if (tabBadge && window.YAYL_BADGE) {
+        window.YAYL_BADGE.setState(
+          tabBadge,
+          tabDownloading ? (app.current.state === "paused" ? "paused" : "downloading") : "idle"
+        );
+      }
     });
 
     document.querySelectorAll(".game-select[data-game-id]").forEach(function (item) {

@@ -3328,6 +3328,12 @@ body[data-game="stella"] .backdrop-art {
   line-height: 1.7;
 }
 
+.lab-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .lab-note p {
   margin-top: 7px;
 }
@@ -4446,11 +4452,16 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .topbar-mode .top-tab {
+  position: relative;
   justify-content: center;
   width: 42px;
   height: 42px;
   padding: 0;
   border-radius: 999px;
+}
+
+.topbar-mode .top-tab .dl-badge {
+  --dl-badge-size: 16px;
 }
 
 .topbar-mode .top-tab-name,

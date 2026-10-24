@@ -93,7 +93,7 @@ Do not force a theme step; dark is the only v1 theme.
 
 - **Home:** rail variant A (76px icon rail + news) is the primary layout. Top-avatar variant B is kept as an alternate.
 - **Avatar progress:** rounded-square avatar with a border progress ring that starts at top center and runs clockwise. No second ring.
-- **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`.
+- **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`. Applied to the rail game avatars and the top-avatar tabs.
 - **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape.
 - **Text contrast:** the brighter tokens (`--muted #b8c2d1`, `--muted-2 #919cad`, `--muted-3 #707b8d`).
 - **Minimum readable sizes:** 10px uppercase labels, 11px meta/date, 12px body/controls.
