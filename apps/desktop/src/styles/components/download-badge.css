@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Standalone download badge
+   Scale with one variable: --dl-badge-size
+   The glyph is drawn inside a single SVG that fills the badge, so centering
+   survives browser zoom and DPI scaling.
+   Usage:
+     <span class="dl-badge dl-badge--corner" data-state="downloading"></span>
+   States: idle | downloading | paused
+   ========================================================================== */
+
+.dl-badge {
+  --dl-badge-size: 20px;
+  --dl-badge-bg: rgba(6, 9, 14, 0.96);
+  --dl-badge-fg: #ffffff;
+  --dl-badge-border: rgba(255, 255, 255, 0.2);
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: var(--dl-badge-size);
+  height: var(--dl-badge-size);
+  overflow: hidden;
+  border: 1px solid var(--dl-badge-border);
+  border-radius: 999px;
+  background: var(--dl-badge-bg);
+  color: var(--dl-badge-fg);
+  box-shadow: 0 calc(var(--dl-badge-size) * 0.15) calc(var(--dl-badge-size) * 0.5) rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  user-select: none;
+}
+
+.dl-badge[data-state="idle"] {
+  display: none;
+}
+
+.dl-badge--corner {
+  position: absolute;
+  right: calc(var(--dl-badge-size) * -0.2);
+  bottom: calc(var(--dl-badge-size) * -0.2);
+}
+
+.dl-badge__svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dl-badge__pause {
+  display: none;
+}
+
+.dl-badge[data-state="paused"] .dl-badge__arrow {
+  display: none;
+}
+
+.dl-badge[data-state="paused"] .dl-badge__pause {
+  display: inline;
+}

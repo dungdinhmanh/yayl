@@ -7,6 +7,7 @@ dist/
 target/
 apps/*/src-tauri/target/
 apps/*/dist/
+*.tsbuildinfo
 
 # Local environment
 .env
@@ -27,6 +28,10 @@ Thumbs.db
 !/design/assets/img/README.md
 !/design/assets/img/news/
 !/design/assets/img/news/**
+
+# Local desktop art (official game art is never committed)
+/apps/desktop/public/art/*
+!/apps/desktop/public/art/.gitkeep
 
 # Local screenshots / recordings
 /design/screenshots/*

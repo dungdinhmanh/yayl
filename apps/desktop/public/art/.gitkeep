@@ -1,0 +1,3 @@
+# Local game art (gitignored)
+
+Run `bun run app:art` to copy the extracted official backgrounds here for local development.

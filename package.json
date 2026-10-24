@@ -5,8 +5,12 @@
   "description": "A lightweight launcher for Arknights EN and Stella Sora EN",
   "license": "MIT",
   "packageManager": "bun@1.4.2",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "design:art": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/copy-design-art.ps1",
+    "app:art": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/copy-app-art.ps1",
     "design:open": "powershell -NoProfile -Command \"Start-Process ./design/index.html\"",
     "design:serve": "bun scripts/serve-design.mjs",
     "design:check": "bun scripts/check-design-i18n.mjs"
