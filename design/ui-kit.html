@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — UI Kit</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="kit" data-game="arknights" data-state="ready">
+  <div class="app">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div>
+          <div class="brand-name">YAYL</div>
+          <div class="brand-sub" data-i18n="app.uiLab">UI LAB</div>
+        </div>
+      </div>
+      <div class="titlebar-center">
+        <span class="titlebar-note" data-i18n="kit.title">UI KIT</span>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn" type="button" data-window-action="minimize" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" type="button" data-window-action="maximize" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="win-btn is-close" type="button" data-window-action="close" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="main-scroll">
+        <div class="kit-page">
+          <a class="back-link" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg>
+            UI Lab
+          </a>
+          <div class="eyebrow" data-i18n="kit.title">UI KIT</div>
+          <h1 class="page-title" data-i18n="kit.title">UI Kit</h1>
+          <p class="page-subtitle" data-i18n="kit.desc">Các thành phần cơ bản dùng trong toàn bộ launcher. Tất cả đều dùng chung token trong tokens.css.</p>
+
+          <div class="kit-grid">
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.buttons">Buttons</div>
+              <div class="kit-row">
+                <button class="btn btn-primary">Chơi</button>
+                <button class="btn btn-secondary">Kiểm tra</button>
+                <button class="btn btn-ghost">Bỏ qua</button>
+                <button class="btn btn-danger">Gỡ cài đặt</button>
+              </div>
+              <div class="kit-row">
+                <button class="btn btn-primary btn-sm">Nhỏ</button>
+                <button class="btn btn-secondary btn-sm">Nhỏ</button>
+                <button class="btn btn-primary" disabled>Disabled</button>
+                <button class="btn btn-primary is-loading"><span class="spinner"></span>Đang tải</button>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.status">Status & chips</div>
+              <div class="kit-row">
+                <span class="status-pill is-ready"><span class="status-dot"></span><span>Sẵn sàng</span></span>
+                <span class="status-pill is-update"><span class="status-dot"></span><span>Có cập nhật</span></span>
+                <span class="status-pill is-info"><span class="status-dot"></span><span>Đang tải</span></span>
+                <span class="status-pill is-warning"><span class="status-dot"></span><span>Tạm dừng</span></span>
+                <span class="status-pill is-error"><span class="status-dot"></span><span>Cần sửa</span></span>
+              </div>
+              <div class="kit-row">
+                <span class="chip">042.0.0</span>
+                <span class="chip is-accent">MỚI · 042.1.0</span>
+                <span class="chip is-success">CRC OK</span>
+                <span class="chip is-danger">YAYL-CRC-03</span>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.forms">Form controls</div>
+              <div class="stack gap-10">
+                <div>
+                  <div class="meta-label" style="margin-bottom:6px;" data-i18n="kit.inputLabel">Địa chỉ proxy</div>
+                  <input class="input" type="text" placeholder="http://127.0.0.1:7890">
+                </div>
+                <div>
+                  <div class="meta-label" style="margin-bottom:6px;" data-i18n="kit.selectLabel">Ưu tiên CDN</div>
+                  <select class="select"><option>Tự động</option><option>Chính</option><option>Dự phòng</option></select>
+                </div>
+                <div class="row" style="justify-content:space-between;">
+                  <span class="setting-label" data-i18n="kit.toggleLabel">Khởi động cùng Windows</span>
+                  <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                </div>
+                <div class="row" style="justify-content:space-between;">
+                  <span class="setting-label" data-i18n="kit.rangeLabel">Số kết nối</span>
+                  <div class="range-wrap">
+                    <input class="range" id="kitRange" type="range" min="4" max="32" value="16">
+                    <span class="range-value" id="kitRangeValue">16</span>
+                  </div>
+                </div>
+                <div class="segmented">
+                  <button class="is-active">Hệ thống</button>
+                  <button>Trực tiếp</button>
+                  <button>Tùy chỉnh</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.progress">Progress</div>
+              <div class="stack gap-12">
+                <div>
+                  <div class="row" style="justify-content:space-between;margin-bottom:7px;font-size:11px;">
+                    <span data-i18n="kit.progressLabel">Đang tải Arknights</span>
+                    <span class="mono muted-2">42%</span>
+                  </div>
+                  <div class="progress-track"><div class="progress-fill is-info" style="width:42%"></div></div>
+                  <div class="progress-meta"><span data-i18n="kit.progressSub">8.4 GB / 20.1 GB · 12.4 MB/s</span><span>Còn 08:12</span></div>
+                </div>
+                <div>
+                  <div class="row" style="justify-content:space-between;margin-bottom:7px;font-size:11px;">
+                    <span>Verify CRC-64/XZ</span>
+                    <span class="mono muted-2">86%</span>
+                  </div>
+                  <div class="progress-track"><div class="progress-fill" style="width:86%"></div></div>
+                </div>
+                <div class="row gap-12">
+                  <div class="ring-wrap" style="width:92px;height:92px;">
+                    <svg viewBox="0 0 176 176" aria-hidden="true">
+                      <defs>
+                        <linearGradient id="kitRing" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" class="ring-stop-1"></stop>
+                          <stop offset="100%" class="ring-stop-2"></stop>
+                        </linearGradient>
+                      </defs>
+                      <circle class="ring-bg" cx="88" cy="88" r="72"></circle>
+                      <circle class="ring-progress" cx="88" cy="88" r="72" style="stroke-dashoffset:120;"></circle>
+                    </svg>
+                    <div class="ring-center"><div class="ring-value" style="font-size:20px;"><span>73</span><span style="font-size:10px;">%</span></div></div>
+                  </div>
+                  <div class="muted-2" style="font-size:10px;">Vòng tròn dùng chung token accent.</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.toast">Toast & feedback</div>
+              <div class="kit-toast">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>
+                <div class="kit-toast-copy">
+                  <div class="kit-toast-title" data-i18n="kit.toastTitle">Đã lưu cài đặt</div>
+                  <div class="kit-toast-text" data-i18n="kit.toastText">Thay đổi đã được áp dụng.</div>
+                </div>
+              </div>
+              <div class="kit-toast is-error" style="margin-top:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.2 2.8 17.3A1.7 1.7 0 0 0 4.3 20h15.4a1.7 1.7 0 0 0 1.5-2.7L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 16h.01"/></svg>
+                <div class="kit-toast-copy">
+                  <div class="kit-toast-title">YAYL-CRC-03</div>
+                  <div class="kit-toast-text">3 file không khớp CRC.</div>
+                </div>
+              </div>
+              <div class="kit-row" style="margin-top:12px;">
+                <button class="btn btn-secondary btn-sm" type="button" id="kitToastBtn" data-i18n="kit.showToast">Hiện toast</button>
+              </div>
+              <div class="kit-row" style="margin-top:10px;">
+                <div class="skeleton" style="height:12px;width:70%;"></div>
+                <div class="skeleton" style="height:12px;width:45%;"></div>
+                <div class="skeleton" style="height:12px;width:58%;"></div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.modal">Modal</div>
+              <div class="kit-modal">
+                <h4 data-i18n="kit.modalTitle">Gỡ cài đặt Arknights?</h4>
+                <p data-i18n="kit.modalText">Thư mục game sẽ bị xóa. Không thể hoàn tác.</p>
+                <div class="modal-path">D:\Games\YAYL\Arknights_EN</div>
+                <div class="modal-check">
+                  <input type="checkbox">
+                  <span data-i18n="settings.uninstall.check">Tôi hiểu dữ liệu game sẽ bị xóa.</span>
+                </div>
+                <div class="modal-actions">
+                  <button class="btn btn-secondary btn-sm">Giữ lại</button>
+                  <button class="btn btn-danger btn-sm" data-i18n="kit.modalConfirm">Gỡ cài đặt</button>
+                </div>
+              </div>
+              <div class="kit-row" style="margin-top:12px;">
+                <button class="btn btn-secondary btn-sm" type="button" id="kitModalBtn" data-i18n="kit.showModal">Mở modal</button>
+              </div>
+            </section>
+
+            <section class="panel kit-card is-full">
+              <div class="kit-label" data-i18n="kit.colors">Palette</div>
+              <div class="swatches">
+                <div class="swatch" style="--swatch:#06080d;"><span>bg-0</span></div>
+                <div class="swatch" style="--swatch:#0b0f17;"><span>bg-1</span></div>
+                <div class="swatch" style="--swatch:#111826;"><span>bg-2</span></div>
+                <div class="swatch" style="--swatch:#f2b544;"><span>accent</span></div>
+                <div class="swatch" style="--swatch:#ff7a45;"><span>accent-2</span></div>
+                <div class="swatch" style="--swatch:#9b8cff;"><span>stella</span></div>
+                <div class="swatch" style="--swatch:#45d6a0;"><span>success</span></div>
+                <div class="swatch" style="--swatch:#ff5d7a;"><span>danger</span></div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.type">Typography</div>
+              <div class="type-sample">
+                <strong>ARKNIGHTS</strong>
+                <span>Display · 800 · uppercase</span>
+                <div class="page-title" style="font-size:22px;">Page title 22px</div>
+                <div class="setting-label">Body 12px · Segoe UI Variable</div>
+                <div class="mono muted-2" style="font-size:11px;">D:\Games\YAYL\Arknights_EN</div>
+              </div>
+            </section>
+
+            <section class="panel kit-card">
+              <div class="kit-label" data-i18n="kit.gameCards">Game switcher</div>
+              <div class="stack gap-6">
+                <button class="game-card is-active" type="button" data-game-id="arknights">
+                  <span class="game-thumb-wrap"><img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')"></span>
+                  <span class="game-info"><span class="game-name">Arknights</span><span class="game-meta"><span class="game-region">EN</span><span data-card-version>042.0.0</span></span><span class="game-state-line"><span class="mini-dot"></span><span data-card-state>Sẵn sàng</span></span></span>
+                </button>
+                <button class="game-card" type="button" data-game-id="stella">
+                  <span class="game-thumb-wrap"><img class="game-thumb" src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')"></span>
+                  <span class="game-info"><span class="game-name">Stella Sora</span><span class="game-meta"><span class="game-region">EN</span><span data-card-version>2.0.0</span></span><span class="game-state-line"><span class="mini-dot"></span><span data-card-state>Sẵn sàng</span></span></span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/mock.js"></script>
+  <script src="assets/js/mock-pages.js"></script>
+</body>
+</html>

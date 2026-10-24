@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — Settings</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="settings" data-layout="sidebar" data-game="arknights" data-state="ready">
+  <div class="app">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div>
+          <div class="brand-name">YAYL</div>
+          <div class="brand-sub" data-i18n="app.launcher">LAUNCHER</div>
+        </div>
+      </div>
+      <div class="titlebar-center">
+        <span class="titlebar-note" data-i18n="settings.title">CÀI ĐẶT</span>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn" type="button" data-window-action="minimize" data-i18n-title="window.minimize" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" type="button" data-window-action="maximize" data-i18n-title="window.maximize" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="win-btn is-close" type="button" data-window-action="close" data-i18n-title="window.close" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="sidebar-scroll">
+          <div class="sidebar-section" data-i18n="nav.games">TRÒ CHƠI</div>
+          <div class="game-list">
+            <button class="game-card is-active" type="button" data-game-id="arknights" data-status="ready">
+              <span class="game-thumb-wrap">
+                <img class="game-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+              </span>
+              <span class="game-info">
+                <span class="game-name">Arknights</span>
+                <span class="game-meta"><span class="game-region">EN</span><span data-card-version>042.0.0</span></span>
+                <span class="game-state-line"><span class="mini-dot"></span><span data-card-state>Sẵn sàng</span></span>
+              </span>
+              <span class="game-badge" data-card-badge hidden>NEW</span>
+            </button>
+            <button class="game-card" type="button" data-game-id="stella" data-status="ready">
+              <span class="game-thumb-wrap">
+                <img class="game-thumb" src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
+              </span>
+              <span class="game-info">
+                <span class="game-name">Stella Sora</span>
+                <span class="game-meta"><span class="game-region">EN</span><span data-card-version>2.0.0</span></span>
+                <span class="game-state-line"><span class="mini-dot"></span><span data-card-state>Sẵn sàng</span></span>
+              </span>
+              <span class="game-badge" data-card-badge hidden>NEW</span>
+            </button>
+          </div>
+
+          <div class="sidebar-section" data-i18n="nav.navigation">ĐIỀU HƯỚNG</div>
+          <nav class="nav">
+            <a class="nav-item" href="home-sidebar.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 10.5 8.5-7 8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-6h5v6"/></svg>
+              <span class="nav-label" data-i18n="nav.home">Trang chủ</span>
+            </a>
+            <a class="nav-item" href="download.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              <span class="nav-label" data-i18n="nav.downloads">Tải xuống</span>
+              <span class="nav-badge">42%</span>
+            </a>
+            <a class="nav-item is-active" href="settings.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21h-4v-.08a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3v-4h.08a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3h4v.08a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.12.4.45.74.85.92H21v4h-.08a1.7 1.7 0 0 0-1.52 1.08Z"/></svg>
+              <span class="nav-label" data-i18n="nav.settings">Cài đặt</span>
+            </a>
+          </nav>
+        </div>
+        <div class="sidebar-footer">
+          <div class="server-state">
+            <span class="status-dot"></span>
+            <span data-i18n="server.online">Máy chủ ổn định</span>
+            <span>24ms</span>
+          </div>
+          <div class="sidebar-version">
+            <span>v0.1.0</span>
+            <span class="lab-tag" data-i18n="app.uiLab">UI LAB</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="main-scroll">
+          <div class="page settings-page">
+            <div class="settings-header">
+              <div>
+                <div class="eyebrow" data-i18n="settings.title">CÀI ĐẶT</div>
+                <h1 class="page-title" data-i18n="settings.title">Cài đặt</h1>
+                <p class="page-subtitle" data-i18n="settings.subtitle">Tùy chỉnh cách YAYL hoạt động. Thay đổi được lưu tự động.</p>
+              </div>
+              <div class="status-pill is-ready">
+                <span class="status-dot"></span>
+                <span data-i18n="settings.footer">Thay đổi được lưu tự động</span>
+              </div>
+            </div>
+
+            <div class="settings-shell">
+              <nav class="settings-nav">
+                <button class="settings-nav-item is-active" type="button" data-settings-tab="general">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+                  <span data-i18n="settings.nav.general">Chung</span>
+                </button>
+                <button class="settings-nav-item" type="button" data-settings-tab="game">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h10a4 4 0 0 1 3.9 4.9l-1 4.1a2.4 2.4 0 0 1-4.2 1.2L14 16h-4l-1.7 2.2a2.4 2.4 0 0 1-4.2-1.2l-1-4.1A4 4 0 0 1 7 8Z"/><path d="M8 12h2M9 11v2"/></svg>
+                  <span data-i18n="settings.nav.game">Trò chơi</span>
+                </button>
+                <button class="settings-nav-item" type="button" data-settings-tab="network">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><path d="M12 19h.01"/></svg>
+                  <span data-i18n="settings.nav.network">Mạng</span>
+                </button>
+                <button class="settings-nav-item" type="button" data-settings-tab="advanced">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+                  <span data-i18n="settings.nav.advanced">Nâng cao</span>
+                </button>
+                <button class="settings-nav-item" type="button" data-settings-tab="about">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+                  <span data-i18n="settings.nav.about">Giới thiệu</span>
+                </button>
+              </nav>
+
+              <div class="settings-content">
+                <section class="settings-panel" data-settings-panel="general">
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.general.title">Giao diện & hành vi</div>
+                      <div class="settings-section-desc" data-i18n="settings.general.desc">Ngôn ngữ, hiệu ứng và cách cửa sổ hoạt động.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.language">Ngôn ngữ</div>
+                          <div class="setting-desc" data-i18n="settings.language.desc">Áp dụng ngay cho toàn bộ giao diện.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="languageSelect">
+                            <option value="vi" data-i18n="common.vi">Tiếng Việt</option>
+                            <option value="en" data-i18n="common.en">English</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.motion">Hiệu ứng chuyển động</div>
+                          <div class="setting-desc" data-i18n="settings.motion.desc">Tắt để giảm tải GPU hoặc nếu bạn thích giao diện tĩnh.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="motionToggle">
+                            <span class="toggle-track"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.background">Chế độ nền</div>
+                          <div class="setting-desc" data-i18n="settings.background.desc">Ảnh key art được tải và cache từ API chính thức.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="backgroundSelect">
+                            <option data-i18n="settings.background.art">Ảnh game</option>
+                            <option data-i18n="settings.background.solid">Màu trơn</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.behavior.title">Hành vi cửa sổ</div>
+                      <div class="settings-section-desc" data-i18n="settings.behavior.desc">Kiểm soát khởi động và đóng ứng dụng.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.autostart">Khởi động cùng Windows</div>
+                          <div class="setting-desc" data-i18n="settings.autostart.desc">Mở YAYL khi đăng nhập.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="autostartToggle" checked>
+                            <span class="toggle-track"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.closeBehavior">Khi đóng cửa sổ</div>
+                          <div class="setting-desc" data-i18n="settings.closeBehavior.desc">Chọn thu nhỏ xuống tray hoặc thoát hoàn toàn.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="closeBehavior">
+                            <option data-i18n="settings.closeTray">Thu nhỏ xuống tray</option>
+                            <option data-i18n="settings.closeExit">Thoát ứng dụng</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.minimizeOnPlay">Thu nhỏ khi chơi game</div>
+                          <div class="setting-desc" data-i18n="settings.minimizeOnPlay.desc">Giữ launcher trong tray khi game đang chạy.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="minimizeOnPlay" checked>
+                            <span class="toggle-track"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.startMinimized">Khởi động thu nhỏ</div>
+                          <div class="setting-desc" data-i18n="settings.startMinimized.desc">Chỉ hiện tray khi Windows khởi động.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="startMinimized">
+                            <span class="toggle-track"></span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-footer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>
+                    <span data-i18n="settings.footer">Thay đổi được lưu tự động</span>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="game" hidden>
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.game.title">Cài đặt trò chơi</div>
+                      <div class="settings-section-desc" data-i18n="settings.game.desc">Đường dẫn, kiểm tra và sửa chữa từng game.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.game.path">Thư mục cài đặt</div>
+                          <div class="setting-desc" data-i18n="settings.game.path.desc">Thay đổi đường dẫn chỉ khi game không chạy.</div>
+                        </div>
+                        <div class="setting-control is-wide">
+                          <div class="path-field">
+                            <input class="input" id="gamePathInput" type="text" value="D:\Games\YAYL\Arknights_EN">
+                            <button class="btn btn-secondary btn-sm" type="button" id="browsePath" data-i18n="common.browse">Chọn</button>
+                            <button class="btn btn-ghost btn-sm" type="button" id="detectGame" data-i18n="settings.game.detect">Tự tìm</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label">Arknights · <span data-settings-game-version>042.0.0</span></div>
+                          <div class="setting-desc" data-settings-disk>Ổ D: còn 182 GB · Cần 24.8 GB</div>
+                        </div>
+                        <div class="setting-control">
+                          <button class="btn btn-ghost btn-sm" type="button" id="openGameFolder" data-i18n="settings.game.openFolder">Mở thư mục</button>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.game.tools">Công cụ</div>
+                          <div class="setting-desc" data-i18n="settings.game.tools.desc">Kiểm tra CRC, sửa file lỗi hoặc gỡ game.</div>
+                        </div>
+                        <div class="setting-control">
+                          <div class="settings-actions">
+                            <button class="btn btn-secondary btn-sm" type="button" id="quickVerify" data-i18n="settings.game.quickVerify">Kiểm tra nhanh</button>
+                            <button class="btn btn-secondary btn-sm" type="button" id="fullRepair" data-i18n="settings.game.fullRepair">Sửa toàn bộ</button>
+                            <button class="btn btn-ghost btn-sm" type="button" id="importGame" data-i18n="settings.game.import">Nhập từ launcher gốc</button>
+                            <button class="btn btn-danger btn-sm" type="button" id="uninstallGame" data-i18n="settings.game.uninstall">Gỡ cài đặt</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.game.switch">Chuyển game</div>
+                      <div class="settings-section-desc" data-i18n="settings.game.switchDesc">Bản mock hiển thị 2 profile EN. JP/KR sẽ xuất hiện sau.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="game-settings-tabs">
+                        <button class="game-settings-tab is-active" type="button" data-settings-game="arknights" data-game-id="arknights">
+                          <img src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+                          Arknights EN
+                        </button>
+                        <button class="game-settings-tab" type="button" data-settings-game="stella" data-game-id="stella">
+                          <img src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
+                          Stella Sora EN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="network" hidden>
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.network.title">Mạng & tải xuống</div>
+                      <div class="settings-section-desc" data-i18n="settings.network.desc">Proxy, số kết nối và lựa chọn CDN.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.proxy">Proxy</div>
+                          <div class="setting-desc" data-i18n="settings.network.proxy.desc">Dùng proxy hệ thống hoặc cấu hình riêng.</div>
+                        </div>
+                        <div class="setting-control">
+                          <div class="segmented">
+                            <button class="is-active" type="button" data-proxy-mode="system" data-i18n="settings.network.system">Hệ thống</button>
+                            <button type="button" data-proxy-mode="direct" data-i18n="settings.network.direct">Trực tiếp</button>
+                            <button type="button" data-proxy-mode="custom" data-i18n="settings.network.custom">Tùy chỉnh</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="setting-row" id="proxyCustom" hidden>
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.url">Địa chỉ proxy</div>
+                          <div class="setting-desc">http:// hoặc socks5://</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <input class="input" id="proxyUrl" type="text" data-i18n-placeholder="settings.network.url.placeholder" placeholder="http://127.0.0.1:7890">
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.concurrency">Số kết nối</div>
+                          <div class="setting-desc" data-i18n="settings.network.concurrency.desc">10 là mặc định. Tăng có thể nhanh hơn nhưng dễ bị CDN giới hạn.</div>
+                        </div>
+                        <div class="setting-control">
+                          <div class="range-wrap">
+                            <input class="range" id="concurrencyRange" type="range" min="4" max="32" value="16">
+                            <span class="range-value" id="concurrencyValue">16</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.bandwidth">Giới hạn băng thông</div>
+                          <div class="setting-desc" data-i18n="settings.network.bandwidth.desc">0 nghĩa là không giới hạn.</div>
+                        </div>
+                        <div class="setting-control">
+                          <div class="range-wrap">
+                            <input class="range" id="bandwidthRange" type="range" min="0" max="100" value="0">
+                            <span class="range-value" id="bandwidthValue">0</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.cdn">Ưu tiên CDN</div>
+                          <div class="setting-desc" data-i18n="settings.network.cdn.desc">Tự động chuyển sang dự phòng khi lỗi.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="cdnSelect">
+                            <option data-i18n="settings.network.cdn.auto">Tự động</option>
+                            <option data-i18n="settings.network.cdn.main">Chính</option>
+                            <option data-i18n="settings.network.cdn.backup">Dự phòng</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.network.timeout">Timeout</div>
+                          <div class="setting-desc" data-i18n="settings.network.timeout.desc">Thời gian chờ mỗi kết nối.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <input class="input" id="timeoutInput" type="number" min="5" max="300" value="30">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="advanced" hidden>
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.advanced.title">Nâng cao</div>
+                      <div class="settings-section-desc" data-i18n="settings.advanced.desc">Log, cache và công cụ chẩn đoán.</div>
+                    </div>
+                    <div class="settings-rows">
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.advanced.logLevel">Mức log</div>
+                          <div class="setting-desc" data-i18n="settings.advanced.logLevel.desc">Log chi tiết hơn sẽ tốn dung lượng hơn.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="logLevel">
+                            <option>Error</option>
+                            <option selected>Info</option>
+                            <option>Debug</option>
+                            <option>Trace</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.advanced.openLogs">Mở thư mục log</div>
+                          <div class="setting-desc" data-i18n="settings.advanced.openLogs.desc">Log không chứa token hay chữ ký.</div>
+                        </div>
+                        <div class="setting-control">
+                          <button class="btn btn-ghost btn-sm" type="button" id="openLogs" data-i18n="common.open">Mở</button>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.advanced.clearCache">Xóa cache</div>
+                          <div class="setting-desc" data-i18n="settings.advanced.clearCache.desc">Ảnh nền và metadata tải lại khi cần.</div>
+                        </div>
+                        <div class="setting-control">
+                          <button class="btn btn-ghost btn-sm" type="button" id="clearCache" data-i18n="common.clear">Xóa</button>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.advanced.diagnostics">Xuất chẩn đoán</div>
+                          <div class="setting-desc" data-i18n="settings.advanced.diagnostics.desc">Gói zip không gồm thông tin đăng nhập.</div>
+                        </div>
+                        <div class="setting-control">
+                          <button class="btn btn-secondary btn-sm" type="button" id="exportDiagnostics" data-i18n="common.export">Xuất</button>
+                        </div>
+                      </div>
+                      <div class="setting-row">
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.advanced.reset">Đặt lại cài đặt</div>
+                          <div class="setting-desc" data-i18n="settings.advanced.reset.desc">Không ảnh hưởng tới file game đã cài.</div>
+                        </div>
+                        <div class="setting-control">
+                          <button class="btn btn-danger btn-sm" type="button" id="resetSettings" data-i18n="settings.advanced.resetAction">Đặt lại</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="about" hidden>
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <div class="settings-section-title" data-i18n="settings.about.title">Về YAYL</div>
+                      <div class="settings-section-desc" data-i18n="settings.about.desc">Launcher nhẹ cho Arknights và Stella Sora.</div>
+                    </div>
+                    <div class="about-card">
+                      <div class="about-mark">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+                      </div>
+                      <div>
+                        <div class="about-name">YAYL</div>
+                        <div class="about-version">v0.1.0 · mock-2026.10.24 · MIT</div>
+                        <p class="about-desc">Bản UI lab tĩnh. Khi port sang React, toàn bộ token và component giữ nguyên. Backend Rust/Tauri sẽ cắm phía sau mà không đổi layout.</p>
+                        <div class="about-links">
+                          <span class="chip">Arknights EN</span>
+                          <span class="chip">Stella Sora EN</span>
+                          <span class="chip is-accent">Tauri 2</span>
+                          <span class="chip">React 19</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="legal-note" data-i18n="settings.about.legal">YAYL là dự án cộng đồng không chính thức, không liên kết với Yostar, Hypergryph hay Studio Muscat. Tên game, hình ảnh và thương hiệu thuộc về chủ sở hữu tương ứng.</div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/mock.js"></script>
+  <script src="assets/js/mock-pages.js"></script>
+</body>
+</html>

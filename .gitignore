@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+target/
+apps/*/src-tauri/target/
+apps/*/dist/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+.vite/
+.DS_Store
+Thumbs.db
+
+# Local design assets (official game art is never committed)
+/design/assets/img/*
+!/design/assets/img/.gitkeep
+!/design/assets/img/README.md
+
+# Local screenshots / recordings
+/design/screenshots/*
+!/design/screenshots/.gitkeep
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user

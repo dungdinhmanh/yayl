@@ -1,0 +1,117 @@
+/* YAYL design tokens — source of truth for the UI lab. */
+:root {
+  color-scheme: dark;
+
+  /* Base surfaces */
+  --bg-0: #06080d;
+  --bg-1: #0b0f17;
+  --bg-2: #111826;
+  --bg-3: #17202f;
+  --surface: rgba(13, 18, 28, 0.74);
+  --surface-solid: #0d121c;
+  --surface-raised: rgba(22, 30, 44, 0.82);
+  --surface-hover: rgba(255, 255, 255, 0.055);
+
+  /* Text */
+  --text: #f4f7fb;
+  --text-soft: #d6dde8;
+  --muted: #98a2b3;
+  --muted-2: #6f7a8c;
+  --muted-3: #4d5768;
+
+  /* Lines */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Default accent (Arknights) */
+  --accent: #f2b544;
+  --accent-2: #ff7a45;
+  --accent-rgb: 242, 181, 68;
+  --accent-ink: #171006;
+  --accent-soft: rgba(var(--accent-rgb), 0.14);
+  --accent-line: rgba(var(--accent-rgb), 0.34);
+  --accent-glow: rgba(var(--accent-rgb), 0.28);
+
+  /* Status */
+  --success: #45d6a0;
+  --success-soft: rgba(69, 214, 160, 0.12);
+  --warning: #f5b544;
+  --warning-soft: rgba(245, 181, 68, 0.12);
+  --danger: #ff5d7a;
+  --danger-soft: rgba(255, 93, 122, 0.12);
+  --info: #5cc8ff;
+  --info-soft: rgba(92, 200, 255, 0.12);
+
+  /* Type */
+  --font-ui: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-36: 36px;
+  --fs-48: 48px;
+
+  /* Layout */
+  --titlebar-h: 40px;
+  --sidebar-w: 232px;
+  --content-pad: 40px;
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Elevation */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.34);
+  --shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.48);
+  --shadow-accent: 0 10px 34px rgba(var(--accent-rgb), 0.24);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+
+  /* Component sizes */
+  --control-h: 42px;
+  --button-h: 52px;
+  --sidebar-item-h: 58px;
+}
+
+body[data-game="arknights"] {
+  --accent: #f2b544;
+  --accent-2: #ff7a45;
+  --accent-rgb: 242, 181, 68;
+  --accent-ink: #171006;
+}
+
+body[data-game="stella"] {
+  --accent: #9b8cff;
+  --accent-2: #5cc8ff;
+  --accent-rgb: 155, 140, 255;
+  --accent-ink: #0d0a1f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}
+
+body[data-motion="reduced"] {
+  --dur-fast: 0ms;
+  --dur-base: 0ms;
+  --dur-slow: 0ms;
+}

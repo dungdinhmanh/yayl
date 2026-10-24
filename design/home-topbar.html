@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — Home (Top tabs)</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body data-page="home" data-layout="topbar" data-game="arknights" data-state="ready">
+  <div class="app topbar-mode">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div>
+          <div class="brand-name">YAYL</div>
+          <div class="brand-sub" data-i18n="app.launcher">LAUNCHER</div>
+        </div>
+      </div>
+
+      <div class="titlebar-center">
+        <div class="top-tabs">
+          <button class="top-tab is-active" type="button" data-game-id="arknights">
+            <img class="top-tab-thumb" src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+            <span class="top-tab-name">Arknights</span>
+            <span class="top-tab-region">EN</span>
+          </button>
+          <button class="top-tab" type="button" data-game-id="stella">
+            <img class="top-tab-thumb" src="assets/img/stella.png" alt="" onerror="this.classList.add('is-missing')">
+            <span class="top-tab-name">Stella Sora</span>
+            <span class="top-tab-region">EN</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="icon-btn" href="download.html" data-i18n-title="nav.downloads" aria-label="Tải xuống">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span class="dot-badge"></span>
+        </a>
+        <a class="icon-btn" href="settings.html" data-i18n-title="nav.settings" aria-label="Cài đặt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21h-4v-.08a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3v-4h.08a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3h4v.08a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.12.4.45.74.85.92H21v4h-.08a1.7 1.7 0 0 0-1.52 1.08Z"/></svg>
+        </a>
+        <div class="window-controls">
+          <button class="win-btn" type="button" data-window-action="minimize" data-i18n-title="window.minimize" aria-label="Thu nhỏ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <button class="win-btn" type="button" data-window-action="maximize" data-i18n-title="window.maximize" aria-label="Phóng to">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+          </button>
+          <button class="win-btn is-close" type="button" data-window-action="close" data-i18n-title="window.close" aria-label="Đóng">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="shell">
+      <main class="main">
+        <div class="main-scroll">
+          <div class="page home-page">
+            <section class="hero">
+              <div class="hero-top">
+                <div class="hero-identity">
+                  <div class="hero-region">
+                    <span data-game-region>EN</span>
+                    <span>·</span>
+                    <span data-game-name>Arknights</span>
+                  </div>
+                  <h1 class="hero-title"><span class="title-accent" data-game-title>ARKNIGHTS</span></h1>
+                  <p class="hero-sub" data-game-sub>Chào mừng trở lại, Bác sĩ. Hệ thống đã sẵn sàng cho ca trực tiếp theo.</p>
+                  <div class="chip-row hero-version">
+                    <span class="chip"><span id="versionChipLabel" data-i18n="home.version">Phiên bản</span> <strong id="versionChipValue" data-game-version>042.0.0</strong></span>
+                    <span class="chip"><strong id="sizeChipValue" data-game-size>24.8 GB</strong></span>
+                    <span class="chip is-accent" id="updateChip" hidden>MỚI · 042.1.0</span>
+                  </div>
+                </div>
+                <div class="hero-status">
+                  <div class="status-pill is-ready" id="statusPill">
+                    <span class="status-dot"></span>
+                    <span data-status-label>Sẵn sàng</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-bottom">
+                <div class="offline-banner" data-offline-banner hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"/><path d="M8.5 15.5a5 5 0 0 1 7 0"/><path d="M5 12a10 10 0 0 1 3-2.1M19 12a10 10 0 0 0-7.8-2.9"/><path d="M12 19h.01"/></svg>
+                  <div><strong data-offline-title>Bạn đang offline</strong> <span data-offline-text>Không thể kiểm tra cập nhật. Game đã cài vẫn chơi được.</span></div>
+                  <button class="banner-action" type="button" data-i18n="home.offline.retry">Thử lại</button>
+                </div>
+
+                <div class="error-banner" data-error-banner hidden>
+                  <div class="error-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.2 2.8 17.3A1.7 1.7 0 0 0 4.3 20h15.4a1.7 1.7 0 0 0 1.5-2.7L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 16h.01"/></svg>
+                  </div>
+                  <div class="error-banner-copy">
+                    <div class="error-banner-title" data-error-title>Cần sửa lại game</div>
+                    <div class="error-banner-text" data-error-text>3 file không khớp CRC. Chạy sửa nhanh để tải lại phần bị lỗi.</div>
+                  </div>
+                  <div class="error-banner-actions">
+                    <button class="btn btn-sm btn-secondary" type="button" data-i18n="home.error.details">Chi tiết</button>
+                  </div>
+                </div>
+
+                <div class="progress-dock" data-progress-dock hidden role="button" tabindex="0">
+                  <div class="progress-dock-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.4-9A6 6 0 0 1 18.2 9 4 4 0 0 1 17.5 17"/><path d="M12 12v7M9.5 16.5 12 19l2.5-2.5"/></svg>
+                  </div>
+                  <div class="progress-dock-copy">
+                    <div class="progress-dock-title"><span data-dock-title>Đang tải Arknights</span><span data-dock-percent>42%</span></div>
+                    <div class="progress-dock-sub" data-dock-sub>12.4 MB/s · Còn 08:12 · 8.4/20.1 GB</div>
+                  </div>
+                  <div class="progress-track"><div class="progress-fill is-info" data-dock-fill style="width:42%"></div></div>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;color:var(--muted-2);flex:0 0 auto;"><path d="m9 6 6 6-6 6"/></svg>
+                </div>
+
+                <div class="hero-actions">
+                  <button class="btn btn-primary" type="button" id="primaryAction">
+                    <span data-button-icon></span>
+                    <span data-button-label>Chơi</span>
+                  </button>
+                  <button class="btn btn-secondary" type="button" id="secondaryAction">
+                    <span data-button-icon></span>
+                    <span data-button-label>Kiểm tra</span>
+                  </button>
+                  <button class="btn btn-ghost btn-icon-only" type="button" id="openFolderBtn" data-i18n-title="common.openFolder" aria-label="Mở thư mục">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-10Z"/></svg>
+                  </button>
+                </div>
+
+                <div class="hero-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+                  <span id="heroNoteText">Sẵn sàng khởi chạy · Không có bản cập nhật mới</span>
+                </div>
+
+                <div class="meta-grid">
+                  <article class="meta-card" data-meta-card="playtime">
+                    <span class="meta-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+                    </span>
+                    <div class="meta-content">
+                      <div class="meta-label" data-meta-label="playtime">Thời gian chơi</div>
+                      <div class="meta-value" data-meta-value="playtime">126 giờ 42 phút</div>
+                      <div class="meta-sub" data-meta-sub="playtime">Tổng cộng</div>
+                    </div>
+                  </article>
+                  <article class="meta-card" data-meta-card="path">
+                    <span class="meta-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-10Z"/></svg>
+                    </span>
+                    <div class="meta-content">
+                      <div class="meta-label" data-i18n="home.meta.path">Thư mục cài đặt</div>
+                      <div class="meta-value is-mono" data-meta-value="path">D:\Games\YAYL\Arknights_EN</div>
+                      <div class="meta-sub" data-meta-sub="path">Mở thư mục</div>
+                    </div>
+                    <span class="meta-action">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                    </span>
+                  </article>
+                  <article class="meta-card" data-meta-card="last">
+                    <span class="meta-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7.5 3v4M16.5 3v4M3.5 10h17"/></svg>
+                    </span>
+                    <div class="meta-content">
+                      <div class="meta-label" data-i18n="home.meta.last">Lần chơi cuối</div>
+                      <div class="meta-value" data-meta-value="last">Hôm nay, 09:41</div>
+                      <div class="meta-sub" data-meta-sub="last">Arknights</div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/mock.js"></script>
+  <script src="assets/js/mock-pages.js"></script>
+</body>
+</html>
