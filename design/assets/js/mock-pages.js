@@ -836,12 +836,14 @@
       if (icon) {
         icon.innerHTML = meta.primaryIcon === "spinner" ? '<span class="spinner"></span>' : app.icon(meta.primaryIcon);
       }
-      var progressWrap = primary.querySelector("[data-button-progress]");
-      if (progressWrap) {
-        var progressValue = ["downloading", "paused", "verifying"].indexOf(state) !== -1 ? meta.progress || 42 : 0;
-        progressWrap.hidden = progressValue === 0;
-        var progressFill = progressWrap.querySelector("span");
-        if (progressFill) progressFill.style.width = progressValue + "%";
+      // Chosen download effect: rising bubbles inside the button.
+      var downloadActive = ["downloading", "paused", "verifying"].indexOf(state) !== -1;
+      if (downloadActive && window.YAYL_BUBBLES) {
+        if (!primary._bubble) primary._bubble = window.YAYL_BUBBLES.create(primary, { progress: 0 });
+        if (primary._bubble) primary._bubble.setProgress((meta.progress || 0) / 100);
+      } else if (primary._bubble) {
+        primary._bubble.destroy();
+        primary._bubble = null;
       }
     }
 

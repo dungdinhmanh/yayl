@@ -4819,25 +4819,11 @@ body[data-layout="rail"] .backdrop-scrim {
   transition: filter var(--dur-fast), transform var(--dur-fast), background var(--dur-fast);
 }
 
-.home-play-progress {
-  position: absolute;
-  right: 18px;
-  bottom: 8px;
-  left: 18px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.22);
-}
-
-.home-play-progress span {
-  display: block;
-  width: 0;
-  height: 100%;
-  border-radius: inherit;
-  background: currentColor;
-  opacity: 0.85;
-  transition: width 280ms linear;
+/* Keep the icon and label above the liquid fill. */
+.home-play > [data-button-icon],
+.home-play > .home-play-copy {
+  position: relative;
+  z-index: 2;
 }
 
 .home-play:hover:not(:disabled) {
@@ -4877,14 +4863,19 @@ body[data-layout="rail"] .backdrop-scrim {
   line-height: 1.1;
 }
 
-.home-play.is-downloading {
-  background: #2b9fd8;
-  color: #04141f;
+/* Downloading states: dark glass base so the liquid fill and bubbles read. */
+.home-play.is-downloading,
+.home-play.is-paused,
+.home-play.is-verifying {
+  border-color: var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 46%, rgba(0, 0, 0, 0.06)),
+    var(--bg-1);
+  color: var(--text);
 }
 
 .home-play.is-paused {
-  background: #c98b1f;
-  color: #171006;
+  --accent-rgb: 245, 181, 68;
 }
 
 .home-play.is-error {
