@@ -4367,10 +4367,6 @@ body[data-layout="rail"] .game-card:hover .game-thumb-wrap {
   transform: scale(1.04);
 }
 
-body[data-layout="rail"] .game-card.is-active .game-thumb-wrap {
-  box-shadow: 0 0 0 1px rgba(var(--card-accent-rgb), 0.3), 0 0 22px rgba(var(--card-accent-rgb), 0.28);
-}
-
 body[data-layout="rail"] .rail-progress {
   position: absolute;
   inset: 0;
@@ -4394,7 +4390,21 @@ body[data-layout="rail"] .rail-progress-fill {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   filter: drop-shadow(0 0 6px rgba(var(--card-accent-rgb), 0.55));
-  transition: stroke-dashoffset var(--dur-slow) linear;
+  transition: stroke-dashoffset var(--dur-base) linear, stroke var(--dur-fast) linear;
+}
+
+/* The ring itself is the selected / focused indicator: a full accent ring. */
+body[data-layout="rail"] .game-card.is-ring-selected .rail-progress-bg {
+  stroke: rgba(var(--card-accent-rgb), 0.25);
+}
+
+body[data-layout="rail"] .game-card.is-ring-selected .rail-progress-fill {
+  stroke: rgb(var(--card-accent-rgb));
+  filter: drop-shadow(0 0 8px rgba(var(--card-accent-rgb), 0.75));
+}
+
+body[data-layout="rail"] .game-card.is-ring-selected .game-thumb-wrap {
+  transform: scale(1.02);
 }
 
 body[data-layout="rail"] .game-thumb {
@@ -4756,8 +4766,76 @@ body[data-layout="rail"] .backdrop-scrim {
   justify-content: flex-end;
   gap: 12px;
   height: 165px;
-  padding: 0 26px 30px;
+  padding: 0 44px 44px;
   background: linear-gradient(180deg, rgba(4, 6, 10, 0) 0%, rgba(4, 6, 10, 0.5) 32%, rgba(4, 6, 10, 0.78) 100%);
+}
+
+/* Action menu: opens upwards, above the button. */
+.home-menu {
+  position: relative;
+  align-self: center;
+}
+
+.home-menu-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.home-menu-btn:hover,
+.home-menu-btn[aria-expanded="true"] {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.home-menu-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.home-menu-pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 20;
+  display: flex;
+  min-width: 196px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(12, 16, 24, 0.96);
+  box-shadow: var(--shadow-md);
+}
+
+.home-menu-pop[hidden] {
+  display: none;
+}
+
+.home-menu-item {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 12px;
+  text-align: left;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.home-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
 }
 
 .home-action-link {

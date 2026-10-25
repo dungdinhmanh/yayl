@@ -858,8 +858,6 @@
     var showCard = ["install", "downloading", "paused", "verifying", "error"].indexOf(state) !== -1;
     if (card) card.hidden = !showCard;
     if (showCard) {
-      var thumb = byId("gameInfoThumb");
-      if (thumb) app.setArt(thumb, app.current.game);
       var name = byId("gameInfoName");
       if (name) name.textContent = game.name;
       var version = byId("gameInfoVersion");
@@ -956,6 +954,35 @@
         if (state === "running") {
           appRef.showToast(appRef.t("home.toast.minimize.title"), appRef.t("home.toast.minimize.text"));
         }
+      });
+    }
+
+    var menuBtn = byId("homeMenuBtn");
+    var menuPop = byId("homeMenuPop");
+    if (menuBtn && menuPop) {
+      function closeMenu() {
+        menuPop.hidden = true;
+        menuBtn.setAttribute("aria-expanded", "false");
+      }
+      menuBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var open = menuPop.hidden;
+        menuPop.hidden = !open;
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      menuPop.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
+      menuPop.querySelectorAll(".home-menu-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+          var label = item.textContent;
+          closeMenu();
+          appRef.showToast(label, appRef.t("home.menu.stub"));
+        });
+      });
+      document.addEventListener("click", closeMenu);
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeMenu();
       });
     }
 

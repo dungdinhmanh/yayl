@@ -327,8 +327,11 @@
       if (thumb) setArt(thumb, id);
       var downloadActive = ["downloading", "paused", "verifying"].indexOf(stateId) !== -1;
       var showProgressRing = downloadActive && !isActive;
+      var ringSelected = isActive;
       var progress = showProgressRing ? (states[stateId] && states[stateId].progress) || 42 : 0;
       card.classList.toggle("is-downloading", showProgressRing);
+      // The ring doubles as the selected / focused indicator.
+      card.classList.toggle("is-ring-selected", ringSelected);
       var dlBadge = card.querySelector(".dl-badge");
       if (dlBadge && window.YAYL_BADGE) {
         window.YAYL_BADGE.setState(
@@ -338,7 +341,8 @@
       }
       var railFill = card.querySelector("[data-rail-fill]");
       if (railFill) {
-        railFill.style.strokeDashoffset = String(100 - progress) + "px";
+        var endOffset = ringSelected ? 0 : showProgressRing ? 100 - progress : 100;
+        railFill.style.strokeDashoffset = String(endOffset) + "px";
       }
     });
 
