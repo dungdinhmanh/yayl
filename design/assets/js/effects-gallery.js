@@ -716,86 +716,51 @@
     return result;
   }
 
-  var POUR_EDGE =
-    "M0 0 H13 Q20 7 13 14 Q6 21 13 28 Q20 35 13 42 Q6 49 13 56 " +
-    "Q20 63 13 70 Q6 77 13 84 Q20 91 13 98 Q6 105 13 112 H0 Z";
-
-  function fxPour(stage) {
-    var btn = makeBtn(
-      "pour",
-      '<div class="fxfill-h"></div>' +
-        '<svg class="fxpour-edge" viewBox="0 0 26 112" preserveAspectRatio="none" aria-hidden="true">' +
-        '<path d="' + POUR_EDGE + '"></path>' +
-        "</svg>" +
-        '<span class="fxpour-layer"></span>'
-    );
+  function fxBubbleFlow(stage) {
+    var btn = makeBtn("bubbleflow", '<div class="fxfill-h"></div><span class="fxflow-layer"></span>');
     stage.appendChild(btn);
-    var edge = btn.querySelector(".fxpour-edge");
-    var layer = btn.querySelector(".fxpour-layer");
+    var layer = btn.querySelector(".fxflow-layer");
     function prog() {
       var v = parseFloat(getComputedStyle(btn).getPropertyValue("--p"));
       return isNaN(v) ? 0.42 : v;
-    }
-    function blobRadius() {
-      function r() {
-        return Math.round(40 + Math.random() * 46);
-      }
-      return r() + "% " + r() + "% " + r() + "% " + r() + "% / " + r() + "% " + r() + "% " + r() + "% " + r() + "%";
     }
     function spawn() {
       if (reduced() || !window.anime) return;
       var w = btn.clientWidth || 300;
       var h = btn.clientHeight || 56;
-      var front = w * prog();
-      var gap = w - front;
-      var bw = 8 + Math.random() * 20;
-      var bh = bw * (0.7 + Math.random() * 0.6);
-      var cx;
-      var targetCx;
-      if (gap > bw + 26) {
-        // Appears in the empty part and merges into the progress front.
-        cx = front + bw / 2 + 6 + Math.random() * Math.max(1, gap - bw - 16);
-        targetCx = front - bw * 0.4;
-      } else {
-        // Near the end: blobs drift left inside the liquid and dissolve.
-        cx = bw / 2 + 8 + Math.random() * Math.max(1, front - bw - 12);
-        targetCx = Math.max(bw / 2 + 2, cx - (30 + Math.random() * 50));
-      }
-      var cy = bh / 2 + 3 + Math.random() * Math.max(1, h - bh - 6);
-      var blob = el("span", "fxpour-blob");
-      blob.style.left = cx - bw / 2 + "px";
-      blob.style.top = cy - bh / 2 + "px";
-      blob.style.width = bw + "px";
-      blob.style.height = bh + "px";
-      blob.style.borderRadius = blobRadius();
-      layer.appendChild(blob);
+      var filled = Math.max(24, w * prog());
+      var size = 4 + Math.random() * 11;
+      var x = 6 + Math.random() * Math.max(1, filled - size - 10);
+      var drift = 24 + Math.random() * 60;
+      var bubble = el("span", "fxflow-bubble");
+      bubble.style.left = x + "px";
+      bubble.style.width = size + "px";
+      bubble.style.height = size + "px";
+      layer.appendChild(bubble);
       anime({
-        targets: blob,
-        translateX: [0, targetCx - cx],
-        scale: [0.7, 1.08, 0.92],
-        opacity: [0, 1, 1],
-        duration: 720 + Math.random() * 620,
-        easing: "easeInOutSine",
+        targets: bubble,
+        translateY: [0, -(h + size + 10)],
+        translateX: drift,
+        scale: [0.6, 1, 0.9],
+        opacity: [0, 0.95, 0],
+        duration: 900 + Math.random() * 700,
+        easing: "easeOutSine",
         complete: function () {
-          blob.remove();
+          bubble.remove();
         }
       });
     }
-    function update(p) {
-      edge.style.opacity = p <= 0.02 ? "0" : "1";
-    }
-    update(0.42);
     if (!reduced() && window.anime) {
-      window.setInterval(spawn, 220);
+      window.setInterval(spawn, 200);
       spawn();
     }
-    return { update: update };
+    return {};
   }
 
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
-    { group: "basic", id: "pour", name: { vi: "Chảy nhỏ giọt (cơ bản)", en: "Liquid pour (basic)" }, desc: { vi: "Cả thanh là chất lỏng, dâng trái sang phải; các giọt chất lỏng cùng màu, to nhỏ và hình dạng ngẫu nhiên, bay từ phải sang trái nhập vào đầu tiến trình. Mặt thoáng sóng sánh như lắc ống nghiệm, không có thanh chắn.", en: "The whole bar is the liquid, growing left to right; same-colour blobs of random size and shape fly right to left and merge into the front. The surface sloshes like a shaken test tube, with no hard cap." }, lib: ["anime.js", "CSS", "SVG"], w: 1, build: fxPour },
+    { group: "basic", id: "bubbleflow", name: { vi: "Bong bóng bay ngang", en: "Horizontal bubbles" }, desc: { vi: "Cả thanh là chất lỏng dâng trái sang phải; bong bóng nổi lên và trôi ngang từ trái sang phải, to nhỏ ngẫu nhiên.", en: "The whole bar is the liquid, growing left to right; bubbles rise and drift left to right at random sizes." }, lib: ["anime.js", "CSS"], w: 1, build: fxBubbleFlow },
 
     { group: "water", id: "wave-multi", name: { vi: "Sóng xô nhiều lớp", en: "Layered waves" }, desc: { vi: "3 lớp sóng lệch pha; mực nước đúng theo tiến trình.", en: "3 offset wave layers; the level follows progress." }, lib: ["CSS", "SVG"], w: 1, build: fxWaveMulti },
     { group: "water", id: "bubbles", name: { vi: "Bong bóng nổi", en: "Rising bubbles" }, desc: { vi: "Bọt khí nổi trong phần đã tải (tạo bằng anime.js).", en: "Bubbles rise inside the filled part (spawned by anime.js)." }, lib: ["anime.js", "CSS"], w: 2, build: fxBubbles },

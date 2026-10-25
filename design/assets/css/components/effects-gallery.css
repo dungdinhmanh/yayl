@@ -1395,40 +1395,13 @@
   margin: -4px 0 0;
 }
 
-/* 41 basic: the whole capsule IS the fill. Liquid blobs (same accent colour)
-   fly right -> left and merge into the front, and the front surface sloshes
-   like liquid in a test tube. Stand the bar up and it reads as dripping into
-   a jar. No hard cap: the front is a travelling wave. */
-.fxbtn[data-fx="pour"] .fxfill-h {
-  width: calc(var(--p) * 100% - 7px);
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.55), rgba(var(--accent-rgb), 0.95));
+/* 41 basic: the whole capsule is the liquid, growing left -> right. Bubbles
+   rise and drift left -> right (anime.js), random sizes. */
+.fxbtn[data-fx="bubbleflow"] .fxfill-h {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
 }
 
-.fxpour-edge {
-  position: absolute;
-  top: -28px;
-  left: calc(var(--p) * 100% - 13px);
-  width: 26px;
-  height: calc(100% + 56px);
-  animation: fxporate 2.6s linear infinite;
-  transition: opacity 200ms;
-}
-
-.fxpour-edge path {
-  fill: rgba(var(--accent-rgb), 0.95);
-  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.6));
-}
-
-@keyframes fxporate {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-28px);
-  }
-}
-
-.fxpour-layer {
+.fxflow-layer {
   position: absolute;
   inset: 0;
   z-index: 7;
@@ -1436,11 +1409,12 @@
   pointer-events: none;
 }
 
-.fxpour-blob {
+.fxflow-bubble {
   position: absolute;
-  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.28), rgba(var(--accent-rgb), 0.96) 62%);
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.5);
-  will-change: transform, opacity;
+  bottom: -16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), rgba(var(--accent-rgb), 0.22) 62%, rgba(var(--accent-rgb), 0) 74%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 /* --- reduced motion --- */
@@ -1465,8 +1439,7 @@
   .fx-lux,
   .fx-luxbar,
   .fxsheen,
-  .fxedge,
-  .fxpour-edge {
+  .fxedge {
     animation: none;
   }
 }
