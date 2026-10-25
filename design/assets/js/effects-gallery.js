@@ -731,7 +731,9 @@
       var front = w * prog();
       if (front < 22) return;
       var size = 4 + Math.random() * 11;
-      var startX = 5 + Math.random() * Math.max(1, front * 0.5 - size);
+      // Bubbles are born at the start of the progress (left edge) and rise
+      // towards the surface at the current front.
+      var startX = 4 + Math.random() * 8;
       var targetX = Math.max(startX + 12, front - size * 0.6);
       var y = size / 2 + 4 + Math.random() * Math.max(1, h - size - 8);
       var wobble = 3 + Math.random() * 6;
