@@ -716,9 +716,52 @@
     return result;
   }
 
+  function fxPour(stage) {
+    var btn = makeBtn(
+      "pour",
+      '<div class="fxfill-h fxpour-fill"><span class="fxpour-flow"></span></div><span class="fxpour-layer"></span>'
+    );
+    stage.appendChild(btn);
+    var layer = btn.querySelector(".fxpour-layer");
+    function prog() {
+      var v = parseFloat(getComputedStyle(btn).getPropertyValue("--p"));
+      return isNaN(v) ? 0.42 : v;
+    }
+    function spawn() {
+      if (reduced() || !window.anime) return;
+      var w = btn.clientWidth || 300;
+      var h = btn.clientHeight || 56;
+      var lead = w * prog();
+      var x = Math.max(6, Math.min(w - 6, lead + (Math.random() * 26 - 16)));
+      var drift = 8 + Math.random() * 16;
+      var drop = el("span", "fxpour-drop");
+      drop.style.left = x + "px";
+      layer.appendChild(drop);
+      anime({
+        targets: drop,
+        translateY: [0, h + 8],
+        translateX: -drift,
+        scaleY: [0.7, 1.3, 0.95],
+        opacity: [0, 1, 1, 0],
+        duration: 760 + Math.random() * 420,
+        easing: "easeInQuad",
+        complete: function () {
+          drop.remove();
+        }
+      });
+    }
+    if (!reduced() && window.anime) {
+      window.setInterval(spawn, 180);
+      spawn();
+    }
+    return {};
+  }
+
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
+    { group: "basic", id: "pour", name: { vi: "Chảy nhỏ giọt (cơ bản)", en: "Liquid pour (basic)" }, desc: { vi: "Nền tải chạy trái → phải; giọt nước rơi từ trên xuống và trôi dần sang trái như chất lỏng đang chảy.", en: "The fill grows left to right; drops fall downward and drift left like flowing liquid." }, lib: ["anime.js", "CSS"], w: 1, build: fxPour },
+
     { group: "water", id: "wave-multi", name: { vi: "Sóng xô nhiều lớp", en: "Layered waves" }, desc: { vi: "3 lớp sóng lệch pha; mực nước đúng theo tiến trình.", en: "3 offset wave layers; the level follows progress." }, lib: ["CSS", "SVG"], w: 1, build: fxWaveMulti },
     { group: "water", id: "bubbles", name: { vi: "Bong bóng nổi", en: "Rising bubbles" }, desc: { vi: "Bọt khí nổi trong phần đã tải (tạo bằng anime.js).", en: "Bubbles rise inside the filled part (spawned by anime.js)." }, lib: ["anime.js", "CSS"], w: 2, build: fxBubbles },
     { group: "water", id: "tide", name: { vi: "Thuỷ triều", en: "Tide" }, desc: { vi: "Mặt nước dâng lên rút xuống nhẹ theo nhịp.", en: "The surface gently rises and falls." }, lib: ["CSS", "SVG"], w: 1, build: fxTide },
@@ -769,6 +812,7 @@
   ];
 
   var GROUPS = [
+    { id: "basic", key: "fx.groupBasic" },
     { id: "water", key: "fx.groupWater" },
     { id: "bar", key: "fx.groupBar" },
     { id: "ring", key: "fx.groupRing" },

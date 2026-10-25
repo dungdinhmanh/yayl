@@ -34,7 +34,7 @@ Static HTML/CSS/JS prototypes for the YAYL launcher. **No build step. No server.
 | `first-run.html` | Onboarding (language, games, done) |
 | `ui-kit.html` | Buttons, forms, status, progress, modal |
 | `download-animations.html` | Five download-avatar animation options to review |
-| `effects-gallery.html` | 40 progress effects with library tags, weight, sticky scrubber and a simulate-download control |
+| `effects-gallery.html` | 41 progress effects with library tags, weight, sticky scrubber and a simulate-download control |
 | `server-switch.html` | One game icon + server picker concept |
 
 ## Query parameters
