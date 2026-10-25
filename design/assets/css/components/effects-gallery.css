@@ -1395,50 +1395,53 @@
   margin: -4px 0 0;
 }
 
-/* 41 basic: liquid pour (fill left -> right, drops fall + drift left) */
-.fxbtn[data-fx="pour"] .fxfill-h {
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
+/* 41 basic: liquid pour — the pool grows left -> right, drops fall straight
+   down (never sideways) and land on the surface with a ripple. */
+.fxbtn[data-fx="pour"] .fxlabel {
+  align-items: flex-start;
+  padding-top: 7px;
 }
 
-.fxpour-fill::before {
+.fxpour-track {
+  position: absolute;
+  inset: 0;
+}
+
+.fxpour-pool {
+  position: absolute;
+  top: 42%;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--p) * 100%);
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.68), rgba(var(--accent-rgb), 1));
+  box-shadow: inset 0 -12px 18px -12px rgba(0, 0, 0, 0.5);
+  transition: width 140ms linear;
+}
+
+.fxpour-pool::before {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
   height: 2px;
-  background: rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
   filter: blur(1px);
 }
 
-.fxpour-fill::after {
+.fxpour-pool::after {
   content: "";
   position: absolute;
-  top: -4px;
-  right: -3px;
-  bottom: -4px;
-  width: 8px;
+  top: -5px;
+  right: -2px;
+  bottom: -5px;
+  width: 6px;
   border-radius: 999px;
   background: #ffffff;
-  box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.9), 0 0 24px 8px rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.9), 0 0 22px 8px rgba(var(--accent-rgb), 0.5);
   animation: fxpourpulse 1.2s ease-in-out infinite;
-}
-
-.fxpour-flow {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 2px, transparent 2px 16px);
-  animation: fxpourflow 1.1s linear infinite;
-}
-
-@keyframes fxpourflow {
-  from {
-    background-position-x: 0;
-  }
-  to {
-    background-position-x: -16px;
-  }
 }
 
 @keyframes fxpourpulse {
@@ -1472,6 +1475,18 @@
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
 }
 
+.fxpour-ripple {
+  position: absolute;
+  width: 26px;
+  height: 9px;
+  margin-top: -4.5px;
+  margin-left: -13px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  transform: scale(0.2);
+  opacity: 0;
+}
+
 /* --- reduced motion --- */
 @media (prefers-reduced-motion: reduce) {
   .fxwaves path,
@@ -1495,8 +1510,7 @@
   .fx-luxbar,
   .fxsheen,
   .fxedge,
-  .fxpour-flow,
-  .fxpour-fill::after {
+  .fxpour-pool::after {
     animation: none;
   }
 }
