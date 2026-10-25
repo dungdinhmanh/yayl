@@ -1395,35 +1395,36 @@
   margin: -4px 0 0;
 }
 
-/* 41 basic: the whole capsule IS the fill. Liquid streaks fly right -> left
-   and merge into the progress front. Stand the bar up and it reads as
-   dripping into a jar. */
+/* 41 basic: the whole capsule IS the fill. Liquid blobs (same accent colour)
+   fly right -> left and merge into the front, and the front surface sloshes
+   like liquid in a test tube. Stand the bar up and it reads as dripping into
+   a jar. No hard cap: the front is a travelling wave. */
 .fxbtn[data-fx="pour"] .fxfill-h {
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
+  width: calc(var(--p) * 100% - 7px);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.55), rgba(var(--accent-rgb), 0.95));
 }
 
-.fxbtn[data-fx="pour"] .fxfill-h::after {
-  content: "";
+.fxpour-edge {
   position: absolute;
-  top: -4px;
-  right: -3px;
-  bottom: -4px;
-  width: 8px;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.9), 0 0 22px 8px rgba(var(--accent-rgb), 0.5);
-  animation: fxpourpulse 1.2s ease-in-out infinite;
+  top: -28px;
+  left: calc(var(--p) * 100% - 13px);
+  width: 26px;
+  height: calc(100% + 56px);
+  animation: fxporate 2.6s linear infinite;
+  transition: opacity 200ms;
 }
 
-@keyframes fxpourpulse {
-  0%,
-  100% {
-    opacity: 0.75;
-    transform: scaleY(0.85);
+.fxpour-edge path {
+  fill: rgba(var(--accent-rgb), 0.95);
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.6));
+}
+
+@keyframes fxporate {
+  from {
+    transform: translateY(0);
   }
-  50% {
-    opacity: 1;
-    transform: scaleY(1.15);
+  to {
+    transform: translateY(-28px);
   }
 }
 
@@ -1435,14 +1436,11 @@
   pointer-events: none;
 }
 
-.fxpour-drop {
+.fxpour-blob {
   position: absolute;
-  width: 14px;
-  height: 5px;
-  margin: -2.5px 0 0 -7px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.28), rgba(var(--accent-rgb), 0.96) 62%);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.5);
+  will-change: transform, opacity;
 }
 
 /* --- reduced motion --- */
@@ -1468,7 +1466,7 @@
   .fx-luxbar,
   .fxsheen,
   .fxedge,
-  .fxbtn[data-fx="pour"] .fxfill-h::after {
+  .fxpour-edge {
     animation: none;
   }
 }
