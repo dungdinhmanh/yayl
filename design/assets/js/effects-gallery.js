@@ -728,23 +728,29 @@
       if (reduced() || !window.anime) return;
       var w = btn.clientWidth || 300;
       var h = btn.clientHeight || 56;
-      var filled = Math.max(24, w * prog());
+      var front = w * prog();
+      if (front < 22) return;
       var size = 4 + Math.random() * 11;
-      var x = 6 + Math.random() * Math.max(1, filled - size - 10);
-      var drift = 24 + Math.random() * 60;
+      var startX = 5 + Math.random() * Math.max(1, front * 0.5 - size);
+      var targetX = Math.max(startX + 12, front - size * 0.6);
+      var y = size / 2 + 4 + Math.random() * Math.max(1, h - size - 8);
+      var wobble = 3 + Math.random() * 6;
       var bubble = el("span", "fxflow-bubble");
-      bubble.style.left = x + "px";
+      bubble.style.left = startX + "px";
+      bubble.style.top = y - size / 2 + "px";
       bubble.style.width = size + "px";
       bubble.style.height = size + "px";
       layer.appendChild(bubble);
+      // Travel left -> right towards the front (rising, in the upright model),
+      // with a small vertical wobble, then pop at the surface.
       anime({
         targets: bubble,
-        translateY: [0, -(h + size + 10)],
-        translateX: drift,
-        scale: [0.6, 1, 0.9],
-        opacity: [0, 0.95, 0],
-        duration: 900 + Math.random() * 700,
-        easing: "easeOutSine",
+        translateX: [0, targetX - startX],
+        translateY: [0, -wobble, 0, wobble, 0],
+        scale: [0.7, 1.05, 1.18, 1.3],
+        opacity: [0, 1, 1, 0],
+        duration: 900 + Math.random() * 800,
+        easing: "easeInOutSine",
         complete: function () {
           bubble.remove();
         }
@@ -760,7 +766,7 @@
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
-    { group: "basic", id: "bubbleflow", name: { vi: "Bong bóng bay ngang", en: "Horizontal bubbles" }, desc: { vi: "Cả thanh là chất lỏng dâng trái sang phải; bong bóng nổi lên và trôi ngang từ trái sang phải, to nhỏ ngẫu nhiên.", en: "The whole bar is the liquid, growing left to right; bubbles rise and drift left to right at random sizes." }, lib: ["anime.js", "CSS"], w: 1, build: fxBubbleFlow },
+    { group: "basic", id: "bubbleflow", name: { vi: "Bong bóng nổi (dựng dọc)", en: "Rising bubbles (upright)" }, desc: { vi: "Cả thanh là chất lỏng dâng trái sang phải. Nghĩ theo chiều dọc: bong bóng nổi lên trong ống; để nằm ngang thì chúng chạy từ trái sang phải tới mặt thoáng (đầu tiến trình) rồi vỡ.", en: "The whole bar is the liquid, growing left to right. Upright, bubbles rise inside the tube; laid flat they travel left to right to the surface (the progress front) and pop." }, lib: ["anime.js", "CSS"], w: 1, build: fxBubbleFlow },
 
     { group: "water", id: "wave-multi", name: { vi: "Sóng xô nhiều lớp", en: "Layered waves" }, desc: { vi: "3 lớp sóng lệch pha; mực nước đúng theo tiến trình.", en: "3 offset wave layers; the level follows progress." }, lib: ["CSS", "SVG"], w: 1, build: fxWaveMulti },
     { group: "water", id: "bubbles", name: { vi: "Bong bóng nổi", en: "Rising bubbles" }, desc: { vi: "Bọt khí nổi trong phần đã tải (tạo bằng anime.js).", en: "Bubbles rise inside the filled part (spawned by anime.js)." }, lib: ["anime.js", "CSS"], w: 2, build: fxBubbles },
