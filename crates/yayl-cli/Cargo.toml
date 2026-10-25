@@ -1,0 +1,12 @@
+[package]
+name = "yayl-cli"
+description = "Headless diagnostics for YAYL"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+yayl-core.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
