@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
@@ -49,6 +50,7 @@ function secondaryKey(state: GameState) {
 }
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
+const MENU_ITEMS = ["home.menu.verify", "home.menu.repair", "home.menu.settings", "home.menu.shortcut"];
 
 export default function Home({ gameId, state, lang, t }: Props) {
   const game = GAMES[gameId];
@@ -63,6 +65,25 @@ export default function Home({ gameId, state, lang, t }: Props) {
     drive: game.drive,
     free: game.free,
   };
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   return (
     <div className="page home-page">
@@ -83,7 +104,6 @@ export default function Home({ gameId, state, lang, t }: Props) {
 
       {showCard && (
         <div className="game-info-card">
-          <img className="game-info-thumb" src={`/art/${gameId}.png`} alt="" />
           <div>
             <div className="game-info-name">{game.name}</div>
             <div className="game-info-meta">
@@ -108,6 +128,38 @@ export default function Home({ gameId, state, lang, t }: Props) {
             <span className="home-play-sub">{subText(game, state, t)}</span>
           </span>
         </button>
+
+        <div className="home-menu" ref={menuRef}>
+          <button
+            className="home-menu-btn"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            aria-label={t("home.menu.label")}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.8" />
+              <circle cx="12" cy="12" r="1.8" />
+              <circle cx="12" cy="19" r="1.8" />
+            </svg>
+          </button>
+          {menuOpen && (
+            <div className="home-menu-pop" role="menu">
+              {MENU_ITEMS.map((key) => (
+                <button
+                  key={key}
+                  className="home-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t(key)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="home-version">v{game.version}</div>

@@ -98,6 +98,9 @@ Do not force a theme step; dark is the only v1 theme.
 
 - **Home:** rail variant A (76px icon rail + news) is the primary layout. Top-avatar variant B is kept as an alternate.
 - **Avatar progress:** rounded-square avatar with a border progress ring that starts at top center and runs clockwise. No second ring. Pure CSS (SVG path + `stroke-dashoffset` + `transition`), no library.
+- **Rail selection:** the same ring doubles as the selected/focused indicator — full accent ring, no separate thin outline. Downloading but not selected shows a partial ring instead.
+- **Home action menu:** a menu button sits to the right of the primary action button. Its dropdown opens **upwards** and holds Verify, Repair game, Game settings, Create shortcut.
+- **Home info card:** no thumbnail; the rail already identifies the game.
 - **Download progress effect:** rising bubbles, standalone component (`design/assets/css/components/bubble-progress.css` + `design/assets/js/bubble-progress.js`). Bubbles spawn at the start of progress and travel to the front. Progress bars use CSS widths, not a library (progressbar.js ~18 KB gzip and NProgress is indeterminate, so both were rejected for the size budget).
 - **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`. Applied to the rail game avatars and the top-avatar tabs.
 - **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape.

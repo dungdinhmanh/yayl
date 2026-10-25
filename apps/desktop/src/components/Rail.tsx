@@ -27,14 +27,20 @@ export default function Rail({ gameId, states, t, onSelect }: Props) {
               : gameState === "paused"
                 ? "paused"
                 : "downloading";
+            const selected = id === gameId;
             // The progress ring belongs to a downloading game that is not selected.
-            const showRing = downloadActive && id !== gameId;
-            const progress = showRing ? STATE_META[gameState].progress : 0;
+            const showRing = downloadActive && !selected;
+            // Selected rings are full: the ring doubles as the selection indicator.
+            const endOffset = selected ? 0 : showRing ? 100 - STATE_META[gameState].progress : 100;
 
             return (
               <button
                 key={id}
-                className={"game-card" + (id === gameId ? " is-active" : "") + (showRing ? " is-downloading" : "")}
+                className={
+                  "game-card" +
+                  (selected ? " is-active is-ring-selected" : "") +
+                  (showRing ? " is-downloading" : "")
+                }
                 type="button"
                 title={GAMES[id].name}
                 onClick={() => onSelect(id)}
@@ -47,7 +53,7 @@ export default function Rail({ gameId, states, t, onSelect }: Props) {
                       className="rail-progress-fill"
                       pathLength={100}
                       d={RAIL_PATH}
-                      style={{ strokeDashoffset: `${100 - progress}px` }}
+                      style={{ strokeDashoffset: `${endOffset}px` }}
                     />
                   </svg>
                   <img
