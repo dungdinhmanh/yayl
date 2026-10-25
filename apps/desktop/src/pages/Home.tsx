@@ -86,7 +86,7 @@ export default function Home({ gameId, state, lang, t }: Props) {
 
   return (
     <div className="page home-page">
-      <NewsWidget lang={lang} />
+      <NewsWidget lang={lang} t={t} />
 
       {state !== "install" && (
         <div className="hero-stats">
@@ -102,11 +102,6 @@ export default function Home({ gameId, state, lang, t }: Props) {
       )}
 
       <div className="home-actions">
-        {secondary && (
-          <button className="home-action-link" type="button">
-            {t(secondary, vars)}
-          </button>
-        )}
         <div className="home-action-group">
           <button
             className={"home-play is-" + state}
@@ -158,6 +153,11 @@ export default function Home({ gameId, state, lang, t }: Props) {
             )}
           </div>
         </div>
+        {secondary && (
+          <button className="home-action-link" type="button">
+            {t(secondary, vars)}
+          </button>
+        )}
       </div>
 
       <div className="home-version">v{game.version}</div>

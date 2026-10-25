@@ -4542,6 +4542,44 @@ body[data-layout="rail"] .backdrop-scrim {
   background: linear-gradient(90deg, rgba(4, 6, 10, 0.82) 0%, rgba(4, 6, 10, 0.2) 62%, rgba(4, 6, 10, 0.05) 100%);
 }
 
+/* Manual carousel controls; autoplay stays as a fallback. */
+.banner-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(4, 6, 10, 0.6);
+  color: var(--text);
+  opacity: 0.72;
+  transform: translateY(-50%);
+  transition: opacity var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.banner-nav:hover,
+.banner-nav:focus-visible {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(4, 6, 10, 0.88);
+  opacity: 1;
+}
+
+.banner-nav svg {
+  width: 14px;
+  height: 14px;
+}
+
+.banner-nav-prev {
+  left: 10px;
+}
+
+.banner-nav-next {
+  right: 10px;
+}
+
 .banner-copy {
   position: absolute;
   right: 74px;
@@ -4699,17 +4737,19 @@ body[data-layout="rail"] .backdrop-scrim {
 
 /* Bottom action bar */
 .home-actions {
+  --action-menu-size: 62px;
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 7;
   display: flex;
+  flex-direction: column;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
   height: 165px;
-  padding: 0 44px 44px;
+  padding: 0 44px 30px;
   background: linear-gradient(180deg, rgba(4, 6, 10, 0) 0%, rgba(4, 6, 10, 0.5) 32%, rgba(4, 6, 10, 0.78) 100%);
 }
 
@@ -4729,7 +4769,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .home-menu-btn {
   display: grid;
   place-items: center;
-  width: 62px;
+  width: var(--action-menu-size);
   height: 100%;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -4746,8 +4786,8 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .home-menu-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
 }
 
 .home-menu-pop {
@@ -4788,9 +4828,10 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
+/* Sits under the primary button, right-aligned with it. */
 .home-action-link {
-  align-self: center;
-  padding: 8px 12px;
+  margin-right: calc(var(--action-menu-size) + 10px);
+  padding: 6px 10px;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
@@ -4834,11 +4875,12 @@ body[data-layout="rail"] .backdrop-scrim {
 .home-play {
   position: relative;
   display: flex;
+  flex: 0 0 260px;
   align-items: center;
   gap: 12px;
-  min-width: 212px;
+  width: 260px;
   height: 62px;
-  padding: 0 24px;
+  padding: 0 20px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
@@ -4871,10 +4913,21 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .home-play-copy {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  min-width: 0;
+  overflow: hidden;
+}
+
+/* Fixed type size and truncation: long copy never widens the button. */
+.home-play-label,
+.home-play-sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-play-label {
@@ -4902,8 +4955,13 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
+/* Paused reads yellow at a glance, not just in the liquid fill. */
 .home-play.is-paused {
   --accent-rgb: 245, 181, 68;
+  border-color: rgba(245, 181, 68, 0.55);
+  background:
+    linear-gradient(180deg, rgba(245, 181, 68, 0.3), rgba(245, 181, 68, 0.12) 48%, rgba(0, 0, 0, 0.12)),
+    var(--bg-1);
 }
 
 .home-play.is-error {
@@ -5119,16 +5177,12 @@ body[data-layout="topbar"] .backdrop-art {
   }
 
   .home-play {
-    min-width: 186px;
     height: 56px;
     padding: 0 18px;
   }
 
-  .home-play-label {
-    font-size: 14px;
-  }
-
   .home-actions {
+    --action-menu-size: 56px;
     padding-right: 20px;
   }
 }
@@ -5164,13 +5218,13 @@ body[data-layout="topbar"] .backdrop-art {
   }
 
   .home-actions {
+    --action-menu-size: 52px;
     height: 132px;
     padding-bottom: 20px;
   }
 
   .home-play {
     height: 52px;
-    min-width: 184px;
   }
 
   .home-version {

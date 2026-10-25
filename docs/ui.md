@@ -101,9 +101,11 @@ Do not force a theme step; dark is the only v1 theme.
 - **Rail selection:** the same ring doubles as the selected/focused indicator — full accent ring, no separate thin outline. Downloading but not selected shows a partial ring instead.
 - **Home action menu:** the primary button and a hamburger menu button share one row (same height, 10 px gap). The dropdown opens **upwards** and holds Verify, Repair game, Game settings, Create shortcut.
 - **No home info card:** the rail and the action button already identify the game and its state.
+- **Fixed primary button:** 260px wide at every state and language; label and sub-line are single-line with ellipsis, so longer copy never resizes the button. Font sizes stay fixed across breakpoints. Paused uses an amber base, border and liquid fill.
+- **Secondary action:** sits below the primary button, right-aligned with it (`Use existing install`, `Play anyway`, `Retry`, …).
 - **Download progress effect:** rising bubbles, standalone component (`design/assets/css/components/bubble-progress.css` + `design/assets/js/bubble-progress.js`). Bubbles spawn at the start of progress and travel to the front. Progress bars use CSS widths, not a library (progressbar.js ~18 KB gzip and NProgress is indeterminate, so both were rejected for the size budget).
 - **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`. Applied to the rail game avatars and the top-avatar tabs.
-- **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape.
+- **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape. The banner has visible previous/next buttons and dots; autoplay is a fallback and restarts after manual navigation.
 - **Text contrast:** the brighter tokens (`--muted #b8c2d1`, `--muted-2 #919cad`, `--muted-3 #707b8d`).
 - **Minimum readable sizes:** 10px uppercase labels, 11px meta/date, 12px body/controls.
 - **Minimum window:** 1100×650, with the lab size guard below 960×600.

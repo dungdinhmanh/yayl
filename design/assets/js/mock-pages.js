@@ -731,6 +731,18 @@
       });
     }
 
+    function startTimer() {
+      if (newsTimer) window.clearInterval(newsTimer);
+      newsTimer = window.setInterval(function () {
+        showBanner((newsIndex + 1) % news.banners.length);
+      }, 6000);
+    }
+
+    function step(delta) {
+      showBanner((newsIndex + delta + news.banners.length) % news.banners.length);
+      startTimer();
+    }
+
     if (banner.dataset.ready !== "1") {
       banner.innerHTML = news.banners
         .map(function (item, index) {
@@ -742,24 +754,41 @@
           );
         })
         .join("") +
+        '<button class="banner-nav banner-nav-prev" type="button" data-banner-prev aria-label="">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>' +
+        "</button>" +
+        '<button class="banner-nav banner-nav-next" type="button" data-banner-next aria-label="">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +
+        "</button>" +
         '<div class="banner-dots">' +
         news.banners
           .map(function (item, index) {
-            return '<button class="banner-dot' + (index === 0 ? " is-active" : "") + '" type="button" data-banner-dot="' + index + '" aria-label="Slide ' + (index + 1) + '"></button>';
+            return '<button class="banner-dot' + (index === 0 ? " is-active" : "") + '" type="button" data-banner-dot="' + index + '"></button>';
           })
           .join("") +
         "</div>";
+      var prevBtn = banner.querySelector("[data-banner-prev]");
+      var nextBtn = banner.querySelector("[data-banner-next]");
+      if (prevBtn) prevBtn.addEventListener("click", function () {
+        step(-1);
+      });
+      if (nextBtn) nextBtn.addEventListener("click", function () {
+        step(1);
+      });
       banner.querySelectorAll("[data-banner-dot]").forEach(function (dot) {
         dot.addEventListener("click", function () {
           showBanner(Number(dot.getAttribute("data-banner-dot")));
+          startTimer();
         });
       });
       banner.dataset.ready = "1";
-      if (newsTimer) window.clearInterval(newsTimer);
-      newsTimer = window.setInterval(function () {
-        showBanner((newsIndex + 1) % news.banners.length);
-      }, 6000);
+      startTimer();
     }
+
+    var bannerPrev = banner.querySelector("[data-banner-prev]");
+    var bannerNext = banner.querySelector("[data-banner-next]");
+    if (bannerPrev) bannerPrev.setAttribute("aria-label", app.t("news.prev"));
+    if (bannerNext) bannerNext.setAttribute("aria-label", app.t("news.next"));
 
     banner.querySelectorAll(".banner-slide").forEach(function (slide, index) {
       var item = news.banners[index];
@@ -767,6 +796,10 @@
       var title = slide.querySelector("[data-banner-title]");
       if (kicker) kicker.textContent = item.kicker[lang];
       if (title) title.textContent = item.title[lang];
+    });
+
+    banner.querySelectorAll("[data-banner-dot]").forEach(function (dot, index) {
+      dot.setAttribute("aria-label", app.t("news.slide", { n: index + 1 }));
     });
 
     if (tabs.dataset.ready !== "1") {
