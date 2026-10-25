@@ -717,10 +717,7 @@
   }
 
   function fxPour(stage) {
-    var btn = makeBtn(
-      "pour",
-      '<div class="fxpour-track"><div class="fxpour-pool"></div><span class="fxpour-layer"></span></div>'
-    );
+    var btn = makeBtn("pour", '<div class="fxfill-h"></div><span class="fxpour-layer"></span>');
     stage.appendChild(btn);
     var layer = btn.querySelector(".fxpour-layer");
     function prog() {
@@ -731,42 +728,38 @@
       if (reduced() || !window.anime) return;
       var w = btn.clientWidth || 300;
       var h = btn.clientHeight || 56;
-      // The pool starts at 42% height; drops fall straight down onto that surface.
-      var surface = h * 0.42;
-      var poolW = Math.max(16, w * prog());
-      var x = 10 + Math.random() * Math.max(1, poolW - 20);
+      var lead = w * prog();
+      var gap = w - lead;
+      var x;
+      var target;
+      if (gap > 26) {
+        // Fly in from the empty part and merge at the progress front.
+        x = lead + 4 + Math.random() * (gap - 10);
+        target = lead - 4;
+      } else {
+        // Near the end: streak leftwards inside the filled part and dissolve.
+        x = 8 + Math.random() * Math.max(1, lead - 16);
+        target = Math.max(2, x - (26 + Math.random() * 44));
+      }
+      var y = h * 0.2 + Math.random() * h * 0.6;
       var drop = el("span", "fxpour-drop");
       drop.style.left = x + "px";
+      drop.style.top = y + "px";
       layer.appendChild(drop);
-      var ripple = el("span", "fxpour-ripple");
-      ripple.style.left = x + "px";
-      ripple.style.top = surface + "px";
-      layer.appendChild(ripple);
       anime({
         targets: drop,
-        translateY: [0, surface],
-        scaleY: [0.7, 1.35, 1],
-        opacity: [0, 1, 1],
-        duration: 430,
-        easing: "easeInQuad",
+        translateX: [0, target - x],
+        scale: [1, 1.2, 0.2],
+        opacity: [0, 1, 0],
+        duration: 560 + Math.random() * 380,
+        easing: "easeInOutQuad",
         complete: function () {
           drop.remove();
         }
       });
-      anime({
-        targets: ripple,
-        scale: [0.2, 1.6],
-        opacity: [0, 0.8, 0],
-        duration: 640,
-        delay: 390,
-        easing: "easeOutQuad",
-        complete: function () {
-          ripple.remove();
-        }
-      });
     }
     if (!reduced() && window.anime) {
-      window.setInterval(spawn, 230);
+      window.setInterval(spawn, 150);
       spawn();
     }
     return {};
@@ -775,7 +768,7 @@
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
-    { group: "basic", id: "pour", name: { vi: "Chảy nhỏ giọt (cơ bản)", en: "Liquid pour (basic)" }, desc: { vi: "Chất lỏng dâng từ trái sang phải; giọt rơi thẳng xuống mặt nước (không trôi ngang) rồi tạo gợn.", en: "The pool grows left to right; drops fall straight down onto the surface (no sideways motion) and ripple." }, lib: ["anime.js", "CSS"], w: 1, build: fxPour },
+    { group: "basic", id: "pour", name: { vi: "Chảy nhỏ giọt (cơ bản)", en: "Liquid pour (basic)" }, desc: { vi: "Cả thanh là chất lỏng, dâng từ trái sang phải; các tia chất lỏng bay từ phải sang trái và nhập vào đầu tiến trình. Dựng đứng lên thì đọc như nhỏ giọt vào bình.", en: "The whole bar is the liquid, growing left to right; streaks fly right to left and merge into the progress front. Stand it up and it reads as dripping into a jar." }, lib: ["anime.js", "CSS"], w: 1, build: fxPour },
 
     { group: "water", id: "wave-multi", name: { vi: "Sóng xô nhiều lớp", en: "Layered waves" }, desc: { vi: "3 lớp sóng lệch pha; mực nước đúng theo tiến trình.", en: "3 offset wave layers; the level follows progress." }, lib: ["CSS", "SVG"], w: 1, build: fxWaveMulti },
     { group: "water", id: "bubbles", name: { vi: "Bong bóng nổi", en: "Rising bubbles" }, desc: { vi: "Bọt khí nổi trong phần đã tải (tạo bằng anime.js).", en: "Bubbles rise inside the filled part (spawned by anime.js)." }, lib: ["anime.js", "CSS"], w: 2, build: fxBubbles },

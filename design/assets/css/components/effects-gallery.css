@@ -1395,49 +1395,20 @@
   margin: -4px 0 0;
 }
 
-/* 41 basic: liquid pour — the pool grows left -> right, drops fall straight
-   down (never sideways) and land on the surface with a ripple. */
-.fxbtn[data-fx="pour"] .fxlabel {
-  align-items: flex-start;
-  padding-top: 7px;
+/* 41 basic: the whole capsule IS the fill. Liquid streaks fly right -> left
+   and merge into the progress front. Stand the bar up and it reads as
+   dripping into a jar. */
+.fxbtn[data-fx="pour"] .fxfill-h {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
 }
 
-.fxpour-track {
-  position: absolute;
-  inset: 0;
-}
-
-.fxpour-pool {
-  position: absolute;
-  top: 42%;
-  bottom: 0;
-  left: 0;
-  width: calc(var(--p) * 100%);
-  border-radius: 0 999px 999px 0;
-  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.68), rgba(var(--accent-rgb), 1));
-  box-shadow: inset 0 -12px 18px -12px rgba(0, 0, 0, 0.5);
-  transition: width 140ms linear;
-}
-
-.fxpour-pool::before {
+.fxbtn[data-fx="pour"] .fxfill-h::after {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-  filter: blur(1px);
-}
-
-.fxpour-pool::after {
-  content: "";
-  position: absolute;
-  top: -5px;
-  right: -2px;
-  bottom: -5px;
-  width: 6px;
+  top: -4px;
+  right: -3px;
+  bottom: -4px;
+  width: 8px;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.9), 0 0 22px 8px rgba(var(--accent-rgb), 0.5);
@@ -1466,25 +1437,12 @@
 
 .fxpour-drop {
   position: absolute;
-  top: -10px;
-  width: 5px;
-  height: 9px;
-  margin-left: -2.5px;
-  border-radius: 60% 60% 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), #ffffff);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
-}
-
-.fxpour-ripple {
-  position: absolute;
-  width: 26px;
-  height: 9px;
-  margin-top: -4.5px;
-  margin-left: -13px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.75);
-  transform: scale(0.2);
-  opacity: 0;
+  width: 14px;
+  height: 5px;
+  margin: -2.5px 0 0 -7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 /* --- reduced motion --- */
@@ -1510,7 +1468,7 @@
   .fx-luxbar,
   .fxsheen,
   .fxedge,
-  .fxpour-pool::after {
+  .fxbtn[data-fx="pour"] .fxfill-h::after {
     animation: none;
   }
 }
