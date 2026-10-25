@@ -55,6 +55,8 @@ There is no separate Downloads page or tab.
 
 - The horizontal fill grows left to right. Bubbles are born at the start of progress, rise to the surface, and pop at the current front. Upright, this reads as bubbles rising inside the tube.
 - Implementation: `design/assets/css/components/bubble-progress.css` + `design/assets/js/bubble-progress.js` (`YAYL_BUBBLES.create(host, { progress })`). Animation via anime.js; the fill still works without it.
+- React mirror: `apps/desktop/src/components/BubbleProgress.tsx` + `apps/desktop/src/styles/components/bubble-progress.css` (anime.js as a dependency).
+- Applied to the Home primary action button while downloading / paused / verifying. Those states use a dark glass base so the liquid reads; paused tints the fill amber.
 - Demo: `design/bubble-progress.html`.
 - **Avatar progress ring stays pure CSS**: one SVG path with `pathLength="100"`, `stroke-dashoffset` driven by progress, `transition` for smoothing. No library.
 

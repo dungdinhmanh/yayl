@@ -1,5 +1,6 @@
 import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
+import BubbleProgress from "../components/BubbleProgress";
 import type { Lang } from "../App";
 
 interface Props {
@@ -100,15 +101,11 @@ export default function Home({ gameId, state, lang, t }: Props) {
           </button>
         )}
         <button className={"home-play is-" + state} type="button" disabled={Boolean((meta as { disabled?: boolean }).disabled)}>
+          {DOWNLOAD_STATES.includes(state) && <BubbleProgress progress={(meta.progress || 0) / 100} />}
           {icon(meta.primaryIcon)}
           <span className="home-play-copy">
             <span className="home-play-label">{t(meta.primary, vars)}</span>
             <span className="home-play-sub">{subText(game, state, t)}</span>
-            {DOWNLOAD_STATES.includes(state) && (
-              <span className="home-play-progress">
-                <span style={{ width: `${meta.progress}%` }} />
-              </span>
-            )}
           </span>
         </button>
       </div>
