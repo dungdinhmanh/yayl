@@ -34,6 +34,7 @@ Static HTML/CSS/JS prototypes for the YAYL launcher. **No build step. No server.
 | `first-run.html` | Onboarding (language, games, done) |
 | `ui-kit.html` | Buttons, forms, status, progress, modal |
 | `download-animations.html` | Five download-avatar animation options to review |
+| `bubble-progress.html` | Chosen download effect (rising bubbles), standalone component demo |
 | `effects-gallery.html` | 41 progress effects with library tags, weight, sticky scrubber and a simulate-download control |
 | `server-switch.html` | One game icon + server picker concept |
 
@@ -75,7 +76,7 @@ first-run.html?step=2
 - No `fetch()` of local JSON; use the data in `assets/js/mock-data.js`.
 - No external fonts, icon CDNs, or analytics.
 - `assets/css/tokens.css` is the source of truth for design tokens.
-- `assets/css/components/` contains standalone, scalable components. The download badge lives there and is scaled with `--dl-badge-size`.
+- `assets/css/components/` contains standalone, scalable components. The download badge lives there and is scaled with `--dl-badge-size`; the chosen download effect is `bubble-progress.css` + `assets/js/bubble-progress.js` (`YAYL_BUBBLES.create(host)`).
 - `assets/vendor/` holds locally vendored libraries. No CDN at runtime.
 - The update-button animation proposals use anime.js (MIT) with a CSS fallback.
 - Official art is local-only and gitignored. Never commit it.

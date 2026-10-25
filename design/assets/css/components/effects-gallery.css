@@ -1395,28 +1395,8 @@
   margin: -4px 0 0;
 }
 
-/* 41 basic: the whole capsule is the liquid, growing left -> right. In the
-   upright mental model these are bubbles rising inside the tube; laid flat
-   that reads as bubbles travelling left -> right towards the progress front,
-   where they pop. */
-.fxbtn[data-fx="bubbleflow"] .fxfill-h {
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
-}
-
-.fxflow-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 7;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.fxflow-bubble {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.6), rgba(var(--accent-rgb), 0.18) 60%, rgba(var(--accent-rgb), 0) 74%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-}
+/* 41 basic: bubble progress — implemented in
+   assets/css/components/bubble-progress.css (.bp component). */
 
 /* --- reduced motion --- */
 @media (prefers-reduced-motion: reduce) {

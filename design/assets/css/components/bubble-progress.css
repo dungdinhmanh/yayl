@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Bubble progress — the chosen download effect.
+   A horizontal fill grows left to right. Bubbles are born at the start of
+   progress and rise to the surface; laid flat, "rising" reads as travelling
+   left -> right, popping at the current progress front.
+   Bubbles are animated by anime.js. Without it (or with reduced motion) the
+   fill still works, just without bubbles.
+
+   Usage:
+     var bp = YAYL_BUBBLES.create(hostElement, { progress: 0.42 });
+     bp.setProgress(0.6);
+     bp.destroy();
+
+   The host must be position: relative and may set border-radius; the effect
+   inherits it.
+   ========================================================================== */
+
+.bp {
+  --bp-p: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.bp__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--bp-p) * 100%);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-rgb), 0.95));
+}
+
+.bp__layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bp__bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.6), rgba(var(--accent-rgb), 0.18) 60%, rgba(var(--accent-rgb), 0) 74%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Silence the bubbles when the user asks for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .bp__bubble {
+    display: none;
+  }
+}
+
+/* --- demo page chrome (design/bubble-progress.html) --- */
+.bpdock {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: 16px 0 0;
+}
+
+.bpdock__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(9, 12, 19, 0.92);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+}
+
+.bpdock__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bpdock__row label {
+  color: var(--muted);
+  font-size: var(--fs-11);
+  font-weight: 700;
+}
+
+.bpdock__row input[type="range"] {
+  width: 220px;
+  accent-color: var(--accent);
+}
+
+.bpdock__val,
+.bpdock__elapsed {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+}
+
+.bpdock__val {
+  min-width: 44px;
+  text-align: right;
+}
+
+.bpdock__elapsed {
+  min-width: 100px;
+  color: var(--muted);
+  font-size: var(--fs-12);
+  text-align: right;
+}
+
+.bpdock__play,
+.bpdock__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.bpdock__play {
+  padding: 0 14px;
+}
+
+.bpdock__play svg {
+  width: 15px;
+  height: 15px;
+}
+
+.bpdock__play .bpdock__ico-pause {
+  display: none;
+}
+
+.bpdock__play.is-playing {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.16);
+}
+
+.bpdock__play.is-playing .bpdock__ico-play {
+  display: none;
+}
+
+.bpdock__play.is-playing .bpdock__ico-pause {
+  display: inline;
+}
+
+.bpdock__row select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-12);
+}
+
+.bpdock__reset {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.bpdock__reset svg {
+  width: 15px;
+  height: 15px;
+}
+
+.bpdemo-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.bpdemo-card {
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.bpdemo-label {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: var(--fs-11);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bpdemo-stage {
+  display: grid;
+  place-items: center;
+  min-height: 108px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1.4px) 0 0 / 14px 14px,
+    var(--bg-1);
+}
+
+.bpdemo-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 340px;
+  height: 60px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 46%, rgba(0, 0, 0, 0.06)),
+    var(--bg-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 26px rgba(0, 0, 0, 0.4);
+  isolation: isolate;
+}
+
+.bpdemo-bar {
+  position: relative;
+  width: 300px;
+  height: 34px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
+    var(--bg-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  isolation: isolate;
+}
+
+.bpdemo-caption {
+  position: relative;
+  z-index: 2;
+  color: #ffffff;
+  font-size: var(--fs-12);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 1px 14px rgba(0, 0, 0, 0.6);
+  font-variant-numeric: tabular-nums;
+}

@@ -717,58 +717,23 @@
   }
 
   function fxBubbleFlow(stage) {
-    var btn = makeBtn("bubbleflow", '<div class="fxfill-h"></div><span class="fxflow-layer"></span>');
+    // Chosen effect: implemented as a standalone component so the gallery and
+    // the real UI share one source of truth (assets/js/bubble-progress.js).
+    var btn = makeBtn("bubbleflow", "");
     stage.appendChild(btn);
-    var layer = btn.querySelector(".fxflow-layer");
-    function prog() {
-      var v = parseFloat(getComputedStyle(btn).getPropertyValue("--p"));
-      return isNaN(v) ? 0.42 : v;
-    }
-    function spawn() {
-      if (reduced() || !window.anime) return;
-      var w = btn.clientWidth || 300;
-      var h = btn.clientHeight || 56;
-      var front = w * prog();
-      if (front < 22) return;
-      var size = 4 + Math.random() * 11;
-      // Bubbles are born at the start of the progress (left edge) and rise
-      // towards the surface at the current front.
-      var startX = 4 + Math.random() * 8;
-      var targetX = Math.max(startX + 12, front - size * 0.6);
-      var y = size / 2 + 4 + Math.random() * Math.max(1, h - size - 8);
-      var wobble = 3 + Math.random() * 6;
-      var bubble = el("span", "fxflow-bubble");
-      bubble.style.left = startX + "px";
-      bubble.style.top = y - size / 2 + "px";
-      bubble.style.width = size + "px";
-      bubble.style.height = size + "px";
-      layer.appendChild(bubble);
-      // Travel left -> right towards the front (rising, in the upright model),
-      // with a small vertical wobble, then pop at the surface.
-      anime({
-        targets: bubble,
-        translateX: [0, targetX - startX],
-        translateY: [0, -wobble, 0, wobble, 0],
-        scale: [0.7, 1.05, 1.18, 1.3],
-        opacity: [0, 1, 1, 0],
-        duration: 900 + Math.random() * 800,
-        easing: "easeInOutSine",
-        complete: function () {
-          bubble.remove();
-        }
-      });
-    }
-    if (!reduced() && window.anime) {
-      window.setInterval(spawn, 200);
-      spawn();
-    }
-    return {};
+    if (!window.YAYL_BUBBLES) return {};
+    var bp = window.YAYL_BUBBLES.create(btn, { progress: 0.42 });
+    return {
+      update: function (p) {
+        bp.setProgress(p);
+      }
+    };
   }
 
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
-    { group: "basic", id: "bubbleflow", name: { vi: "Bong bóng nổi (dựng dọc)", en: "Rising bubbles (upright)" }, desc: { vi: "Cả thanh là chất lỏng dâng trái sang phải. Nghĩ theo chiều dọc: bong bóng nổi lên trong ống; để nằm ngang thì chúng chạy từ trái sang phải tới mặt thoáng (đầu tiến trình) rồi vỡ.", en: "The whole bar is the liquid, growing left to right. Upright, bubbles rise inside the tube; laid flat they travel left to right to the surface (the progress front) and pop." }, lib: ["anime.js", "CSS"], w: 1, build: fxBubbleFlow },
+    { group: "basic", id: "bubbleflow", name: { vi: "Bong bóng nổi (đã chốt)", en: "Rising bubbles (chosen)" }, desc: { vi: "Hiệu ứng tải đã chốt. Bong bóng sinh ở gốc tiến trình, nổi tới mặt thoáng (đầu tiến trình) rồi vỡ. Component riêng: assets/js/bubble-progress.js.", en: "The chosen download effect. Bubbles are born at the start of progress, rise to the surface (the front) and pop. Standalone component: assets/js/bubble-progress.js." }, lib: ["anime.js", "CSS"], w: 1, build: fxBubbleFlow },
 
     { group: "water", id: "wave-multi", name: { vi: "Sóng xô nhiều lớp", en: "Layered waves" }, desc: { vi: "3 lớp sóng lệch pha; mực nước đúng theo tiến trình.", en: "3 offset wave layers; the level follows progress." }, lib: ["CSS", "SVG"], w: 1, build: fxWaveMulti },
     { group: "water", id: "bubbles", name: { vi: "Bong bóng nổi", en: "Rising bubbles" }, desc: { vi: "Bọt khí nổi trong phần đã tải (tạo bằng anime.js).", en: "Bubbles rise inside the filled part (spawned by anime.js)." }, lib: ["anime.js", "CSS"], w: 2, build: fxBubbles },

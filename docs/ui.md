@@ -48,8 +48,15 @@ There is no separate Downloads page or tab.
 
 - While downloading, the selected game's avatar border stays the normal selected border; the badge shows the download state, and the primary action button shows progress.
 - A game that is downloading but not selected shows the progress border on its avatar.
-- The primary button shows a percentage and a thin progress bar; animation proposals (water drops, liquid fill, wave, particles) live in `design/download-animations.html` for review.
+- The primary button shows the chosen download effect: **rising bubbles** (see below). Proposals live in `design/effects-gallery.html`; the avatar animations live in `design/download-animations.html`.
 - Paused switches the badge to a pause icon and the button to a resume state.
+
+### Chosen download effect: rising bubbles
+
+- The horizontal fill grows left to right. Bubbles are born at the start of progress, rise to the surface, and pop at the current front. Upright, this reads as bubbles rising inside the tube.
+- Implementation: `design/assets/css/components/bubble-progress.css` + `design/assets/js/bubble-progress.js` (`YAYL_BUBBLES.create(host, { progress })`). Animation via anime.js; the fill still works without it.
+- Demo: `design/bubble-progress.html`.
+- **Avatar progress ring stays pure CSS**: one SVG path with `pathLength="100"`, `stroke-dashoffset` driven by progress, `transition` for smoothing. No library.
 
 ## Settings
 
@@ -88,7 +95,8 @@ Do not force a theme step; dark is the only v1 theme.
 ## Locked decisions
 
 - **Home:** rail variant A (76px icon rail + news) is the primary layout. Top-avatar variant B is kept as an alternate.
-- **Avatar progress:** rounded-square avatar with a border progress ring that starts at top center and runs clockwise. No second ring.
+- **Avatar progress:** rounded-square avatar with a border progress ring that starts at top center and runs clockwise. No second ring. Pure CSS (SVG path + `stroke-dashoffset` + `transition`), no library.
+- **Download progress effect:** rising bubbles, standalone component (`design/assets/css/components/bubble-progress.css` + `design/assets/js/bubble-progress.js`). Bubbles spawn at the start of progress and travel to the front. Progress bars use CSS widths, not a library (progressbar.js ~18 KB gzip and NProgress is indeterminate, so both were rejected for the size budget).
 - **Download badge:** standalone component (`design/assets/css/components/download-badge.css` + `design/assets/js/download-badge.js`). 20px dark circle, arrow-only glyph, slides in from the top, holds ~0.68s, exits the bottom, loops. Paused switches to a pause icon. Scale with `--dl-badge-size`. Applied to the rail game avatars and the top-avatar tabs.
 - **News:** official-style banner carousel + tabbed news list using the `/api/launcher/operations/resource` data shape.
 - **Text contrast:** the brighter tokens (`--muted #b8c2d1`, `--muted-2 #919cad`, `--muted-3 #707b8d`).

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>YAYL — Bubble progress</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/components/bubble-progress.css">
+</head>
+<body data-page="bubble-progress" data-game="arknights" data-state="downloading">
+  <div class="app">
+    <div class="backdrop">
+      <img class="backdrop-art" data-active-art src="assets/img/arknights.png" alt="" onerror="this.classList.add('is-missing')">
+      <div class="backdrop-scrim"></div>
+      <div class="backdrop-grain"></div>
+    </div>
+
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>
+        </span>
+        <div class="brand-name">YAYL</div>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn" type="button" data-window-action="minimize" aria-label="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" type="button" data-window-action="maximize" aria-label="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="win-btn is-close" type="button" data-window-action="close" aria-label="Đóng">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="main-scroll">
+        <div class="kit-page">
+          <a class="back-link" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg>
+            UI Lab
+          </a>
+          <div class="eyebrow" data-i18n="bp.eyebrow">HIỆU ỨNG ĐÃ CHỌN</div>
+          <h1 class="page-title" data-i18n="bp.title">Bong bóng nổi (dựng dọc)</h1>
+          <p class="page-subtitle" data-i18n="bp.desc">Hiệu ứng tải đã chốt. Bong bóng sinh ở gốc tiến trình, nổi tới mặt thoáng (đầu tiến trình) rồi vỡ. Vòng tiến trình quanh avatar vẫn dùng CSS thuần.</p>
+
+          <div class="bpdock">
+            <div class="bpdock__bar">
+              <div class="bpdock__row">
+                <label for="bpRange" data-i18n="fx.progress">Tiến trình</label>
+                <input id="bpRange" type="range" min="0" max="100" value="42" step="1">
+                <output id="bpOut" class="bpdock__val">42%</output>
+              </div>
+              <div class="bpdock__row">
+                <button id="bpPlay" class="bpdock__play" type="button" aria-pressed="false">
+                  <svg class="bpdock__ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8 18.8V5.2Z"/></svg>
+                  <svg class="bpdock__ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>
+                  <span id="bpPlayLabel" data-i18n="fx.simulate">Giả lập tải</span>
+                </button>
+                <label for="bpDuration" data-i18n="fx.duration">Thời gian</label>
+                <select id="bpDuration">
+                  <option value="3000">3s</option>
+                  <option value="6000" selected>6s</option>
+                  <option value="12000">12s</option>
+                  <option value="30000">30s</option>
+                </select>
+                <output id="bpElapsed" class="bpdock__elapsed">0.0s / 6.0s</output>
+                <button id="bpReset" class="bpdock__reset" type="button" title="Reset" aria-label="Reset">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.1"/><path d="M20 4v7h-7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bpdemo-grid">
+            <section class="bpdemo-card">
+              <div class="bpdemo-label" data-i18n="bp.button">Nút hành động</div>
+              <div class="bpdemo-stage">
+                <div class="bpdemo-btn" id="bpButton">
+                  <span class="bpdemo-caption" data-bp-caption>Đang tải · 42%</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="bpdemo-card">
+              <div class="bpdemo-label" data-i18n="bp.bar">Thanh mảnh</div>
+              <div class="bpdemo-stage">
+                <div class="bpdemo-bar" id="bpBar"></div>
+              </div>
+            </section>
+          </div>
+
+          <p class="anim-note" data-i18n="bp.note">Tệp: assets/css/components/bubble-progress.css + assets/js/bubble-progress.js</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/vendor/anime.min.js"></script>
+  <script src="assets/js/mock-i18n.js"></script>
+  <script src="assets/js/bubble-progress.js"></script>
+  <script src="assets/js/bubble-progress-demo.js"></script>
+</body>
+</html>
