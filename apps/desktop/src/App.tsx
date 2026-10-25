@@ -4,6 +4,8 @@ import { I18N } from "./i18n";
 import Rail from "./components/Rail";
 import Home from "./pages/Home";
 import DevBar from "./components/DevBar";
+import InstallDialog from "./components/InstallDialog";
+import { openInstallFolder } from "./lib/ipc";
 
 export type GameId = keyof typeof GAMES;
 export type Lang = "vi" | "en";
@@ -35,6 +37,7 @@ export default function App() {
     return initial;
   });
   const [lang, setLang] = useState<Lang>(queryLang);
+  const [installOpen, setInstallOpen] = useState(false);
 
   const state = states[gameId];
 
@@ -103,7 +106,14 @@ export default function App() {
         <Rail gameId={gameId} states={states} t={t} onSelect={setGameId} />
         <main className="main">
           <div className="main-scroll">
-            <Home gameId={gameId} state={state} lang={lang} t={t} />
+            <Home
+              gameId={gameId}
+              state={state}
+              lang={lang}
+              t={t}
+              onInstall={() => setInstallOpen(true)}
+              onLocate={() => void openInstallFolder(GAMES[gameId].path)}
+            />
           </div>
         </main>
       </div>
@@ -116,6 +126,19 @@ export default function App() {
         onState={setState}
         onLang={setLang}
       />
+
+      {installOpen && (
+        <InstallDialog
+          gameId={gameId}
+          game={GAMES[gameId]}
+          t={t}
+          onClose={() => setInstallOpen(false)}
+          onConfirm={() => {
+            setInstallOpen(false);
+            setState("downloading");
+          }}
+        />
+      )}
     </div>
   );
 }

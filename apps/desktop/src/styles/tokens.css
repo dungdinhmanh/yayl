@@ -46,19 +46,19 @@
   /* Type */
   --font-ui: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace;
-  --fs-10: 10px;
-  --fs-11: 11px;
-  --fs-12: 12px;
-  --fs-13: 13px;
-  --fs-14: 14px;
-  --fs-15: 15px;
-  --fs-16: 16px;
-  --fs-18: 18px;
-  --fs-20: 20px;
-  --fs-24: 24px;
-  --fs-28: 28px;
-  --fs-36: 36px;
-  --fs-48: 48px;
+  --fs-10: 12px;
+  --fs-11: 13.2px;
+  --fs-12: 14.4px;
+  --fs-13: 15.6px;
+  --fs-14: 16.8px;
+  --fs-15: 18px;
+  --fs-16: 19.2px;
+  --fs-18: 21.6px;
+  --fs-20: 24px;
+  --fs-24: 28.8px;
+  --fs-28: 33.6px;
+  --fs-36: 43.2px;
+  --fs-48: 57.6px;
 
   /* Spacing scale */
   --space-1: 4px;
@@ -104,6 +104,13 @@ body[data-game="arknights"] {
   --accent-2: #ff7a45;
   --accent-rgb: 242, 181, 68;
   --accent-ink: #171006;
+  /* Derived tokens must be re-declared per game: custom properties are
+     computed where they are declared, so the :root values would keep the
+     default accent's RGB. */
+  --accent-soft: rgba(var(--accent-rgb), 0.14);
+  --accent-line: rgba(var(--accent-rgb), 0.34);
+  --accent-glow: rgba(var(--accent-rgb), 0.28);
+  --shadow-accent: 0 10px 34px rgba(var(--accent-rgb), 0.24);
 }
 
 body[data-game="stella"] {
@@ -111,6 +118,10 @@ body[data-game="stella"] {
   --accent-2: #5cc8ff;
   --accent-rgb: 155, 140, 255;
   --accent-ink: #0d0a1f;
+  --accent-soft: rgba(var(--accent-rgb), 0.14);
+  --accent-line: rgba(var(--accent-rgb), 0.34);
+  --accent-glow: rgba(var(--accent-rgb), 0.28);
+  --shadow-accent: 0 10px 34px rgba(var(--accent-rgb), 0.24);
 }
 
 @media (prefers-reduced-motion: reduce) {

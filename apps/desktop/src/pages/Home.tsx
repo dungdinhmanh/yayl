@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
+import DownloadBadge from "../components/DownloadBadge";
+import { fileUrl } from "../lib/ipc";
 import type { Lang } from "../App";
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
   state: GameState;
   lang: Lang;
   t: (key: string, vars?: Record<string, string | number>) => string;
+  onInstall: () => void;
+  onLocate: () => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -28,34 +32,22 @@ function icon(name: string) {
   return <span dangerouslySetInnerHTML={{ __html: ICONS[name] ?? "" }} />;
 }
 
-function subText(game: (typeof GAMES)[GameId], state: GameState, t: Props["t"]) {
-  if (state === "install") return `${game.size} · ${t("home.meta.required")}`;
-  if (state === "update") return `${t("home.current")} ${game.version} → ${game.latest}`;
-  if (state === "downloading") return `12.4 MB/s · ${t("download.eta")} 08:12`;
-  if (state === "paused") return t("download.etaPaused");
-  if (state === "verifying") return t("download.etaVerifying");
-  if (state === "error") return t("home.error.code");
-  if (state === "offline") return t("common.offline");
-  if (state === "running") return t("common.running");
-  return t("common.ready");
-}
-
-function secondaryKey(state: GameState) {
-  if (state === "update") return "home.action.playAnyway";
-  if (state === "install") return "home.action.useExisting";
-  if (state === "error") return "home.action.errorDetails";
-  if (state === "offline") return "home.action.retry";
-  if (state === "running") return "home.action.minimize";
+function secondaryAction(state: GameState): { key: string; locate?: boolean } | null {
+  if (state === "update") return { key: "home.action.playAnyway" };
+  if (state === "install") return { key: "home.action.locateGame", locate: true };
+  if (state === "error") return { key: "home.action.errorDetails" };
+  if (state === "offline") return { key: "home.action.retry" };
+  if (state === "running") return { key: "home.action.minimize" };
   return null;
 }
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
 const MENU_ITEMS = ["home.menu.verify", "home.menu.repair", "home.menu.settings", "home.menu.shortcut"];
 
-export default function Home({ gameId, state, lang, t }: Props) {
+export default function Home({ gameId, state, lang, t, onInstall, onLocate }: Props) {
   const game = GAMES[gameId];
   const meta = STATE_META[state];
-  const secondary = secondaryKey(state);
+  const secondary = secondaryAction(state);
   const vars = {
     game: game.name,
     percent: meta.progress || 42,
@@ -107,13 +99,19 @@ export default function Home({ gameId, state, lang, t }: Props) {
             className={"home-play is-" + state}
             type="button"
             disabled={Boolean((meta as { disabled?: boolean }).disabled)}
+            onClick={() => {
+              if (state === "install") onInstall();
+            }}
           >
             {DOWNLOAD_STATES.includes(state) && <BubbleProgress progress={(meta.progress || 0) / 100} />}
-            {icon(meta.primaryIcon)}
-            <span className="home-play-copy">
-              <span className="home-play-label">{t(meta.primary, vars)}</span>
-              <span className="home-play-sub">{subText(game, state, t)}</span>
+            <span className="home-play-icon">
+              {state === "install" ? (
+                <DownloadBadge state="downloading" corner={false} size="30px" />
+              ) : (
+                icon(meta.primaryIcon)
+              )}
             </span>
+            <span className="home-play-label">{t(meta.primary, vars)}</span>
           </button>
 
           <div className="home-menu" ref={menuRef}>
@@ -154,13 +152,18 @@ export default function Home({ gameId, state, lang, t }: Props) {
           </div>
         </div>
         {secondary && (
-          <button className="home-action-link" type="button">
-            {t(secondary, vars)}
-          </button>
+          <a
+            className="home-action-link"
+            href={secondary.locate ? fileUrl(game.path) : "#"}
+            onClick={(event) => {
+              event.preventDefault();
+              if (secondary.locate) onLocate();
+            }}
+          >
+            {t(secondary.key, vars)}
+          </a>
         )}
       </div>
-
-      <div className="home-version">v{game.version}</div>
     </div>
   );
 }

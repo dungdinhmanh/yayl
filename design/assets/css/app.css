@@ -218,7 +218,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .brand-name {
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 800;
   letter-spacing: 0.18em;
   line-height: 1;
@@ -227,7 +227,7 @@ body[data-game="stella"] .backdrop-art {
 .brand-sub {
   margin-top: 3px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.22em;
   line-height: 1;
@@ -244,7 +244,7 @@ body[data-game="stella"] .backdrop-art {
 
 .titlebar-note {
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -328,14 +328,14 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .top-tab-name {
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 650;
   white-space: nowrap;
 }
 
 .top-tab-region {
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.12em;
 }
@@ -411,7 +411,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 9px;
   margin: 0 0 8px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -512,7 +512,7 @@ body[data-game="stella"] .backdrop-art {
 
 .game-name {
   overflow: hidden;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
@@ -526,7 +526,7 @@ body[data-game="stella"] .backdrop-art {
   min-width: 0;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
   white-space: nowrap;
 }
 
@@ -536,7 +536,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(255, 255, 255, 0.08);
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -547,7 +547,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 5px;
   min-width: 0;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .game-state-line .mini-dot {
@@ -592,7 +592,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(var(--card-accent-rgb), 0.16);
   color: var(--card-accent);
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -612,7 +612,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 10px;
   border-radius: 10px;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 500;
   text-align: left;
   transition: background var(--dur-fast), color var(--dur-fast);
@@ -655,7 +655,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(var(--accent-rgb), 0.16);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   text-align: center;
 }
@@ -674,7 +674,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.025);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .status-dot {
@@ -700,7 +700,7 @@ body[data-game="stella"] .backdrop-art {
   margin-left: auto;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .sidebar-version {
@@ -712,7 +712,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 4px;
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .lab-tag {
@@ -721,7 +721,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 4px;
   color: var(--accent);
   font-family: var(--font-ui);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 750;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -792,7 +792,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 9px;
   margin-bottom: 9px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -812,7 +812,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 4px;
   background: rgba(var(--accent-rgb), 0.09);
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
 }
 
@@ -827,7 +827,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 620px;
   margin-top: 9px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15.6px;
   line-height: 1.6;
 }
 
@@ -837,7 +837,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 7px;
   margin-bottom: 16px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
   transition: color var(--dur-fast);
 }
 
@@ -863,7 +863,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 18px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 650;
   line-height: 1;
   white-space: nowrap;
@@ -901,7 +901,7 @@ body[data-game="stella"] .backdrop-art {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: var(--accent-ink);
   box-shadow: var(--shadow-accent);
-  font-size: 13px;
+  font-size: 15.6px;
   font-weight: 800;
   letter-spacing: 0.04em;
 }
@@ -946,7 +946,7 @@ body[data-game="stella"] .backdrop-art {
   min-height: 34px;
   padding: 0 12px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .btn-icon-only {
@@ -987,7 +987,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 999px;
   background: rgba(8, 11, 17, 0.5);
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1039,7 +1039,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(8, 11, 17, 0.32);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
   white-space: nowrap;
 }
 
@@ -1109,7 +1109,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
   margin-bottom: 10px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1144,7 +1144,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 520px;
   margin-top: 16px;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 15.6px;
   line-height: 1.65;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
 }
@@ -1193,7 +1193,7 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 7px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .hero-note svg {
@@ -1245,7 +1245,7 @@ body[data-game="stella"] .backdrop-art {
 .meta-label {
   margin-bottom: 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1254,7 +1254,7 @@ body[data-game="stella"] .backdrop-art {
 .meta-value {
   overflow: hidden;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 15.6px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1262,14 +1262,14 @@ body[data-game="stella"] .backdrop-art {
 
 .meta-value.is-mono {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 500;
 }
 
 .meta-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .meta-action {
@@ -1325,20 +1325,20 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 8px;
   color: var(--text-soft);
-  font-size: 11.5px;
+  font-size: 13.8px;
   font-weight: 600;
 }
 
 .progress-dock-title span {
   color: var(--info);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .progress-dock-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .progress-dock .progress-track {
@@ -1380,14 +1380,14 @@ body[data-game="stella"] .backdrop-art {
 
 .error-banner-title {
   color: #ffb0bf;
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 650;
 }
 
 .error-banner-text {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .error-banner-actions {
@@ -1407,7 +1407,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 10px;
   background: rgba(245, 181, 68, 0.08);
   color: #f5cf8b;
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .offline-banner svg {
@@ -1494,7 +1494,7 @@ body[data-game="stella"] .backdrop-art {
   margin-top: 7px;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 /* --------------------------------------------------------------------------
@@ -1518,7 +1518,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .panel-title {
-  font-size: 14px;
+  font-size: 16.8px;
   font-weight: 650;
   letter-spacing: -0.01em;
 }
@@ -1526,7 +1526,7 @@ body[data-game="stella"] .backdrop-art {
 .panel-subtitle {
   margin-top: 4px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .panel-body {
@@ -1641,7 +1641,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .ring-value span {
-  font-size: 16px;
+  font-size: 19.2px;
   color: var(--muted);
   letter-spacing: 0;
 }
@@ -1649,7 +1649,7 @@ body[data-game="stella"] .backdrop-art {
 .ring-label {
   margin-top: 7px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1662,7 +1662,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-stats-title {
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1677,7 +1677,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-stats-value span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -1698,7 +1698,7 @@ body[data-game="stella"] .backdrop-art {
 
 .download-stat-label {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1708,7 +1708,7 @@ body[data-game="stella"] .backdrop-art {
   margin-top: 3px;
   color: var(--text-soft);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .download-progress-block {
@@ -1727,7 +1727,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(0, 0, 0, 0.14);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .download-current-file svg {
@@ -1758,7 +1758,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 10px;
   margin-bottom: 10px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1874,7 +1874,7 @@ body[data-game="stella"] .backdrop-art {
 
 .phase-title {
   color: var(--text-soft);
-  font-size: 11.5px;
+  font-size: 13.8px;
   font-weight: 600;
 }
 
@@ -1889,7 +1889,7 @@ body[data-game="stella"] .backdrop-art {
 .phase-sub {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .phase-item.is-active .phase-sub {
@@ -1915,7 +1915,7 @@ body[data-game="stella"] .backdrop-art {
   min-width: 0;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .recent-file svg {
@@ -1935,7 +1935,7 @@ body[data-game="stella"] .backdrop-art {
   margin-left: auto;
   color: var(--muted-3);
   font-style: normal;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .download-footer {
@@ -1951,7 +1951,7 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 7px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .download-footer-note svg {
@@ -2004,14 +2004,14 @@ body[data-game="stella"] .backdrop-art {
 
 .download-error-title {
   color: #ffb0bf;
-  font-size: 11px;
+  font-size: 13.2px;
   font-weight: 650;
 }
 
 .download-error-text {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .download-error-actions {
@@ -2060,7 +2060,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 10px;
   border-radius: 9px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14.4px;
   text-align: left;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -2103,14 +2103,14 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .settings-section-title {
-  font-size: 13px;
+  font-size: 15.6px;
   font-weight: 650;
 }
 
 .settings-section-desc {
   margin-top: 3px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .settings-rows {
@@ -2138,7 +2138,7 @@ body[data-game="stella"] .backdrop-art {
 
 .setting-label {
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 550;
 }
 
@@ -2146,7 +2146,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 460px;
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
   line-height: 1.5;
 }
 
@@ -2168,7 +2168,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
   margin-top: 4px;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .settings-footer svg {
@@ -2188,7 +2188,7 @@ body[data-game="stella"] .backdrop-art {
   outline: 0;
   background: rgba(5, 8, 13, 0.52);
   color: var(--text-soft);
-  font-size: 11px;
+  font-size: 13.2px;
   transition: border-color var(--dur-fast), background var(--dur-fast);
 }
 
@@ -2221,7 +2221,7 @@ body[data-game="stella"] .backdrop-art {
 
 .path-field .input {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .path-field .btn {
@@ -2295,7 +2295,7 @@ body[data-game="stella"] .backdrop-art {
   padding: 0 11px;
   border-radius: 6px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -2341,7 +2341,7 @@ body[data-game="stella"] .backdrop-art {
   min-width: 28px;
   color: var(--text-soft);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   text-align: right;
 }
 
@@ -2361,7 +2361,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .game-settings-tab.is-active {
@@ -2419,14 +2419,14 @@ body[data-game="stella"] .backdrop-art {
   margin-top: 4px;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .about-desc {
   max-width: 520px;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   line-height: 1.6;
 }
 
@@ -2444,7 +2444,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
   line-height: 1.65;
 }
 
@@ -2483,11 +2483,11 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .onboarding-brand .brand-name {
-  font-size: 14px;
+  font-size: 16.8px;
 }
 
 .onboarding-brand .brand-sub {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .onboarding-body {
@@ -2511,7 +2511,7 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 6px;
   color: var(--muted-3);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2545,7 +2545,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .onboarding-step.is-active .step-num {
@@ -2562,7 +2562,7 @@ body[data-game="stella"] .backdrop-art {
 
 .onboarding-eyebrow {
   color: var(--accent);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -2580,7 +2580,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 380px;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13.8px;
   line-height: 1.65;
 }
 
@@ -2626,18 +2626,18 @@ body[data-game="stella"] .backdrop-art {
   height: 28px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  font-size: 13px;
+  font-size: 15.6px;
 }
 
 .language-name {
-  font-size: 11.5px;
+  font-size: 13.8px;
   font-weight: 600;
 }
 
 .language-sub {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .onboarding-actions {
@@ -2658,7 +2658,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 12px;
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .onboarding-visual {
@@ -2700,7 +2700,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 420px;
   margin-top: 4px;
   color: var(--text-soft);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 1.5;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5);
@@ -2710,7 +2710,7 @@ body[data-game="stella"] .backdrop-art {
   display: block;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -2734,7 +2734,7 @@ body[data-game="stella"] .backdrop-art {
   border-radius: 999px;
   background: rgba(5, 8, 13, 0.34);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   backdrop-filter: blur(8px);
 }
 
@@ -2791,14 +2791,14 @@ body[data-game="stella"] .backdrop-art {
 
 .game-select-name {
   color: var(--text-soft);
-  font-size: 11.5px;
+  font-size: 13.8px;
   font-weight: 600;
 }
 
 .game-select-meta {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .check-box {
@@ -2835,7 +2835,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 10px;
   margin-bottom: 6px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2844,7 +2844,7 @@ body[data-game="stella"] .backdrop-art {
 .onboarding-path-label span {
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -2856,7 +2856,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 6px;
   margin-top: 7px;
   color: var(--muted-3);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .disk-note svg {
@@ -2904,7 +2904,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .summary-row span {
@@ -2944,7 +2944,7 @@ body[data-game="stella"] .backdrop-art {
 .kit-label {
   margin-bottom: 12px;
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -2979,7 +2979,7 @@ body[data-game="stella"] .backdrop-art {
   display: block;
   color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .type-sample {
@@ -2995,7 +2995,7 @@ body[data-game="stella"] .backdrop-art {
 
 .type-sample span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .kit-toast {
@@ -3026,14 +3026,14 @@ body[data-game="stella"] .backdrop-art {
 
 .kit-toast-title {
   color: var(--text-soft);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .kit-toast-text {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .kit-modal {
@@ -3046,13 +3046,13 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .kit-modal h4 {
-  font-size: 14px;
+  font-size: 16.8px;
 }
 
 .kit-modal p {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -3107,11 +3107,11 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .lab-brand .brand-name {
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .lab-brand .brand-sub {
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .lab-hero {
@@ -3125,7 +3125,7 @@ body[data-game="stella"] .backdrop-art {
 
 .lab-kicker {
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -3151,7 +3151,7 @@ body[data-game="stella"] .backdrop-art {
   max-width: 480px;
   margin-top: 18px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15.6px;
   line-height: 1.7;
 }
 
@@ -3172,7 +3172,7 @@ body[data-game="stella"] .backdrop-art {
 
 .lab-side-title {
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -3189,7 +3189,7 @@ body[data-game="stella"] .backdrop-art {
   display: flex;
   gap: 7px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -3264,13 +3264,13 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(5, 8, 13, 0.4);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .lab-card-title {
-  font-size: 18px;
+  font-size: 21.6px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -3278,7 +3278,7 @@ body[data-game="stella"] .backdrop-art {
 .lab-card-desc {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -3288,7 +3288,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 5px;
   margin-top: 12px;
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -3317,14 +3317,14 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .lab-note h3 {
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 650;
 }
 
 .lab-note p,
 .lab-note li {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -3357,7 +3357,7 @@ body[data-game="stella"] .backdrop-art {
   border-top: 1px solid var(--border-soft);
   color: var(--muted-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* --------------------------------------------------------------------------
@@ -3379,7 +3379,7 @@ body[data-game="stella"] .backdrop-art {
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(18px);
   font-family: var(--font-ui);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .mock-group {
@@ -3397,7 +3397,7 @@ body[data-game="stella"] .backdrop-art {
 
 .mock-label {
   color: var(--muted-3);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -3417,7 +3417,7 @@ body[data-game="stella"] .backdrop-art {
   background-repeat: no-repeat;
   background-position: right 6px center;
   color: var(--text-soft);
-  font-size: 10.5px;
+  font-size: 12.6px;
   cursor: pointer;
 }
 
@@ -3427,7 +3427,7 @@ body[data-game="stella"] .backdrop-art {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .mock-toggle:hover,
@@ -3495,14 +3495,14 @@ body[data-game="stella"] .backdrop-art {
 
 .toast-title {
   color: var(--text-soft);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .toast-text {
   margin-top: 1px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 @keyframes toast-in {
@@ -3571,14 +3571,14 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .modal-title {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
 }
 
 .modal-text {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   line-height: 1.6;
 }
 
@@ -3593,7 +3593,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(0, 0, 0, 0.2);
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
   word-break: break-all;
 }
 
@@ -3696,7 +3696,7 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
   margin-top: 12px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
   line-height: 1.5;
   cursor: pointer;
 }
@@ -3725,7 +3725,7 @@ body[data-game="stella"] .backdrop-art {
   background: rgba(8, 11, 17, 0.9);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.14em;
   backdrop-filter: blur(16px);
@@ -3771,7 +3771,7 @@ body[data-game="stella"] .backdrop-art {
   align-items: center;
   gap: 7px;
   color: var(--text-soft);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
 }
 
@@ -3813,7 +3813,7 @@ body[data-game="stella"] .backdrop-art {
 
 .mock-field label {
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
@@ -3830,7 +3830,7 @@ body[data-game="stella"] .backdrop-art {
   background-repeat: no-repeat;
   background-position: right 6px center;
   color: var(--text-soft);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .mock-panel-actions {
@@ -3848,14 +3848,14 @@ body[data-game="stella"] .backdrop-art {
   padding-top: 9px;
   border-top: 1px solid var(--border-soft);
   color: var(--muted-3);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
 .mock-panel-note code {
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 /* Utility */
@@ -3966,7 +3966,7 @@ body[data-game="stella"] .backdrop-art {
   }
 
   .hero-sub {
-    font-size: 12px;
+    font-size: 14.4px;
   }
 
   .hero-actions .btn-primary {
@@ -3974,11 +3974,11 @@ body[data-game="stella"] .backdrop-art {
   }
 
   .meta-value {
-    font-size: 12px;
+    font-size: 14.4px;
   }
 
   .meta-value.is-mono {
-    font-size: 11px;
+    font-size: 13.2px;
   }
 
   .settings-shell {
@@ -4252,7 +4252,7 @@ body[data-game="stella"] .backdrop-art {
   }
 
   .recent-file {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .download-footer {
@@ -4542,7 +4542,7 @@ body[data-layout="rail"] .backdrop-scrim {
   background: linear-gradient(90deg, rgba(4, 6, 10, 0.82) 0%, rgba(4, 6, 10, 0.2) 62%, rgba(4, 6, 10, 0.05) 100%);
 }
 
-/* Manual carousel controls; autoplay stays as a fallback. */
+/* Manual carousel controls: visible only while the banner is hovered or focused. */
 .banner-nav {
   position: absolute;
   top: 50%;
@@ -4555,13 +4555,22 @@ body[data-layout="rail"] .backdrop-scrim {
   border-radius: 999px;
   background: rgba(4, 6, 10, 0.6);
   color: var(--text);
-  opacity: 0.72;
-  transform: translateY(-50%);
-  transition: opacity var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.92);
+  transition: opacity var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast),
+    transform var(--dur-fast);
 }
 
-.banner-nav:hover,
-.banner-nav:focus-visible {
+.banner-card:hover .banner-nav,
+.banner-card:focus-within .banner-nav {
+  opacity: 0.72;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.banner-card .banner-nav:hover,
+.banner-card .banner-nav:focus-visible {
   border-color: rgba(255, 255, 255, 0.42);
   background: rgba(4, 6, 10, 0.88);
   opacity: 1;
@@ -4590,7 +4599,7 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .banner-kicker {
   color: var(--accent);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 750;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -4599,7 +4608,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .banner-title {
   margin-top: 4px;
   color: var(--text);
-  font-size: 17px;
+  font-size: 20.4px;
   font-weight: 750;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -4612,6 +4621,15 @@ body[data-layout="rail"] .backdrop-scrim {
   z-index: 3;
   display: flex;
   gap: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast);
+}
+
+.banner-card:hover .banner-dots,
+.banner-card:focus-within .banner-dots {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .banner-dot {
@@ -4647,7 +4665,7 @@ body[data-layout="rail"] .backdrop-scrim {
   height: 28px;
   border-radius: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13.2px;
   font-weight: 600;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -4679,7 +4697,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .news-title {
   overflow: hidden;
   color: var(--text-soft);
-  font-size: 11.5px;
+  font-size: 13.8px;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--dur-fast);
@@ -4693,7 +4711,7 @@ body[data-layout="rail"] .backdrop-scrim {
   flex: 0 0 auto;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 /* Playtime / last played pill */
@@ -4722,7 +4740,7 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .hero-stat-label {
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -4731,7 +4749,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .hero-stat-value {
   margin-top: 3px;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 650;
 }
 
@@ -4818,7 +4836,7 @@ body[data-layout="rail"] .backdrop-scrim {
   border-radius: 8px;
   background: transparent;
   color: var(--text-soft);
-  font-size: 12px;
+  font-size: 14.4px;
   text-align: left;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -4828,23 +4846,418 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
-/* Sits under the primary button, right-aligned with it. */
+/* Sits under the primary button, right-aligned with it. Plain text link, no button chrome. */
 .home-action-link {
   margin-right: calc(var(--action-menu-size) + 10px);
-  padding: 6px 10px;
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 13.2px;
+  text-decoration: none;
   white-space: nowrap;
-  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  transition: color var(--dur-fast);
 }
 
 .home-action-link:hover {
-  border-color: var(--border-strong);
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Install location dialog */
+.install-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 5, 8, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.install-dialog {
+  display: flex;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 32px);
+  flex-direction: column;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: linear-gradient(155deg, #141b28, #0a0e16 62%);
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 220ms var(--ease-out) both;
+}
+
+.install-dialog:focus {
+  outline: none;
+}
+
+.install-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+
+.install-head-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.install-head-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.install-head-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.install-title {
+  font-size: 19.2px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.install-sub {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13.2px;
+  line-height: 1.55;
+}
+
+.install-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.install-close:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+}
+
+.install-close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.install-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 0;
+}
+
+.install-location,
+.install-storage {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.install-label {
+  padding: 10px 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.install-path-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 12px;
+}
+
+.install-path-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--muted);
+}
+
+.install-path-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.install-path-input {
+  min-width: 0;
+  height: 34px;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 13.8px;
+  text-overflow: ellipsis;
+}
+
+.install-path-input:focus {
+  color: var(--text);
+  outline: none;
+}
+
+.install-change {
+  height: 32px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-soft);
+  font-size: 13.2px;
+  font-weight: 650;
+}
+
+.install-change:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.install-storage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.install-storage-head .is-total {
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.install-storage-body {
+  padding: 9px 12px 12px;
+}
+
+.install-bar {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.install-bar-used,
+.install-bar-game {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 420ms var(--ease-out), left 420ms var(--ease-out);
+}
+
+.install-bar-used {
+  left: 0;
+  background: linear-gradient(90deg, #4f8fd8, #3c6fb0);
+}
+
+.install-bar-game {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.install-bar.is-short .install-bar-game {
+  background: linear-gradient(90deg, #e0654f, #d64562);
+}
+
+.install-bar-skeleton {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  background-size: 200% 100%;
+  animation: install-shimmer 1.2s linear infinite;
+}
+
+.install-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.6px;
+}
+
+.install-legend[hidden] {
+  display: none;
+}
+
+.install-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.install-legend i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.install-legend .is-used {
+  color: #6aa7e8;
+}
+
+.install-legend .is-game {
+  color: var(--accent);
+}
+
+.install-legend .is-free {
+  color: var(--muted-2);
+}
+
+.install-legend b {
+  color: var(--text-soft);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.install-size-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 12.6px;
+}
+
+.install-size-row div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.install-size-row b {
+  color: var(--text);
+  font-size: 14.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.install-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid rgba(214, 69, 98, 0.34);
+  border-radius: 9px;
+  background: rgba(214, 69, 98, 0.1);
+  color: #f08fa1;
+  font-size: 13.2px;
+}
+
+.install-warning[hidden] {
+  display: none;
+}
+
+.install-warning svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.install-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.install-locate {
+  color: var(--muted);
+  font-size: 13.2px;
+  text-decoration: none;
+}
+
+.install-locate:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.install-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.install-confirm {
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 13.8px;
+  font-weight: 800;
+}
+
+.install-confirm:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.install-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.install-skeleton {
+  display: inline-block;
+  width: 54px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  background-size: 200% 100%;
+  animation: install-shimmer 1.2s linear infinite;
+}
+
+@keyframes install-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .home-icon-btn {
@@ -4877,7 +5290,7 @@ body[data-layout="rail"] .backdrop-scrim {
   display: flex;
   flex: 0 0 260px;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   width: 260px;
   height: 62px;
   padding: 0 20px;
@@ -4890,10 +5303,18 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 /* Keep the icon and label above the liquid fill. */
-.home-play > [data-button-icon],
-.home-play > .home-play-copy {
-  position: relative;
+.home-play > :not(.bp) {
   z-index: 2;
+}
+
+.home-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
 }
 
 .home-play:hover:not(:disabled) {
@@ -4911,37 +5332,39 @@ body[data-layout="rail"] .backdrop-scrim {
   flex: 0 0 auto;
 }
 
-.home-play-copy {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+/* Single centered label. The sub-line was removed on purpose. */
+.home-play-label {
+  position: relative;
+  z-index: 2;
+  max-width: calc(100% - 92px);
   overflow: hidden;
-}
-
-/* Fixed type size and truncation: long copy never widens the button. */
-.home-play-label,
-.home-play-sub {
-  max-width: 100%;
-  overflow: hidden;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.home-play-label {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  line-height: 1;
+/* Install: purple pill, black ring, purple inner disc, animated download glyph. */
+.home-play.is-install .home-play-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #05070b;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9);
 }
 
-.home-play-sub {
-  font-size: 11px;
-  font-weight: 600;
-  opacity: 0.72;
-  line-height: 1.1;
+.home-play.is-install .home-play-icon .dl-badge {
+  --dl-badge-bg: var(--accent);
+  --dl-badge-fg: #ffffff;
+  box-shadow: none;
+}
+
+.home-play.is-install .home-play-icon .dl-badge__svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* Downloading states: dark glass base so the liquid fill and bubbles read. */
@@ -4955,10 +5378,10 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
-/* Paused reads yellow at a glance, not just in the liquid fill. */
+/* Paused reads yellow at a glance, not just in the liquid fill. No border. */
 .home-play.is-paused {
   --accent-rgb: 245, 181, 68;
-  border-color: rgba(245, 181, 68, 0.55);
+  border-color: transparent;
   background:
     linear-gradient(180deg, rgba(245, 181, 68, 0.3), rgba(245, 181, 68, 0.12) 48%, rgba(0, 0, 0, 0.12)),
     var(--bg-1);
@@ -4975,16 +5398,6 @@ body[data-layout="rail"] .backdrop-scrim {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   box-shadow: none;
-}
-
-.home-version {
-  position: absolute;
-  right: 28px;
-  bottom: 9px;
-  z-index: 8;
-  color: var(--muted-2);
-  font-family: var(--font-mono);
-  font-size: 11px;
 }
 
 /* Settings: game hero */
@@ -5038,7 +5451,7 @@ body[data-layout="rail"] .backdrop-scrim {
 }
 
 .game-hero-name {
-  font-size: 18px;
+  font-size: 21.6px;
   font-weight: 750;
   letter-spacing: -0.02em;
 }
@@ -5050,7 +5463,7 @@ body[data-layout="rail"] .backdrop-scrim {
   align-items: center;
   margin-top: 5px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .game-hero-badge {
@@ -5058,7 +5471,7 @@ body[data-layout="rail"] .backdrop-scrim {
   border-radius: 5px;
   background: rgba(var(--accent-rgb), 0.16);
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5097,7 +5510,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .queue-name {
   overflow: hidden;
   color: var(--text-soft);
-  font-size: 11.5px;
+  font-size: 13.8px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5106,7 +5519,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .queue-meta {
   margin-top: 2px;
   color: var(--muted-2);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 .queue-actions {
@@ -5119,7 +5532,7 @@ body[data-layout="rail"] .backdrop-scrim {
   border: 1px dashed var(--border);
   border-radius: 10px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
   text-align: center;
 }
 
@@ -5227,11 +5640,6 @@ body[data-layout="topbar"] .backdrop-art {
     height: 52px;
   }
 
-  .home-version {
-    right: 22px;
-    bottom: 5px;
-  }
-
   .game-hero {
     height: 128px;
   }
@@ -5307,7 +5715,7 @@ body[data-layout="topbar"] .backdrop-art {
 
 .anim-name {
   color: var(--text);
-  font-size: 13px;
+  font-size: 15.6px;
   font-weight: 650;
 }
 
@@ -5315,14 +5723,14 @@ body[data-layout="topbar"] .backdrop-art {
   max-width: 340px;
   margin-top: 4px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12.6px;
   line-height: 1.5;
 }
 
 .anim-note {
   margin-top: 18px;
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.6px;
 }
 
 .demo-orbit {
@@ -5464,7 +5872,7 @@ body[data-layout="topbar"] .backdrop-art {
   border-radius: 6px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 10.5px;
+  font-size: 12.6px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -5482,7 +5890,7 @@ body[data-layout="topbar"] .backdrop-art {
 .server-popover-head {
   padding: 6px 8px 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -5518,7 +5926,7 @@ body[data-layout="topbar"] .backdrop-art {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
 }
@@ -5538,19 +5946,19 @@ body[data-layout="topbar"] .backdrop-art {
 
 .server-name {
   color: var(--text);
-  font-size: 12px;
+  font-size: 14.4px;
   font-weight: 650;
 }
 
 .server-meta {
   color: var(--muted-2);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .server-ping {
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13.2px;
 }
 
 @media (max-width: 900px) {
@@ -5830,7 +6238,7 @@ body[data-layout="topbar"] .backdrop-art {
   border-radius: 999px;
   background: rgba(var(--accent-rgb), 0.16);
   color: var(--accent);
-  font-size: 9px;
+  font-size: 10.8px;
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -5978,7 +6386,7 @@ body[data-layout="topbar"] .backdrop-art {
   gap: 8px;
   color: var(--muted-2);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 
@@ -5994,7 +6402,7 @@ body[data-layout="topbar"] .backdrop-art {
     padding: 24px;
     background: rgba(4, 6, 10, 0.97);
     color: var(--text);
-    font-size: 14px;
+    font-size: 16.8px;
     font-weight: 600;
     letter-spacing: 0.02em;
     text-align: center;

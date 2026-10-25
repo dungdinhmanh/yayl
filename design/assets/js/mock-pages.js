@@ -692,25 +692,282 @@
   var newsTabId = "notice";
   var newsTimer = null;
 
-  function homeSubText(game, state, meta) {
-    if (state === "install") return game.size + " · " + app.t("home.meta.required");
-    if (state === "update") return app.t("home.current") + " " + game.version + " → " + game.latest;
-    if (state === "downloading") return "12.4 MB/s · " + app.t("download.eta") + " 08:12";
-    if (state === "paused") return app.t("download.etaPaused");
-    if (state === "verifying") return app.t("download.etaVerifying");
-    if (state === "error") return app.t("home.error.code");
-    if (state === "offline") return app.t("common.offline");
-    if (state === "running") return app.t("common.running");
-    return app.t("common.ready");
-  }
-
   function homeSecondaryText(game, state) {
     if (state === "update") return { key: "home.action.playAnyway" };
-    if (state === "install") return { key: "home.action.useExisting" };
+    if (state === "install") return { key: "home.action.locateGame", locate: true };
     if (state === "error") return { key: "home.action.errorDetails" };
     if (state === "offline") return { key: "home.action.retry" };
     if (state === "running") return { key: "home.action.minimize" };
     return null;
+  }
+
+  function fileUrl(path) {
+    return "file:///" + String(path).replace(/\\/g, "/");
+  }
+
+  function formatBytes(bytes) {
+    var units = ["B", "KB", "MB", "GB", "TB"];
+    if (!isFinite(bytes) || bytes < 0) return "—";
+    if (bytes < 1024) return Math.round(bytes) + " B";
+    var value = bytes;
+    var unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit += 1;
+    }
+    return value.toFixed(2) + " " + units[unit];
+  }
+
+  function driveOf(path) {
+    var match = /^([A-Za-z]):/.exec(String(path).trim());
+    return match ? match[1].toUpperCase() + ":" : "D:";
+  }
+
+  function mockDisk(path) {
+    var gib = 1024 * 1024 * 1024;
+    var presets = {
+      "C:": { free: 24 * gib, total: 256 * gib },
+      "D:": { free: 182 * gib, total: 512 * gib },
+      "E:": { free: 720 * gib, total: 1024 * gib }
+    };
+    return presets[driveOf(path)] || presets["D:"];
+  }
+
+  function escapeText(value) {
+    return String(value).replace(/[&<>"]/g, function (character) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[character];
+    });
+  }
+
+  function openInstallDialog(appRef) {
+    var game = appRef.game();
+    var t = appRef.t;
+    var backdrop = document.createElement("div");
+    backdrop.className = "install-backdrop";
+    backdrop.innerHTML =
+      '<div class="install-dialog" role="dialog" aria-modal="true" aria-labelledby="installTitle" tabindex="-1">' +
+        '<div class="install-head">' +
+          '<div class="install-head-icon">' + appRef.icon("download") + "</div>" +
+          '<div class="install-head-copy">' +
+            '<div class="install-title" id="installTitle"></div>' +
+            '<div class="install-sub"></div>' +
+          "</div>" +
+          '<button class="install-close" type="button" data-install-close aria-label="' + escapeText(t("common.close")) + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>' +
+          "</button>" +
+        "</div>" +
+        '<div class="install-body">' +
+          '<section class="install-location">' +
+            '<div class="install-label" data-install-location-label></div>' +
+            '<div class="install-path-row">' +
+              '<span class="install-path-icon">' + appRef.icon("folder") + "</span>" +
+              '<input class="install-path-input" data-install-path spellcheck="false">' +
+              '<button class="install-change" type="button" data-install-change></button>' +
+            "</div>" +
+          "</section>" +
+          '<section class="install-storage">' +
+            '<div class="install-storage-head"><span data-install-storage-label></span><span class="is-total" data-install-total></span></div>' +
+            '<div class="install-storage-body">' +
+              '<div class="install-bar" data-install-bar role="img">' +
+                '<span class="install-bar-used" data-install-bar-used></span>' +
+                '<span class="install-bar-game" data-install-bar-game></span>' +
+              "</div>" +
+              '<div class="install-bar-skeleton" data-install-bar-skeleton aria-hidden="true"></div>' +
+              '<div class="install-legend" data-install-legend>' +
+                '<span class="is-used"><i></i>' + escapeText(t("install.used")) + '<b data-install-used></b></span>' +
+                '<span class="is-game"><i></i>' + escapeText(t("install.game")) + '<b data-install-game></b></span>' +
+                '<span class="is-free"><i></i>' + escapeText(t("install.freeAfter")) + '<b data-install-free-after></b></span>' +
+              "</div>" +
+              '<div class="install-size-row">' +
+                "<div><span>" + escapeText(t("install.download")) + '</span><b data-install-download></b></div>' +
+                "<div><span>" + escapeText(t("install.free")) + '</span><b data-install-free></b></div>' +
+              "</div>" +
+            "</div>" +
+          "</section>" +
+          '<div class="install-warning" data-install-warning hidden>' +
+            '<span data-install-warning-icon></span><span data-install-warning-text></span>' +
+          "</div>" +
+        "</div>" +
+        '<div class="install-foot">' +
+          '<a class="install-locate" href="#" data-install-locate></a>' +
+          '<div class="install-actions">' +
+            '<button class="install-confirm" type="button" data-install-confirm></button>' +
+          "</div>" +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(backdrop);
+
+    var dialog = backdrop.querySelector(".install-dialog");
+    var pathInput = backdrop.querySelector("[data-install-path]");
+    var bar = backdrop.querySelector("[data-install-bar]");
+    var barSkeleton = backdrop.querySelector("[data-install-bar-skeleton]");
+    var barUsed = backdrop.querySelector("[data-install-bar-used]");
+    var barGame = backdrop.querySelector("[data-install-bar-game]");
+    var legend = backdrop.querySelector("[data-install-legend]");
+    var totalEl = backdrop.querySelector("[data-install-total]");
+    var usedEl = backdrop.querySelector("[data-install-used]");
+    var gameEl = backdrop.querySelector("[data-install-game]");
+    var freeAfterEl = backdrop.querySelector("[data-install-free-after]");
+    var downloadEl = backdrop.querySelector("[data-install-download]");
+    var freeEl = backdrop.querySelector("[data-install-free]");
+    var warning = backdrop.querySelector("[data-install-warning]");
+    var warningText = backdrop.querySelector("[data-install-warning-text]");
+    var confirmBtn = backdrop.querySelector("[data-install-confirm]");
+    var closeBtn = backdrop.querySelector("[data-install-close]");
+    var changeBtn = backdrop.querySelector("[data-install-change]");
+    var locateLink = backdrop.querySelector("[data-install-locate]");
+
+    backdrop.querySelector(".install-title").textContent = t("install.title", { game: game.name });
+    backdrop.querySelector(".install-sub").textContent = t("install.subtitle");
+    backdrop.querySelector("[data-install-location-label]").textContent = t("install.location");
+    backdrop.querySelector("[data-install-storage-label]").textContent = t("install.storage");
+    backdrop.querySelector("[data-install-warning-icon]").innerHTML = appRef.icon("alert");
+    confirmBtn.textContent = t("install.confirm");
+    changeBtn.textContent = t("install.change");
+    locateLink.textContent = t("home.action.locateGame");
+    pathInput.value = game.path;
+
+    var state = {
+      downloadBytes: null,
+      disk: null,
+      sizeLoading: true,
+      diskLoading: true,
+      error: false
+    };
+    var sizeTimer = null;
+    var diskTimer = null;
+    var closed = false;
+
+    function setValue(element, loading, value) {
+      element.innerHTML = loading ? '<span class="install-skeleton"></span>' : escapeText(value);
+    }
+
+    function render() {
+      var required = state.downloadBytes === null ? game.downloadBytes : state.downloadBytes;
+      var disk = state.disk;
+      var used = disk ? disk.total - disk.free : 0;
+      var usedPercent = disk ? (used / disk.total) * 100 : 0;
+      var gamePercent = disk
+        ? Math.min((required / disk.total) * 100, Math.max(0, 100 - usedPercent))
+        : 0;
+      var freeAfter = disk ? Math.max(0, disk.free - required) : 0;
+      var missing = disk ? Math.max(0, required - disk.free) : 0;
+      var ready = !state.sizeLoading && !state.diskLoading && state.downloadBytes !== null && disk !== null && !state.error;
+      var enough = disk !== null && missing === 0;
+
+      bar.className = "install-bar" + (ready && !enough ? " is-short" : "");
+      bar.hidden = !ready || state.error;
+      barSkeleton.hidden = ready || state.error;
+      legend.hidden = state.error;
+      bar.setAttribute("aria-label", t("install.storage"));
+      barUsed.style.width = Math.max(0, Math.min(100, usedPercent)) + "%";
+      barGame.style.left = Math.max(0, Math.min(100, usedPercent)) + "%";
+      barGame.style.width = Math.max(0, Math.min(100, gamePercent)) + "%";
+
+      if (state.diskLoading || !disk) {
+        totalEl.innerHTML = '<span class="install-skeleton"></span>';
+      } else {
+        totalEl.textContent = t("install.drive", {
+          drive: driveOf(pathInput.value),
+          total: formatBytes(disk.total)
+        });
+      }
+
+      setValue(usedEl, state.diskLoading, formatBytes(used));
+      setValue(gameEl, state.sizeLoading, formatBytes(required));
+      setValue(freeAfterEl, state.diskLoading, formatBytes(freeAfter));
+      setValue(downloadEl, state.sizeLoading, formatBytes(required));
+      setValue(freeEl, state.diskLoading, disk ? formatBytes(disk.free) : "—");
+
+      warning.hidden = !state.error && !(ready && !enough);
+      if (state.error) {
+        warningText.textContent = t("install.spaceError");
+      } else if (ready && !enough) {
+        warningText.textContent =
+          t("install.notEnough", { drive: driveOf(pathInput.value) }) +
+          " " +
+          t("install.needMore", { size: formatBytes(missing) });
+      }
+
+      confirmBtn.disabled = !(ready && enough);
+      locateLink.setAttribute("href", fileUrl(pathInput.value));
+    }
+
+    function loadSize() {
+      state.sizeLoading = true;
+      render();
+      sizeTimer = window.setTimeout(function () {
+        if (closed) return;
+        state.downloadBytes = game.downloadBytes;
+        state.sizeLoading = false;
+        render();
+      }, 650);
+    }
+
+    function loadDisk() {
+      state.diskLoading = true;
+      state.error = false;
+      render();
+      if (diskTimer) window.clearTimeout(diskTimer);
+      diskTimer = window.setTimeout(function () {
+        if (closed) return;
+        state.disk = mockDisk(pathInput.value);
+        state.diskLoading = false;
+        render();
+      }, 420);
+    }
+
+    function close() {
+      closed = true;
+      if (sizeTimer) window.clearTimeout(sizeTimer);
+      if (diskTimer) window.clearTimeout(diskTimer);
+      document.removeEventListener("keydown", onKey);
+      backdrop.remove();
+    }
+
+    function onKey(event) {
+      if (event.key === "Escape") close();
+    }
+
+    pathInput.addEventListener("input", function () {
+      state.diskLoading = true;
+      render();
+      if (diskTimer) window.clearTimeout(diskTimer);
+      diskTimer = window.setTimeout(loadDisk, 240);
+    });
+
+    changeBtn.addEventListener("click", function () {
+      var drives = ["D:", "E:", "C:"];
+      var current = driveOf(pathInput.value);
+      var index = drives.indexOf(current);
+      pathInput.value = pathInput.value.replace(/^[A-Za-z]:/, drives[(index + 1) % drives.length]);
+      loadDisk();
+    });
+
+    locateLink.addEventListener("click", function (event) {
+      event.preventDefault();
+      appRef.showToast(
+        t("home.toast.folder.title"),
+        t("home.toast.folder.text", { path: pathInput.value })
+      );
+    });
+
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("mousedown", function (event) {
+      if (event.target === backdrop) close();
+    });
+    confirmBtn.addEventListener("click", function () {
+      close();
+      appRef.setState("downloading");
+    });
+    document.addEventListener("keydown", onKey);
+
+    loadSize();
+    loadDisk();
+    render();
+    window.setTimeout(function () {
+      dialog.focus();
+    }, 20);
   }
 
   function renderNews() {
@@ -862,12 +1119,15 @@
       primary.disabled = !!meta.disabled;
       primary.setAttribute("aria-disabled", meta.disabled ? "true" : "false");
       var label = primary.querySelector("[data-button-label]");
-      var sub = primary.querySelector("[data-button-sub]");
       var icon = primary.querySelector("[data-button-icon]");
       if (label) label.textContent = app.t(meta.primary, vars);
-      if (sub) sub.textContent = homeSubText(game, state, meta);
       if (icon) {
-        icon.innerHTML = meta.primaryIcon === "spinner" ? '<span class="spinner"></span>' : app.icon(meta.primaryIcon);
+        if (state === "install" && window.YAYL_BADGE) {
+          icon.innerHTML = "";
+          icon.appendChild(window.YAYL_BADGE.create("downloading", { size: "30px" }));
+        } else {
+          icon.innerHTML = meta.primaryIcon === "spinner" ? '<span class="spinner"></span>' : app.icon(meta.primaryIcon);
+        }
       }
       // Chosen download effect: rising bubbles inside the button.
       var downloadActive = ["downloading", "paused", "verifying"].indexOf(state) !== -1;
@@ -884,11 +1144,16 @@
     if (secondary) {
       var secondaryText = homeSecondaryText(game, state);
       secondary.hidden = !secondaryText;
-      if (secondaryText) secondary.textContent = app.t(secondaryText.key, secondaryText.vars || {});
+      if (secondaryText) {
+        secondary.textContent = app.t(secondaryText.key, secondaryText.vars || {});
+        secondary.setAttribute("href", secondaryText.locate ? fileUrl(game.path) : "#");
+        if (secondaryText.locate) {
+          secondary.setAttribute("data-locate", "1");
+        } else {
+          secondary.removeAttribute("data-locate");
+        }
+      }
     }
-
-    var versionEl = byId("homeVersion");
-    if (versionEl) versionEl.textContent = "v" + game.version;
 
     renderNews();
   }
@@ -900,7 +1165,11 @@
     if (primary) {
       primary.addEventListener("click", function () {
         var state = appRef.current.state;
-        if (state === "update" || state === "install") {
+        if (state === "install") {
+          openInstallDialog(appRef);
+          return;
+        }
+        if (state === "update") {
           appRef.setState("downloading");
           appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
           return;
@@ -928,7 +1197,8 @@
     }
 
     if (secondary) {
-      secondary.addEventListener("click", function () {
+      secondary.addEventListener("click", function (event) {
+        event.preventDefault();
         var state = appRef.current.state;
         if (state === "update") {
           appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
