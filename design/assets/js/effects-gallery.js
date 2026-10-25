@@ -515,6 +515,207 @@
     return { update: update };
   }
 
+  function fxStagger(stage) {
+    var btn = makeBtn("stagger", '<div class="fxfill-h"></div><span class="fxdots"></span>');
+    stage.appendChild(btn);
+    var grid = btn.querySelector(".fxdots");
+    var N = 40;
+    for (var i = 0; i < N; i += 1) grid.appendChild(el("span", "fxdot"));
+    var dots = grid.children;
+    function update(p) {
+      var on = Math.round(p * N);
+      for (var i = 0; i < N; i += 1) dots[i].classList.toggle("is-on", i < on);
+    }
+    update(0.42);
+    if (window.anime && !reduced()) {
+      anime({
+        targets: dots,
+        scale: [1, 1.5, 1],
+        duration: 1300,
+        delay: anime.stagger(65, { grid: [8, 5], from: "first" }),
+        loop: true,
+        easing: "easeInOutSine"
+      });
+    }
+    return { update: update };
+  }
+
+  function fxRunner(stage) {
+    var d =
+      "M28 3 H272 A25 25 0 0 1 297 28 A25 25 0 0 1 272 53 H28 A25 25 0 0 1 3 28 A25 25 0 0 1 28 3 Z";
+    var btn = makeBtn(
+      "runner",
+      '<div class="fxfill-h"></div>' +
+        '<svg class="fxrunner" viewBox="0 0 300 56" preserveAspectRatio="none">' +
+        '<path class="fxrunner-track" d="' + d + '"></path>' +
+        '<path class="fxrunner-arc" d="' + d + '"></path>' +
+        "</svg>" +
+        '<span class="fxrunner-dot"></span>'
+    );
+    stage.appendChild(btn);
+    var track = btn.querySelector(".fxrunner-track");
+    var arc = btn.querySelector(".fxrunner-arc");
+    var dot = btn.querySelector(".fxrunner-dot");
+    var total = 0;
+    function length() {
+      if (!total) {
+        try {
+          total = track.getTotalLength() || 660;
+        } catch (e) {
+          total = 660;
+        }
+      }
+      return total;
+    }
+    function update(p) {
+      var L = length();
+      arc.style.strokeDasharray = String(L);
+      arc.style.strokeDashoffset = String(L * (1 - p));
+    }
+    update(0.42);
+    if (window.anime && !reduced()) {
+      window.setTimeout(function () {
+        var motion = anime.path(track);
+        anime({
+          targets: dot,
+          translateX: motion("x"),
+          translateY: motion("y"),
+          duration: 2800,
+          easing: "linear",
+          loop: true
+        });
+      }, 30);
+    }
+    return { update: update };
+  }
+
+  function fxMorph(stage) {
+    var svg =
+      '<svg class="fxwaves" viewBox="0 0 2400 26" preserveAspectRatio="none">' +
+      '<path class="fxmorph" d="M0 13 Q150 0 300 13 T600 13 T900 13 T1200 13 T1500 13 T1800 13 T2100 13 T2400 13 V26 H0 Z"></path>' +
+      "</svg>";
+    stage.appendChild(makeBtn("morph", '<div class="fxfill-v">' + svg + "</div>"));
+    var path = stage.querySelector(".fxmorph");
+    if (window.anime && !reduced()) {
+      anime({
+        targets: path,
+        d: [
+          { value: "M0 13 Q150 0 300 13 T600 13 T900 13 T1200 13 T1500 13 T1800 13 T2100 13 T2400 13 V26 H0 Z" },
+          { value: "M0 13 Q150 26 300 13 T600 13 T900 13 T1200 13 T1500 13 T1800 13 T2100 13 T2400 13 V26 H0 Z" }
+        ],
+        duration: 2600,
+        direction: "alternate",
+        loop: true,
+        easing: "easeInOutSine"
+      });
+    }
+    return {};
+  }
+
+  function fxSpring(stage) {
+    var btn = makeBtn("spring", '<div class="fxfill-h fx-spring"></div>');
+    stage.appendChild(btn);
+    var fill = btn.querySelector(".fxfill-h");
+    var displayed = 42;
+    var running = null;
+    var pending = null;
+    function apply(v) {
+      var clamped = Math.max(0, Math.min(100, v));
+      fill.style.width = clamped + "%";
+      displayed = clamped;
+    }
+    apply(displayed);
+    function run(target) {
+      var proxy = { v: displayed };
+      running = anime({
+        targets: proxy,
+        v: target,
+        duration: 900,
+        easing: "spring(1, 70, 12, 0)",
+        update: function () {
+          apply(proxy.v);
+        },
+        complete: function () {
+          running = null;
+          if (pending !== null && Math.abs(pending - displayed) > 0.5) {
+            var next = pending;
+            pending = null;
+            run(next);
+          }
+        }
+      });
+    }
+    function update(p) {
+      var target = p * 100;
+      if (!window.anime) return;
+      if (running) {
+        pending = target;
+        return;
+      }
+      if (Math.abs(target - displayed) < 0.4) return;
+      run(target);
+    }
+    return { update: update };
+  }
+
+  function fxBurst(stage) {
+    var btn = makeBtn("burst", '<div class="fxfill-h"></div><span class="fxburst-wrap"></span>');
+    stage.appendChild(btn);
+    var wrap = btn.querySelector(".fxburst-wrap");
+    var lastMilestone = -1;
+    function burst(count, x, y) {
+      if (!window.anime || reduced()) return;
+      for (var i = 0; i < count; i += 1) {
+        (function () {
+          var s = el("span", "fxburst");
+          var ang = anime.random(0, 360);
+          var dist = anime.random(16, 54);
+          s.style.left = x + "px";
+          s.style.top = y + "px";
+          wrap.appendChild(s);
+          anime({
+            targets: s,
+            translateX: Math.cos((ang * Math.PI) / 180) * dist,
+            translateY: Math.sin((ang * Math.PI) / 180) * dist,
+            scale: [1, 0],
+            opacity: [1, 0],
+            duration: anime.random(420, 780),
+            easing: "easeOutQuad",
+            complete: function () {
+              s.remove();
+            }
+          });
+        })();
+      }
+    }
+    function update(p) {
+      var pct = Math.round(p * 100);
+      var milestone = Math.floor(pct / 10) * 10;
+      if (milestone < lastMilestone) lastMilestone = -1;
+      if (milestone > lastMilestone && milestone > 0) {
+        lastMilestone = milestone;
+        burst(milestone >= 100 ? 22 : 8, btn.clientWidth * p, btn.clientHeight / 2);
+      }
+    }
+    return { update: update };
+  }
+
+  function fxOrbitAnime(stage) {
+    var result = ringProgress(stage, '<span class="fxorbitdots"><i></i><i></i><i></i></span>');
+    var wrap = stage.querySelector(".fxorbitdots");
+    if (window.anime && !reduced() && wrap) {
+      anime({
+        targets: wrap,
+        rotate: [0, 340],
+        duration: 2200,
+        direction: "alternate",
+        loop: true,
+        easing: "easeInOutQuad"
+      });
+    }
+    return result;
+  }
+
   /* ------------------------------------------------------------------ catalog */
 
   var CATALOG = [
@@ -557,7 +758,14 @@
     { group: "premium", id: "liquid-pro", name: { vi: "Liquid Pro (tinh chỉnh)", en: "Liquid Pro (refined)" }, desc: { vi: "Bản tinh chỉnh: nước dâng 3 lớp sóng + đỉnh sáng + đổi sắc nhẹ.", en: "Refined: 3-layer liquid with a lit crest and a soft hue shift." }, lib: ["CSS", "SVG"], w: 1, build: fxLiquidPro },
     { group: "premium", id: "bar-pro", name: { vi: "Bar Pro (tinh chỉnh)", en: "Bar Pro (refined)" }, desc: { vi: "Kết hợp gradient chạy + vệt sáng + đầu neon.", en: "Running gradient + sheen + neon edge combined." }, lib: ["CSS"], w: 1, build: fxBarPro },
     { group: "premium", id: "ring-pro", name: { vi: "Ring Pro (tinh chỉnh)", en: "Ring Pro (refined)" }, desc: { vi: "Vòng + vệt quét + điểm chạy, viền dày và có quầng sáng.", en: "Ring with sweep + orbiting dot, thicker and glowing." }, lib: ["CSS", "SVG"], w: 1, build: fxRingPro },
-    { group: "premium", id: "blocks-pro", name: { vi: "Blocks Pro (tinh chỉnh)", en: "Blocks Pro (refined)" }, desc: { vi: "Khối có bevel + quầng sáng, trông nổi khối hơn.", en: "Blocks with a bevel and glow for more depth." }, lib: ["CSS", "JS"], w: 1, build: fxBlocksPro }
+    { group: "premium", id: "blocks-pro", name: { vi: "Blocks Pro (tinh chỉnh)", en: "Blocks Pro (refined)" }, desc: { vi: "Khối có bevel + quầng sáng, trông nổi khối hơn.", en: "Blocks with a bevel and glow for more depth." }, lib: ["CSS", "JS"], w: 1, build: fxBlocksPro },
+
+    { group: "anime", id: "stagger", name: { vi: "Lưới stagger", en: "Stagger grid" }, desc: { vi: "40 chấm dợn theo làn sóng chéo bằng anime.stagger(); chấm sáng theo tiến trình.", en: "40 dots ripple in a diagonal wave via anime.stagger(); lit by progress." }, lib: ["anime.js"], w: 1, build: fxStagger },
+    { group: "anime", id: "runner", name: { vi: "Sao chổi chạy viền", en: "Path runner" }, desc: { vi: "Điểm sáng chạy đúng theo viền bằng anime.path(); cung sáng theo tiến trình.", en: "A dot follows the outline via anime.path(); the arc follows progress." }, lib: ["anime.js", "SVG"], w: 1, build: fxRunner },
+    { group: "anime", id: "morph", name: { vi: "Sóng biến hình", en: "Morph wave" }, desc: { vi: "anime.js nội suy thuộc tính d để mặt sóng đổi hình liên tục.", en: "anime.js interpolates the d attribute so the wave surface morphs." }, lib: ["anime.js", "SVG"], w: 1, build: fxMorph },
+    { group: "anime", id: "spring", name: { vi: "Thanh lò xo", en: "Spring bar" }, desc: { vi: "Fill đuổi theo tiến trình bằng easing spring() — có độ nảy.", en: "The fill chases progress with a spring() easing — it overshoots." }, lib: ["anime.js"], w: 1, build: fxSpring },
+    { group: "anime", id: "burst", name: { vi: "Toé sáng mốc 10%", en: "Milestone burst" }, desc: { vi: "Mỗi mốc 10% bắn ra tia hạt bằng anime timeline + random.", en: "Every 10% fires a burst of particles via anime timeline + random." }, lib: ["anime.js"], w: 2, build: fxBurst },
+    { group: "anime", id: "orbit-anime", name: { vi: "Vệ tinh quay", en: "Orbiting dots" }, desc: { vi: "Ba điểm sáng quay qua lại quanh vòng bằng anime.js.", en: "Three dots swing around the ring using anime.js." }, lib: ["anime.js", "SVG"], w: 1, build: fxOrbitAnime }
   ];
 
   var GROUPS = [
@@ -567,7 +775,8 @@
     { id: "text", key: "fx.groupText" },
     { id: "block", key: "fx.groupBlock" },
     { id: "style", key: "fx.groupStyle" },
-    { id: "premium", key: "fx.groupPremium" }
+    { id: "premium", key: "fx.groupPremium" },
+    { id: "anime", key: "fx.groupAnime" }
   ];
 
   var demos = [];
