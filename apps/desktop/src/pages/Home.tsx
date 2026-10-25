@@ -56,7 +56,6 @@ export default function Home({ gameId, state, lang, t }: Props) {
   const game = GAMES[gameId];
   const meta = STATE_META[state];
   const secondary = secondaryKey(state);
-  const showCard = ["install", "downloading", "paused", "verifying", "error"].includes(state);
   const vars = {
     game: game.name,
     percent: meta.progress || 42,
@@ -102,63 +101,62 @@ export default function Home({ gameId, state, lang, t }: Props) {
         </div>
       )}
 
-      {showCard && (
-        <div className="game-info-card">
-          <div>
-            <div className="game-info-name">{game.name}</div>
-            <div className="game-info-meta">
-              <span className="mono">v{game.version}</span>
-              <span>{subText(game, state, t)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="home-actions">
         {secondary && (
           <button className="home-action-link" type="button">
             {t(secondary, vars)}
           </button>
         )}
-        <button className={"home-play is-" + state} type="button" disabled={Boolean((meta as { disabled?: boolean }).disabled)}>
-          {DOWNLOAD_STATES.includes(state) && <BubbleProgress progress={(meta.progress || 0) / 100} />}
-          {icon(meta.primaryIcon)}
-          <span className="home-play-copy">
-            <span className="home-play-label">{t(meta.primary, vars)}</span>
-            <span className="home-play-sub">{subText(game, state, t)}</span>
-          </span>
-        </button>
-
-        <div className="home-menu" ref={menuRef}>
+        <div className="home-action-group">
           <button
-            className="home-menu-btn"
+            className={"home-play is-" + state}
             type="button"
-            aria-haspopup="true"
-            aria-expanded={menuOpen}
-            aria-label={t("home.menu.label")}
-            onClick={() => setMenuOpen((open) => !open)}
+            disabled={Boolean((meta as { disabled?: boolean }).disabled)}
           >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <circle cx="12" cy="5" r="1.8" />
-              <circle cx="12" cy="12" r="1.8" />
-              <circle cx="12" cy="19" r="1.8" />
-            </svg>
+            {DOWNLOAD_STATES.includes(state) && <BubbleProgress progress={(meta.progress || 0) / 100} />}
+            {icon(meta.primaryIcon)}
+            <span className="home-play-copy">
+              <span className="home-play-label">{t(meta.primary, vars)}</span>
+              <span className="home-play-sub">{subText(game, state, t)}</span>
+            </span>
           </button>
-          {menuOpen && (
-            <div className="home-menu-pop" role="menu">
-              {MENU_ITEMS.map((key) => (
-                <button
-                  key={key}
-                  className="home-menu-item"
-                  type="button"
-                  role="menuitem"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t(key)}
-                </button>
-              ))}
-            </div>
-          )}
+
+          <div className="home-menu" ref={menuRef}>
+            <button
+              className="home-menu-btn"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded={menuOpen}
+              aria-label={t("home.menu.label")}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 7h14M5 12h14M5 17h14" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className="home-menu-pop" role="menu">
+                {MENU_ITEMS.map((key) => (
+                  <button
+                    key={key}
+                    className="home-menu-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t(key)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

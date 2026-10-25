@@ -854,35 +854,6 @@
       if (secondaryText) secondary.textContent = app.t(secondaryText.key, secondaryText.vars || {});
     }
 
-    var card = byId("gameInfoCard");
-    var showCard = ["install", "downloading", "paused", "verifying", "error"].indexOf(state) !== -1;
-    if (card) card.hidden = !showCard;
-    if (showCard) {
-      var name = byId("gameInfoName");
-      if (name) name.textContent = game.name;
-      var version = byId("gameInfoVersion");
-      if (version) version.textContent = "v" + game.version;
-      var infoState = byId("gameInfoState");
-      if (infoState) infoState.textContent = homeSubText(game, state, meta);
-      var badge = byId("gameInfoBadge");
-      if (badge) {
-        var badgeText =
-          state === "install"
-            ? app.t("home.status.install")
-            : state === "downloading"
-            ? app.t("home.status.downloading")
-            : state === "paused"
-            ? app.t("home.status.paused")
-            : state === "verifying"
-            ? app.t("home.status.verifying")
-            : state === "error"
-            ? app.t("home.status.error")
-            : "";
-        badge.hidden = !badgeText;
-        badge.textContent = badgeText;
-      }
-    }
-
     var versionEl = byId("homeVersion");
     if (versionEl) versionEl.textContent = "v" + game.version;
 

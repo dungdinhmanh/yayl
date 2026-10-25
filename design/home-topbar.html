@@ -81,35 +81,26 @@
               </div>
             </div>
 
-            <div class="game-info-card" id="gameInfoCard" hidden>
-              <div>
-                <div class="game-info-name" id="gameInfoName">Arknights</div>
-                <div class="game-info-meta">
-                  <span class="mono" id="gameInfoVersion">v042.0.0</span>
-                  <span id="gameInfoState">24.8 GB</span>
-                  <span class="game-info-badge" id="gameInfoBadge" hidden>NEW</span>
-                </div>
-              </div>
-            </div>
-
             <div class="home-actions">
               <button class="home-action-link" type="button" id="secondaryAction" hidden></button>
-              <button class="home-play" type="button" id="primaryAction">
-                <span data-button-icon></span>
-                <span class="home-play-copy">
-                  <span class="home-play-label" data-button-label>Chơi</span>
-                  <span class="home-play-sub" data-button-sub>Sẵn sàng</span>
-                </span>
-              </button>
-              <div class="home-menu" id="homeMenu">
-                <button class="home-menu-btn" type="button" id="homeMenuBtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="home.menu.label" aria-label="Menu">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+              <div class="home-action-group">
+                <button class="home-play" type="button" id="primaryAction">
+                  <span data-button-icon></span>
+                  <span class="home-play-copy">
+                    <span class="home-play-label" data-button-label>Chơi</span>
+                    <span class="home-play-sub" data-button-sub>Sẵn sàng</span>
+                  </span>
                 </button>
-                <div class="home-menu-pop" id="homeMenuPop" role="menu" hidden>
-                  <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.verify">Kiểm tra</button>
-                  <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.repair">Sửa game</button>
-                  <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.settings">Thiết lập game</button>
-                  <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.shortcut">Tạo shortcut</button>
+                <div class="home-menu" id="homeMenu">
+                  <button class="home-menu-btn" type="button" id="homeMenuBtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="home.menu.label" aria-label="Menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+                  </button>
+                  <div class="home-menu-pop" id="homeMenuPop" role="menu" hidden>
+                    <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.verify">Kiểm tra</button>
+                    <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.repair">Sửa game</button>
+                    <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.settings">Thiết lập game</button>
+                    <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.shortcut">Tạo shortcut</button>
+                  </div>
                 </div>
               </div>
             </div>
