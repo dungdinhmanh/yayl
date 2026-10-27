@@ -37,7 +37,7 @@ Requests carry a signed envelope:
 ```json
 {
   "head": {
-    "game_tag": "Arknights",
+    "game_tag": "Arknights_EN",
     "time": 1710000000,
     "version": "1.0.0"
   },
@@ -52,6 +52,8 @@ DE7108E9B2842FD460F4777702727869
 ```
 
 `data` is the serialized request payload used for the signature. Keep the exact serialization order stable.
+
+Source: `A9_extracted/node_modules/@launcher/utils/src/crypto.ts:16-29`. The EN launchers sign `game_tag` as the store id (`Arknights_EN`, `StellaSora_EN`), not the short game name; see `A9_extracted/out/main/index.js:887-892` and `SS_extracted/out/main/index.js:890-892`.
 
 ### Endpoints observed
 
@@ -89,6 +91,37 @@ Versions are examples and will change. Never hard-code them.
 - The official launcher's `vc` value is `MD5(Object.values(obj).join(";"))`, encoded as base64.
 - Preserve the official `manifest.json` and `game-launcher-config.json` formats; third-party tools and the game itself may read them.
 
+### Local metadata shape
+
+Observed in `A9_extracted/out/main/index-8b10f6cc.js:18902-18918`:
+
+```json
+{
+  "name": "Arknights_EN",
+  "version": "042.0.0",
+  "basis": "prod/ZIP_TEMP/Arknights_EN_TEMP/Arknights_EN-042.0.0-game.zip",
+  "vc": "...",
+  "files": [
+    { "path": "/Arknights.exe", "hash": "1726476550168236827", "size": "675304", "vc": "..." }
+  ]
+}
+```
+
+`game-launcher-config.json` uses camelCase:
+
+```json
+{
+  "tag": "Arknights_EN",
+  "name": "Arknights",
+  "params": [],
+  "version": "042.0.0",
+  "gameUninstallScript": "",
+  "vc": "..."
+}
+```
+
+`basis` is the API's `game_latest_file_path`, not the manifest `source`. The `vc` field order is part of the format; do not reorder fields.
+
 ## Download behavior
 
 Observed behavior worth preserving:
@@ -101,6 +134,19 @@ Observed behavior worth preserving:
 - Manifest/config written after the file set is complete.
 - Cancellation preserves partial files for resume unless the user explicitly clears them.
 
+Download URL composition (`A9_extracted/out/main/index-8b10f6cc.js:18669-18683`):
+
+```text
+<cdn-host>/<manifest.source>/<manifest file path>
+```
+
+`manifest.source` and file paths both start with `/`; join them without duplicating slashes. The CDN serves individual files, not zip parts. `game_latest_file_path` is only the basis passed to the manifest endpoint.
+
+YAYL-specific resume state (not read by the game):
+
+- `<file>.yayl-part` — partial bytes.
+- `<file>.yayl-part.ckpt` — last synced length; used to discard a tail that may not have reached disk before a power loss.
+
 CDN hosts observed:
 
 - `launcher-pkg-ark-en.yo-star.com`
@@ -111,10 +157,10 @@ CDN hosts observed:
 
 | Game | game_tag | Install dir | Executable |
 |---|---|---|---|
-| Arknights EN | `Arknights` | `Arknights_EN` | `Arknights` |
-| Stella Sora EN | `StellaSora` | `StellaSora_EN` | `StellaSora` |
+| Arknights EN | `Arknights_EN` | `Arknights_EN` | `Arknights.exe` |
+| Stella Sora EN | `StellaSora_EN` | `StellaSora_EN` | `StellaSora.exe` |
 
-The exact executable extension/path should be resolved per game profile.
+The executable path is resolved per game profile. `game_tag` is the value used in the signed API header.
 
 ## Uninstall differences
 

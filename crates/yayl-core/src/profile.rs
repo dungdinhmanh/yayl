@@ -20,7 +20,8 @@ pub struct GameProfile {
 
 pub const ARKNIGHTS_EN: GameProfile = GameProfile {
     id: "arknights",
-    game_tag: "Arknights",
+    // The EN API signs `game_tag` as the store id, not the short game name.
+    game_tag: "Arknights_EN",
     api_base: "https://api-launcher-en.yo-star.com",
     install_dir: "Arknights_EN",
     executable: "Arknights.exe",
@@ -29,7 +30,7 @@ pub const ARKNIGHTS_EN: GameProfile = GameProfile {
 
 pub const STELLA_SORA_EN: GameProfile = GameProfile {
     id: "stella",
-    game_tag: "StellaSora",
+    game_tag: "StellaSora_EN",
     api_base: "https://api-launcher-en.yo-star.com",
     install_dir: "StellaSora_EN",
     executable: "StellaSora.exe",

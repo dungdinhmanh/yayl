@@ -110,12 +110,21 @@ pub async fn plan_install(
 }
 
 /// Build a plan when the manifest is already cached locally (offline start).
+///
+/// Accepts either the official local `manifest.json` (`files[]` with `vc`) or
+/// a remote manifest (`file[]` with `source`).
 pub fn plan_from_local_manifest(
     manifest_path: &Path,
     root: &Path,
     profile: Option<&GameProfile>,
 ) -> Result<InstallPlan> {
-    let manifest = crate::manifest::load_manifest(manifest_path)?;
+    let body = std::fs::read_to_string(manifest_path)?;
+    let value: serde_json::Value = serde_json::from_str(&body)?;
+    let manifest = if value.get("files").is_some() {
+        crate::local_manifest::LocalManifest::load(manifest_path)?.to_manifest()?
+    } else {
+        Manifest::parse(&body)?
+    };
     InstallPlan::from_manifest(&manifest, root, profile)
 }
 
@@ -186,5 +195,23 @@ mod tests {
         );
         assert!(!plan.enough_space);
         assert_eq!(plan.missing_bytes, 50);
+    }
+
+    #[test]
+    fn plans_from_the_official_local_manifest() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = Manifest::parse(SAMPLE).unwrap();
+        let local = crate::local_manifest::LocalManifest::from_manifest(
+            "StellaSora_EN",
+            "1.13.0",
+            "prod/StellaSora_EN_1.13.0-game.zip",
+            &manifest,
+        );
+        let path = dir.path().join("manifest.json");
+        local.save(&path).unwrap();
+
+        let plan = plan_from_local_manifest(&path, &dir.path().join("game"), Some(&STELLA_SORA_EN))
+            .unwrap();
+        assert_eq!(plan.download_bytes, manifest.total_bytes());
     }
 }

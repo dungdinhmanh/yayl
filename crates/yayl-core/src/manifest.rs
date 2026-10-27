@@ -109,12 +109,21 @@ impl Manifest {
     }
 
     /// Build a download URL for a file. `base` is the CDN root, without a
-    /// trailing slash. The path is percent-encoded because asset names can
-    /// contain `#`, `?`, spaces, or non-ASCII characters.
+    /// trailing slash. The official layout is `<cdn>/<source>/<file path>`;
+    /// the source is the manifest's top-level `source` field.
+    ///
+    /// Path segments are percent-encoded because asset names can contain `#`,
+    /// `?`, spaces, or non-ASCII characters.
     pub fn file_url(&self, base: &str, entry: &ManifestEntry) -> String {
+        let base = base.trim_end_matches('/');
+        let source = self.source.trim_matches('/');
+        if source.is_empty() {
+            return format!("{}/{}", base, encode_relative_path(&entry.relative));
+        }
         format!(
-            "{}/{}",
-            base.trim_end_matches('/'),
+            "{}/{}/{}",
+            base,
+            encode_path_text(source),
             encode_relative_path(&entry.relative)
         )
     }
@@ -216,6 +225,27 @@ mod tests {
         assert_eq!(
             encode_path_text("a b/#c?d/é.unity3d"),
             "a%20b/%23c%3Fd/%C3%A9.unity3d"
+        );
+    }
+
+    #[test]
+    fn file_url_includes_the_manifest_source() {
+        let manifest = Manifest::parse(SAMPLE).unwrap();
+        let entry = &manifest.files[0];
+        assert_eq!(
+            manifest.file_url("https://cdn.example.com/", entry),
+            "https://cdn.example.com/StellaSora_EN_1.13.0-game/StellaSora_Data/app.info"
+        );
+    }
+
+    #[test]
+    fn file_url_handles_a_missing_source() {
+        let manifest =
+            Manifest::parse(r#"{"source":"","file":[{"path":"/a b.txt","hash":"1","size":"1"}]}"#)
+                .unwrap();
+        assert_eq!(
+            manifest.file_url("https://cdn.example.com", &manifest.files[0]),
+            "https://cdn.example.com/a%20b.txt"
         );
     }
 }

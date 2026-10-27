@@ -11,7 +11,7 @@ use crate::crc64;
 use crate::disk;
 use crate::error::{Error, ErrorCode, Result};
 use futures_util::StreamExt;
-use reqwest::header::{ACCEPT_ENCODING, RANGE};
+use reqwest::header::{ACCEPT_ENCODING, CONTENT_RANGE, RANGE};
 use reqwest::{Client, StatusCode};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -21,6 +21,11 @@ use std::time::{Duration, Instant};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
+
+/// Sync the part file and persist a durable length at this interval. On a
+/// power loss the next run truncates back to the checkpoint instead of trusting
+/// a file length whose tail may never have reached the disk.
+const CHECKPOINT_BYTES: u64 = 8 * 1024 * 1024;
 
 #[derive(Debug, Clone)]
 pub struct FileJob {
@@ -187,11 +192,18 @@ impl Downloader {
         }
 
         let total_bytes: u64 = jobs.iter().map(|job| job.size).sum();
+        crate::path::validate_install_root(root)?;
+        tokio::fs::create_dir_all(root).await?;
+
+        // Existing files and partial downloads already occupy disk. Counting
+        // only the missing bytes keeps a resumed 20 GB install from failing a
+        // free-space check that the first run already passed.
+        let required_bytes = missing_bytes(&jobs).await;
         let space = disk::space_for(root)?;
-        if space.free_bytes < total_bytes {
+        if space.free_bytes < required_bytes {
             return Err(Error::disk(format!(
                 "not enough free space: need {}, available {}",
-                disk::format_bytes(total_bytes),
+                disk::format_bytes(required_bytes),
                 disk::format_bytes(space.free_bytes)
             )));
         }
@@ -306,6 +318,9 @@ impl Downloader {
                     .unwrap_or(false);
                 counters.active_verifications.fetch_sub(1, Ordering::SeqCst);
                 if valid {
+                    let part = part_path(&job.dest);
+                    tokio::fs::remove_file(&part).await.ok();
+                    remove_checkpoint(&part).await;
                     counters.downloaded.fetch_add(job.size, Ordering::SeqCst);
                     counters.installed.fetch_add(job.size, Ordering::SeqCst);
                     counters.files_done.fetch_add(1, Ordering::SeqCst);
@@ -325,8 +340,25 @@ impl Downloader {
             .map(|meta| meta.len())
             .unwrap_or(0);
         if part_len > job.size {
-            remove_part(&part, counters).await;
+            remove_part(&part, counters, false).await;
             part_len = 0;
+        }
+
+        // A checkpoint older than the part means the tail was never guaranteed
+        // durable. Drop that tail and resume from the last synced byte.
+        if part_len > 0 {
+            if let Some(durable) = read_checkpoint(&part).await {
+                let durable = durable.min(part_len);
+                if durable < part_len {
+                    let file = tokio::fs::OpenOptions::new()
+                        .write(true)
+                        .open(&part)
+                        .await?;
+                    file.set_len(durable).await?;
+                    file.sync_all().await?;
+                    part_len = durable;
+                }
+            }
         }
         if part_len > 0 {
             counters.downloaded.fetch_add(part_len, Ordering::SeqCst);
@@ -382,7 +414,12 @@ impl Downloader {
                         actual_size
                     ),
                 );
-                remove_part(&part, counters).await;
+                // A short stream is the normal network-drop case: keep the
+                // durable prefix and retry with a Range request. Only an
+                // oversized part is unsafe to keep.
+                if actual_size > job.size {
+                    remove_part(&part, counters, true).await;
+                }
                 sleep_backoff(attempt).await;
                 continue;
             }
@@ -397,6 +434,7 @@ impl Downloader {
                     let committed = commit(&part, &job.dest).await;
                     counters.active_commits.fetch_sub(1, Ordering::SeqCst);
                     committed?;
+                    remove_checkpoint(&part).await;
                     counters.installed.fetch_add(job.size, Ordering::SeqCst);
                     counters.files_done.fetch_add(1, Ordering::SeqCst);
                     return Ok(());
@@ -415,7 +453,7 @@ impl Downloader {
                 Err(error) => last_error = error,
             }
 
-            remove_part(&part, counters).await;
+            remove_part(&part, counters, true).await;
             sleep_backoff(attempt).await;
         }
 
@@ -460,6 +498,31 @@ impl Downloader {
             ));
         }
 
+        if status == StatusCode::PARTIAL_CONTENT {
+            let header = response
+                .headers()
+                .get(CONTENT_RANGE)
+                .and_then(|value| value.to_str().ok())
+                .ok_or_else(|| {
+                    Error::new(
+                        ErrorCode::Http,
+                        format!("206 response without Content-Range for {url}"),
+                    )
+                })?;
+            let start = content_range_start(header).ok_or_else(|| {
+                Error::new(
+                    ErrorCode::Http,
+                    format!("invalid Content-Range header for {url}: {header}"),
+                )
+            })?;
+            if start != offset {
+                return Err(Error::new(
+                    ErrorCode::Http,
+                    format!("server resumed at byte {start}, expected {offset} for {url}"),
+                ));
+            }
+        }
+
         let append = status == StatusCode::PARTIAL_CONTENT && offset > 0;
         if offset > 0 && !append {
             counters.downloaded.fetch_sub(offset, Ordering::SeqCst);
@@ -479,41 +542,61 @@ impl Downloader {
                 .await?
         };
 
-        let mut written = if append { offset } else { 0 };
-        let mut stream = response.bytes_stream();
-
-        while let Some(chunk) = stream.next().await {
-            if cancel.is_cancelled() {
-                file.flush().await?;
-                return Err(Error::cancelled());
-            }
-
-            let chunk = chunk?;
-            if chunk.is_empty() {
-                continue;
-            }
-
-            let mut slice = chunk.as_ref();
-            if size > 0 && written >= size {
-                break;
-            }
-            if size > 0 && written + slice.len() as u64 > size {
-                slice = &slice[..(size - written) as usize];
-            }
-
-            file.write_all(slice).await?;
-            let written_now = slice.len() as u64;
-            written += written_now;
-            counters.downloaded.fetch_add(written_now, Ordering::SeqCst);
-            tracker.add(written_now);
-
-            if size > 0 && written >= size {
-                break;
-            }
+        if !append {
+            remove_checkpoint(part).await;
         }
 
-        file.flush().await?;
-        Ok(())
+        let mut written = if append { offset } else { 0 };
+        let mut last_checkpoint = written;
+        let mut stream = response.bytes_stream();
+
+        let stream_result: Result<()> = async {
+            while let Some(chunk) = stream.next().await {
+                if cancel.is_cancelled() {
+                    return Err(Error::cancelled());
+                }
+
+                let chunk = chunk?;
+                if chunk.is_empty() {
+                    continue;
+                }
+                if size == 0 {
+                    break;
+                }
+
+                let mut slice = chunk.as_ref();
+                if written >= size {
+                    break;
+                }
+                if written + slice.len() as u64 > size {
+                    slice = &slice[..(size - written) as usize];
+                }
+
+                file.write_all(slice).await?;
+                let written_now = slice.len() as u64;
+                written += written_now;
+                counters.downloaded.fetch_add(written_now, Ordering::SeqCst);
+                tracker.add(written_now);
+
+                if written >= size {
+                    break;
+                }
+
+                if written - last_checkpoint >= CHECKPOINT_BYTES {
+                    file.sync_data().await?;
+                    write_checkpoint(part, written).await?;
+                    last_checkpoint = written;
+                }
+            }
+            Ok(())
+        }
+        .await;
+
+        // Persist the durable prefix even when the stream failed or was
+        // cancelled. The next run can resume from this checkpoint.
+        file.sync_data().await?;
+        write_checkpoint(part, written).await?;
+        stream_result
     }
 }
 
@@ -626,15 +709,76 @@ pub fn part_path(dest: &Path) -> PathBuf {
     dest.with_file_name(name)
 }
 
-async fn remove_part(part: &Path, counters: &Counters) {
+async fn remove_part(part: &Path, counters: &Counters, counted: bool) {
     let len = tokio::fs::metadata(part)
         .await
         .map(|meta| meta.len())
         .unwrap_or(0);
-    if len > 0 {
+    if counted && len > 0 {
         counters.downloaded.fetch_sub(len, Ordering::SeqCst);
     }
     tokio::fs::remove_file(part).await.ok();
+    remove_checkpoint(part).await;
+}
+
+/// Bytes still needed for this batch, accounting for completed files and
+/// resumable partials already on disk.
+async fn missing_bytes(jobs: &[FileJob]) -> u64 {
+    let mut total = 0u64;
+    for job in jobs {
+        let existing = tokio::fs::metadata(&job.dest)
+            .await
+            .map(|meta| meta.len())
+            .unwrap_or(0);
+        let part = tokio::fs::metadata(part_path(&job.dest))
+            .await
+            .map(|meta| meta.len())
+            .unwrap_or(0);
+        let have = existing.max(part).min(job.size);
+        total = total.saturating_add(job.size - have);
+    }
+    total
+}
+
+fn checkpoint_path(part: &Path) -> PathBuf {
+    let mut name = part
+        .file_name()
+        .map(|name| name.to_os_string())
+        .unwrap_or_default();
+    name.push(".ckpt");
+    part.with_file_name(name)
+}
+
+async fn read_checkpoint(part: &Path) -> Option<u64> {
+    tokio::fs::read_to_string(checkpoint_path(part))
+        .await
+        .ok()
+        .and_then(|body| body.trim().parse::<u64>().ok())
+}
+
+async fn write_checkpoint(part: &Path, durable: u64) -> Result<()> {
+    let path = checkpoint_path(part);
+    let tmp = path.with_extension("ckpt.tmp");
+    tokio::fs::write(&tmp, durable.to_string()).await?;
+    let file = tokio::fs::OpenOptions::new().write(true).open(&tmp).await?;
+    file.sync_all().await?;
+    if path.exists() {
+        tokio::fs::remove_file(&path).await.ok();
+    }
+    tokio::fs::rename(&tmp, &path).await?;
+    Ok(())
+}
+
+async fn remove_checkpoint(part: &Path) {
+    tokio::fs::remove_file(checkpoint_path(part)).await.ok();
+}
+
+/// Parse the start offset from `bytes <start>-<end>/<total>`.
+fn content_range_start(header: &str) -> Option<u64> {
+    let rest = header.trim().strip_prefix("bytes")?.trim_start();
+    let range = rest.split('/').next()?;
+    let start = range.split('-').next()?.trim();
+    start.parse::<u64>().ok()
 }
 
 async fn commit(part: &Path, dest: &Path) -> Result<()> {
@@ -655,7 +799,59 @@ mod tests {
     use super::*;
     use std::sync::atomic::AtomicBool;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
-    use tokio::net::TcpListener;
+    use tokio::net::{TcpListener, TcpStream};
+
+    async fn read_request(socket: &mut TcpStream) -> String {
+        let mut buffer = [0u8; 4096];
+        let mut request = Vec::new();
+        loop {
+            let read = socket.read(&mut buffer).await.unwrap();
+            if read == 0 {
+                break;
+            }
+            request.extend_from_slice(&buffer[..read]);
+            if request.windows(4).any(|window| window == b"\r\n\r\n") {
+                break;
+            }
+        }
+        String::from_utf8_lossy(&request).into_owned()
+    }
+
+    fn request_range(request: &str) -> Option<u64> {
+        request.lines().find_map(|line| {
+            let (name, value) = line.split_once(':')?;
+            if !name.eq_ignore_ascii_case("range") {
+                return None;
+            }
+            value
+                .trim()
+                .strip_prefix("bytes=")?
+                .trim_end_matches('-')
+                .parse()
+                .ok()
+        })
+    }
+
+    async fn write_response(socket: &mut TcpStream, head: &str, body: &[u8]) {
+        socket.write_all(head.as_bytes()).await.unwrap();
+        socket.write_all(body).await.unwrap();
+        socket.shutdown().await.ok();
+    }
+
+    fn partial_head(offset: usize, body_len: usize, slice_len: usize) -> String {
+        format!(
+            "HTTP/1.1 206 Partial Content\r\nContent-Length: {slice_len}\r\nContent-Range: bytes {offset}-{}/{body_len}\r\nConnection: close\r\n\r\n",
+            body_len - 1
+        )
+    }
+
+    fn sample_body() -> Arc<Vec<u8>> {
+        Arc::new(
+            (0..20_000u32)
+                .map(|value| (value % 251) as u8)
+                .collect::<Vec<u8>>(),
+        )
+    }
 
     #[test]
     fn part_path_keeps_the_extension() {
@@ -663,6 +859,14 @@ mod tests {
             part_path(Path::new("D:/game/UnityPlayer.dll")),
             PathBuf::from("D:/game/UnityPlayer.dll.yayl-part")
         );
+    }
+
+    #[test]
+    fn parses_content_range_start() {
+        assert_eq!(content_range_start("bytes 123-456/789"), Some(123));
+        assert_eq!(content_range_start("bytes 0-0/0"), Some(0));
+        assert_eq!(content_range_start("items 1-2/3"), None);
+        assert_eq!(content_range_start("bytes */100"), None);
     }
 
     #[tokio::test]
@@ -675,38 +879,21 @@ mod tests {
         let server_range = saw_range.clone();
         let server = tokio::spawn(async move {
             let (mut socket, _) = listener.accept().await.unwrap();
-            let mut buffer = vec![0u8; 4096];
-            let read = socket.read(&mut buffer).await.unwrap();
-            let request = String::from_utf8_lossy(&buffer[..read]).to_string();
-            let offset = request
-                .lines()
-                .find_map(|line| {
-                    line.strip_prefix("Range: bytes=")
-                        .or_else(|| line.strip_prefix("range: bytes="))
-                        .map(|value| value.trim_end_matches('-').parse::<usize>().unwrap())
-                })
-                .unwrap_or(0);
+            let request = read_request(&mut socket).await;
+            let offset = request_range(&request).unwrap_or(0) as usize;
             if offset > 0 {
                 server_range.store(true, Ordering::SeqCst);
             }
             let slice = &server_body[offset..];
             let header = if offset > 0 {
-                format!(
-                    "HTTP/1.1 206 Partial Content\r\nContent-Length: {}\r\nContent-Range: bytes {}-{}/{}\r\nConnection: close\r\n\r\n",
-                    slice.len(),
-                    offset,
-                    server_body.len() - 1,
-                    server_body.len()
-                )
+                partial_head(offset, server_body.len(), slice.len())
             } else {
                 format!(
                     "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
                     slice.len()
                 )
             };
-            socket.write_all(header.as_bytes()).await.unwrap();
-            socket.write_all(slice).await.unwrap();
-            socket.shutdown().await.ok();
+            write_response(&mut socket, &header, slice).await;
         });
 
         let dir = tempfile::tempdir().unwrap();
@@ -730,5 +917,158 @@ mod tests {
         assert!(saw_range.load(Ordering::SeqCst));
         assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
         assert!(!part_path(&dest).exists());
+    }
+
+    #[tokio::test]
+    async fn resumes_from_the_durable_checkpoint() {
+        let body = sample_body();
+        let saw_offset = Arc::new(AtomicU64::new(u64::MAX));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server_offset = saw_offset.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let request = read_request(&mut socket).await;
+            let offset = request_range(&request).unwrap_or(0) as usize;
+            server_offset.store(offset as u64, Ordering::SeqCst);
+            let slice = &server_body[offset..];
+            let header = partial_head(offset, server_body.len(), slice.len());
+            write_response(&mut socket, &header, slice).await;
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        let part = part_path(&dest);
+        std::fs::write(&part, &body[..5000]).unwrap();
+        std::fs::write(checkpoint_path(&part), "4000").unwrap();
+
+        let downloader = Downloader::new().unwrap().retries(0);
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/file.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        );
+        let report = downloader
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(report.is_complete());
+        assert_eq!(saw_offset.load(Ordering::SeqCst), 4000);
+        assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
+        assert!(!part.exists());
+        assert!(!checkpoint_path(&part).exists());
+    }
+
+    #[tokio::test]
+    async fn retries_a_short_stream_with_range() {
+        let body = sample_body();
+        let offsets = Arc::new(Mutex::new(Vec::new()));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server_offsets = offsets.clone();
+        let server = tokio::spawn(async move {
+            for _ in 0..2 {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let request = read_request(&mut socket).await;
+                let offset = request_range(&request).unwrap_or(0) as usize;
+                server_offsets.lock().unwrap().push(offset as u64);
+                if offset == 0 {
+                    // A dropped connection after 7000 bytes: no Content-Length,
+                    // so the body is complete but shorter than the manifest.
+                    write_response(
+                        &mut socket,
+                        "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n",
+                        &server_body[..7000],
+                    )
+                    .await;
+                } else {
+                    let slice = &server_body[offset..];
+                    let header = partial_head(offset, server_body.len(), slice.len());
+                    write_response(&mut socket, &header, slice).await;
+                }
+            }
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        let downloader = Downloader::new().unwrap().retries(1);
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/file.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        );
+        let report = downloader
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(report.is_complete());
+        assert_eq!(*offsets.lock().unwrap(), vec![0, 7000]);
+        assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
+    }
+
+    #[tokio::test]
+    async fn rejects_a_wrong_content_range() {
+        let body = sample_body();
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let request = read_request(&mut socket).await;
+            assert_eq!(request_range(&request), Some(1000));
+            // Claim the range starts at 0 even though the client asked for
+            // 1000. The downloader must reject this before appending.
+            let slice = &server_body[..];
+            let header = partial_head(0, server_body.len(), slice.len());
+            write_response(&mut socket, &header, slice).await;
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        let part = part_path(&dest);
+        std::fs::write(&part, &body[..1000]).unwrap();
+
+        let downloader = Downloader::new().unwrap().retries(0);
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/file.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        );
+        let report = downloader
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(!report.is_complete());
+        assert_eq!(report.failures[0].code, ErrorCode::Http);
+        assert!(!dest.exists());
+        assert_eq!(std::fs::read(&part).unwrap().len(), 1000);
+    }
+
+    #[tokio::test]
+    async fn counts_only_missing_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let complete = dir.path().join("complete.bin");
+        std::fs::write(&complete, vec![0u8; 100]).unwrap();
+        let partial = dir.path().join("partial.bin");
+        std::fs::write(part_path(&partial), vec![0u8; 40]).unwrap();
+        let missing = dir.path().join("missing.bin");
+
+        let jobs = vec![
+            FileJob::new("http://example.invalid/a", complete, 100, 0),
+            FileJob::new("http://example.invalid/b", partial, 100, 0),
+            FileJob::new("http://example.invalid/c", missing, 100, 0),
+        ];
+        assert_eq!(missing_bytes(&jobs).await, 60 + 100);
     }
 }
