@@ -58,6 +58,18 @@ pub fn normalize_manifest_path(raw: &str) -> Result<PathBuf> {
     Ok(out)
 }
 
+/// Stable forward-slash key for a relative path. Used by plans, duplicate
+/// detection, and manifest diffs so Windows and Linux compare the same string.
+pub fn path_key(path: &Path) -> String {
+    path.components()
+        .filter_map(|component| match component {
+            Component::Normal(part) => Some(part.to_string_lossy().into_owned()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 /// Join a normalized relative path to an install root and prove the result is
 /// still inside that root.
 pub fn join_inside(root: &Path, relative: &Path) -> Result<PathBuf> {
@@ -177,5 +189,13 @@ mod tests {
         let root = Path::new("D:/Games/YAYL");
         let path = join_inside(root, Path::new("a/b")).unwrap();
         assert!(path.starts_with(root));
+    }
+
+    #[test]
+    fn path_keys_are_forward_slashed() {
+        assert_eq!(
+            path_key(Path::new("StellaSora_Data").join("app.info").as_path()),
+            "StellaSora_Data/app.info"
+        );
     }
 }

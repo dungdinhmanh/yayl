@@ -153,6 +153,41 @@ CDN hosts observed:
 - `launcher-pkg-ss-en.yo-star.com`
 - backup variants use `-bk` hosts
 
+## Proxy behavior
+
+Observed in `A9_extracted/node_modules/@launcher/utils/src/proxy.ts` and the `ProxyManager` class in `A9_extracted/out/main/index.js:788-840`.
+
+The official launcher exposes two user-facing modes:
+
+| Mode | Behavior |
+|---|---|
+| `direct` | Default. No proxy. Clears proxy environment variables. |
+| `system` | Reads the operating-system proxy settings. |
+
+The renderer stores the selection as `proxy-config` in local storage and defaults to `direct` (`main-367052a6.js:2471-2492`).
+
+Windows system proxy:
+
+- Registry key: `HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings`.
+- Reads `ProxyEnable`, `ProxyServer`, and `ProxyOverride`.
+- `ProxyEnable` must be `0x1`; otherwise no proxy is returned.
+- `ProxyServer` forms:
+  - `host:port` → treated as `http://host:port`.
+  - `http://...` or `https://...` → used as-is.
+  - `http=host;https=host;socks=host` → prefers `http`, then `socks` (as `socks://`), then `https` (as `http://`).
+- `ProxyOverride` is split on `;` into the bypass list.
+- `localhost`, `127.0.0.1`, and `::1` are always appended to the bypass list.
+- `ProxyManager` polls the system proxy every 5 seconds and updates Electron sessions when the value changes.
+- On non-Windows platforms it reads `HTTPS_PROXY`, `HTTP_PROXY`, `https_proxy`, `http_proxy`, and `NO_PROXY`/`no_proxy` from the environment.
+
+When a proxy is active, the launcher exports `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy`, `no_proxy`, and `grpc_proxy`. For SOCKS it also sets `SOCKS_PROXY` and `ALL_PROXY`. In direct mode it deletes those variables.
+
+YAYL mapping:
+
+- `ProxyMode::Direct` — same default as the official launcher.
+- `ProxyMode::System` — same WinINET registry read on Windows, then environment fallback when the registry has no active proxy; environment only on non-Windows platforms.
+- `ProxyMode::Manual` — YAYL extension for an explicit HTTP/HTTPS/SOCKS URL and `no_proxy` list.
+
 ## Game identities
 
 | Game | game_tag | Install dir | Executable |

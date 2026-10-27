@@ -4,8 +4,8 @@
 > Cập nhật file này sau mỗi mốc để lần làm việc sau không cần đọc lại toàn bộ hội thoại.
 
 - **Cập nhật lần cuối:** 2026-10-28
-- **Mốc hiện tại:** M1 hoàn tất — API + manifest + downloader resumable
-- **Trạng thái:** backend tải xuống đã chạy end-to-end với CDN thật
+- **Mốc hiện tại:** M2 hoàn tất — proxy, plan/task bền vững, tải nhỏ trước, verify/repair/diff
+- **Trạng thái:** backend tải xuống chạy end-to-end với CDN thật; plan/task/verify/repair đã có test tích hợp
 - **Người dùng ưu tiên:** tải xuống trước; các phần launch/UI/Tauri làm sau.
 
 ## 1. Mục tiêu backend
@@ -23,10 +23,13 @@
    - mất mạng giữa chừng
    - tắt app / kill process
    - mất điện (dùng checkpoint + `sync_data`)
-5. Verify CRC-64/XZ sau khi tải; chỉ commit file khi hash đúng.
+5. Verify checksum sau khi tải; chỉ commit file khi hash đúng.
 6. Checksum nhanh hơn tốc độ tải; không chặn UI.
-7. Viết test cho API signing, manifest, resume, retry, checksum, news/version.
-8. Giữ code Rust thuần, chạy được Windows + Linux; không thêm C++/Go nếu không cần.
+7. Hỗ trợ proxy giống launcher chính thức (direct/system) và thêm manual.
+8. Downloader không phụ thuộc game cụ thể; game khác chỉ cần tạo `PlanDocument`.
+9. Ưu tiên file nhỏ trước để game sớm ở trạng thái chạy được.
+10. Verify/repair và manifest diff phục vụ vòng đời update/corrupted.
+11. Giữ code Rust thuần, chạy được Windows + Linux; không thêm C++/Go nếu không cần.
 
 ## 2. Quyết định kỹ thuật đã chốt
 
@@ -43,7 +46,29 @@
 - **Game config local:** `game-launcher-config.json` theo format official, có `vc`.
 - **Download URL:** `source` bắt đầu bằng `/`; file path bắt đầu bằng `/`; nối thành `CDN/source/path`.
 - **Partial file:** `.yayl-part`; checkpoint `.yayl-part.ckpt` (độ dài đã sync).
-- **Verify:** CRC-64/XZ, bảng slicing-by-8; hash file trên blocking thread.
+- **Checksum:** abstraction `Checksum::{None, Crc64, Md5, Sha256}`.
+  - Yostar dùng CRC-64/XZ; game khác có thể dùng MD5/SHA-256 hoặc không có checksum.
+  - CRC-64/XZ dùng bảng slicing-by-8; hash file trên blocking thread.
+- **Downloader đa hình:** `PlanDocument` là đầu vào chung; `RemoteGame` chỉ là adapter Yostar.
+  - Game khác tự dựng `PlanDocument` rồi gọi `DownloadPlan::from_document`.
+  - `write_local_metadata` chỉ ghi `manifest.json`/`game-launcher-config.json` khi provider là `yostar`; provider khác là no-op.
+- **Thứ tự tải:** `SmallestFirst` (mặc định), `LargestFirst`, `Manifest`.
+  - File nhỏ xong trước giúp game sớm có đủ file khởi động; file lớn chạy sau.
+- **Proxy:** `ProxyMode::{Direct, System, Manual}`.
+  - `Direct` là mặc định, giống launcher chính thức.
+  - `System` đọc WinINET registry trên Windows (`ProxyEnable`, `ProxyServer`, `ProxyOverride`); nền tảng khác dùng biến môi trường.
+  - `Manual` nhận HTTP/HTTPS/SOCKS4/SOCKS5 và `no_proxy`.
+  - Luôn thêm `localhost`, `127.0.0.1`, `::1` vào bypass khi đọc system proxy.
+- **Trạng thái bền vững:** tách `plan.json` và `task.json`.
+  - `.yayl/plan.json` = desired state bất biến: game config, CDN, manifest snapshot, jobs, order.
+  - `.yayl/task.json` = execution state thay đổi: progress, failures, timestamps.
+  - Tách ra để cập nhật tiến độ không phải ghi lại manifest snapshot; verify/repair/diff đọc plan ổn định.
+  - `.yayl/remote-manifest.json` giữ nguyên byte manifest gốc để ghi metadata và chẩn đoán offline.
+- **gRPC:** không dùng trong downloader hiện tại.
+  - Tauri IPC + event đủ cho một tiến trình, một client.
+  - gRPC/tonic chỉ hợp lý nếu tách download daemon, nhiều client, hoặc điều khiển từ xa; khi đó tăng footprint và độ phức tạp không cần thiết.
+- **Verify/repair:** verify theo size + checksum, chạy song song có giới hạn; repair chỉ tải lại file lỗi.
+- **Manifest diff:** so sánh local `manifest.json` với plan remote; phân loại added/removed/changed/unchanged và byte impact.
 - **Không copy code GPL:** chỉ đọc hành vi từ A9; implementation viết lại.
 
 ## 3. Task board
@@ -59,12 +84,24 @@
 - [x] Chạy `cargo fmt`, `clippy`, `test`.
 - [x] Tải thử file thật từ CDN với partial 5000 byte; resume bằng Range, CRC đúng, commit thành công.
 
+### Đã xong (M2)
+
+- [x] `checksum.rs`: CRC-64/MD5/SHA-256/None, tagged JSON, verify async + blocking.
+- [x] `proxy.rs`: direct/system/manual, WinINET registry, env fallback, SOCKS normalize, `no_proxy`, client builder.
+- [x] `state.rs`: `.yayl/plan.json`, `.yayl/task.json`, `.yayl/remote-manifest.json`, atomic writes.
+- [x] `task.rs`: `DownloadTask`, `TaskState`, failure persistence, progress apply.
+- [x] `settings.rs`: thêm `proxy` + `download_order`; file settings cũ vẫn load.
+- [x] `downloader.rs`: `DownloadOrder`, `FileJob.checksum`, `http_client_with`, checksum abstraction.
+- [x] `verify.rs`: missing/size/checksum issues, verify song song, `diff_manifests`.
+- [x] `download_plan.rs`: `PlanDocument`/`PlanJob`/`PlanManifest`, `RemoteGame` adapter, plan/task persistence, repair subset, verify, diff, generic provider.
+- [x] CLI: `--proxy`, `--proxy system`, `--direct`, `--order`, `verify`, `repair`, `diff`.
+- [x] Test tích hợp HTTP cục bộ: generic SHA-256 download → task completed → xóa file → verify missing → repair.
+- [x] `cargo fmt`, `clippy`, `test`: 70 test pass.
+
 ### Đang làm / tiếp theo
 
-- [ ] `verify` / `repair` toàn bộ install từ local manifest.
-- [ ] Manifest diff local ↔ remote (chỉ tải file thay đổi).
-- [ ] Lưu settings/install root.
-- [ ] Tauri command layer + progress event.
+- [ ] Tauri command layer + progress event (dùng `PlanDocument`, `DownloadTask`).
+- [ ] Resume UI: đọc `task.json` + `plan.json` khi mở app.
 - [ ] Launch game, playtime, tray.
 - [ ] News/art cache cho UI.
 - [ ] JP/KR profiles.
@@ -75,8 +112,8 @@
 - [ ] Tauri shell (`apps/desktop/src-tauri`).
 - [ ] React flow wiring.
 - [ ] Signed release/updater.
-- [ ] Proxy.
 - [ ] Uninstall/registry/shortcut.
+- [ ] Download daemon/gRPC (chỉ cân nhắc nếu có nhu cầu multi-client).
 
 ## 4. API đã xác minh (live, 2026-10-28)
 
@@ -107,17 +144,23 @@ Kết quả live probe gần nhất (2026-10-28):
 ```text
 crates/yayl-core/src/
   api.rs             API client, auth, config/news/CDN/manifest URL
+  checksum.rs        Checksum: CRC-64/MD5/SHA-256/None
+  proxy.rs           direct/system/manual proxy + reqwest client builder
+  state.rs           .yayl paths + atomic JSON writes
+  task.rs            task.json (progress, failures, state)
+  verify.rs          verify report + manifest diff
   local_manifest.rs  official manifest.json + game-launcher-config.json
-  download_plan.rs   orchestration: API → manifest → jobs → download → manifest/config
+  download_plan.rs   PlanDocument, Yostar adapter, run/repair/verify/diff
   manifest.rs        remote manifest parse/URL
-  downloader.rs      resumable downloader + checkpoint + progress
+  downloader.rs      resumable downloader + checkpoint + order + checksum
   crc64.rs           CRC-64/XZ slicing-by-8
   install.rs         install plan/disk
   profile.rs         game profiles
-  settings.rs        local settings
+  settings.rs        local settings (proxy, order, install roots)
   path.rs            path validation
 crates/yayl-cli/src/main.rs
   hash | manifest | disk | plan | download | probe | news | manifest-url
+  verify | repair | diff
 ```
 
 ## 6. Lệnh kiểm tra
@@ -131,6 +174,13 @@ cargo test --workspace
 cargo run -p yayl-cli -- probe --game arknights
 cargo run -p yayl-cli -- news --game stella
 cargo run -p yayl-cli -- manifest-url --game arknights
+
+# proxy + plan + verify/repair/diff
+cargo run -p yayl-cli -- probe --game arknights --proxy system
+cargo run -p yayl-cli -- download --game arknights --root D:\Games\Arknights_EN --proxy system
+cargo run -p yayl-cli -- verify --root D:\Games\Arknights_EN
+cargo run -p yayl-cli -- repair --root D:\Games\Arknights_EN --proxy system
+cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 ```
 
 ## 7. Ghi chú resume/power-loss
@@ -139,13 +189,14 @@ cargo run -p yayl-cli -- manifest-url --game arknights
 - Khi resume: đọc part length; nếu checkpoint nhỏ hơn part thì truncate về checkpoint (phần đuôi chưa chắc đã xuống đĩa).
 - Nếu stream ngắn hơn `size`: giữ part, retry bằng Range; không xóa toàn bộ.
 - Nếu `size` lớn hơn dự kiến: xóa part (không trừ nhầm counter).
-- Nếu CRC sai: xóa part + checkpoint, tải lại file đó.
+- Nếu checksum sai: xóa part + checkpoint, tải lại file đó.
 - Nếu server trả `200` khi đã có offset: truncate và tải lại từ 0.
 - Nếu server trả `206`: kiểm tra `Content-Range` bắt đầu đúng offset; sai thì bỏ response, không append.
 - Checkpoint được ghi cả khi stream lỗi/bị cancel, nên lần chạy sau vẫn resume được.
 - Kiểm tra dung lượng đĩa chỉ tính phần còn thiếu (trừ file đã có và part đã tải), tránh chặn resume game lớn.
 - Manifest remote được lưu trước khi tải tại `<root>/.yayl/remote-manifest.json`.
-- `manifest.json` và `game-launcher-config.json` chỉ được ghi sau khi toàn bộ file pass CRC.
+- `plan.json` được lưu trước khi tải; `task.json` cập nhật tối đa mỗi giây và luôn ghi khi kết thúc/lỗi/cancel.
+- `manifest.json` và `game-launcher-config.json` chỉ được ghi sau khi toàn bộ file pass checksum.
 
 ## 8. Nhật ký
 
@@ -156,7 +207,9 @@ cargo run -p yayl-cli -- manifest-url --game arknights
 - Hoàn tất `api.rs`, `local_manifest.rs`, `download_plan.rs`, nâng cấp downloader/CRC/CLI.
 - `cargo fmt --all -- --check`: pass.
 - `cargo clippy --workspace --all-targets -- -D warnings`: pass.
-- `cargo test --workspace`: 44 test pass.
+- `cargo test --workspace`: 44 test pass (M1).
 - `plan` đọc được cả remote manifest (`file[]`) và official local `manifest.json` (`files[]`).
 - Live test: tải `API-MS-Win-core-file-l2-1-0.dll` từ CDN Arknights với part 5000 byte; Range resume, CRC `5943362273480959350`, commit thành công.
+- M2: thêm proxy, checksum abstraction, plan/task, smallest-first, verify/repair/diff.
+- `cargo test --workspace`: 70 test pass (M2), gồm test HTTP cục bộ cho generic plan + repair.
 - Lưu ý: `cargo` trên PowerShell có thể trả exit code 1 vì ghi stderr; kiểm tra dòng `Finished`/`test result: ok` thay vì chỉ exit code.

@@ -87,8 +87,17 @@ pub async fn plan_install(
     root: &Path,
     profile: Option<&GameProfile>,
 ) -> Result<InstallPlan> {
-    validate_install_root(root)?;
     let client = crate::downloader::http_client()?;
+    plan_install_with_client(manifest_url, root, profile, client).await
+}
+
+pub async fn plan_install_with_client(
+    manifest_url: &str,
+    root: &Path,
+    profile: Option<&GameProfile>,
+    client: reqwest::Client,
+) -> Result<InstallPlan> {
+    validate_install_root(root)?;
 
     let manifest_future = fetch_manifest(&client, manifest_url);
     let disk_future = async {

@@ -7,13 +7,14 @@
 //! - Cancellation leaves part files in place so the next run resumes.
 //! - No global mutable state: the caller owns the downloader and token.
 
-use crate::crc64;
+use crate::checksum::Checksum;
 use crate::disk;
 use crate::error::{Error, ErrorCode, Result};
+use crate::proxy::{ProxySettings, build_client};
 use futures_util::StreamExt;
 use reqwest::header::{ACCEPT_ENCODING, CONTENT_RANGE, RANGE};
 use reqwest::{Client, StatusCode};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
@@ -34,22 +35,72 @@ pub struct FileJob {
     /// Absolute destination inside the install root.
     pub dest: PathBuf,
     pub size: u64,
-    pub crc64: u64,
+    /// Provider-neutral checksum. Yostar plans use CRC-64/XZ, other games can
+    /// use MD5, SHA-256, or no checksum.
+    pub checksum: Checksum,
 }
 
 impl FileJob {
+    /// Compatibility constructor for Yostar manifests.
     pub fn new(url: impl Into<String>, dest: impl Into<PathBuf>, size: u64, crc64: u64) -> Self {
+        Self::new_with_checksum(url, dest, size, Checksum::Crc64(crc64))
+    }
+
+    pub fn new_with_checksum(
+        url: impl Into<String>,
+        dest: impl Into<PathBuf>,
+        size: u64,
+        checksum: Checksum,
+    ) -> Self {
         Self {
             urls: vec![url.into()],
             dest: dest.into(),
             size,
-            crc64,
+            checksum,
         }
+    }
+
+    pub fn with_checksum(mut self, checksum: Checksum) -> Self {
+        self.checksum = checksum;
+        self
     }
 
     pub fn with_backup(mut self, url: impl Into<String>) -> Self {
         self.urls.push(url.into());
         self
+    }
+}
+
+/// Order in which files are handed to the worker pool.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DownloadOrder {
+    /// Small files first, then progressively larger files. This gets the game
+    /// to a launchable state sooner on slow connections.
+    #[default]
+    SmallestFirst,
+    /// Largest files first.
+    LargestFirst,
+    /// Keep the manifest order.
+    Manifest,
+}
+
+impl DownloadOrder {
+    pub fn sort(self, jobs: &mut [FileJob]) {
+        match self {
+            Self::Manifest => {}
+            Self::SmallestFirst => jobs.sort_by(|left, right| {
+                left.size
+                    .cmp(&right.size)
+                    .then_with(|| left.dest.cmp(&right.dest))
+            }),
+            Self::LargestFirst => jobs.sort_by(|left, right| {
+                right
+                    .size
+                    .cmp(&left.size)
+                    .then_with(|| left.dest.cmp(&right.dest))
+            }),
+        }
     }
 }
 
@@ -113,11 +164,11 @@ impl CancelToken {
 }
 
 pub fn http_client() -> Result<Client> {
-    Client::builder()
-        .user_agent(concat!("YAYL/", env!("CARGO_PKG_VERSION")))
-        .connect_timeout(Duration::from_secs(15))
-        .build()
-        .map_err(Into::into)
+    http_client_with(&ProxySettings::default())
+}
+
+pub fn http_client_with(proxy: &ProxySettings) -> Result<Client> {
+    build_client(proxy)
 }
 
 #[derive(Clone)]
@@ -126,6 +177,7 @@ pub struct Downloader {
     concurrency: usize,
     retries: u32,
     verify_existing: bool,
+    order: DownloadOrder,
 }
 
 impl Downloader {
@@ -135,6 +187,7 @@ impl Downloader {
             concurrency: 8,
             retries: 3,
             verify_existing: true,
+            order: DownloadOrder::default(),
         })
     }
 
@@ -144,6 +197,7 @@ impl Downloader {
             concurrency: 8,
             retries: 3,
             verify_existing: true,
+            order: DownloadOrder::default(),
         }
     }
 
@@ -162,12 +216,17 @@ impl Downloader {
         self
     }
 
+    pub fn order(mut self, order: DownloadOrder) -> Self {
+        self.order = order;
+        self
+    }
+
     /// Download every job under `root`. Per-file failures are returned in the
     /// report instead of aborting the whole batch.
     pub async fn download_all<F>(
         &self,
         root: &Path,
-        jobs: Vec<FileJob>,
+        mut jobs: Vec<FileJob>,
         cancel: CancelToken,
         on_progress: F,
     ) -> Result<DownloadReport>
@@ -181,6 +240,8 @@ impl Downloader {
                 failures: Vec::new(),
             });
         }
+
+        self.order.sort(&mut jobs);
 
         for job in &jobs {
             if !job.dest.starts_with(root) {
@@ -312,10 +373,7 @@ impl Downloader {
                 .unwrap_or(0);
             if size == job.size {
                 counters.active_verifications.fetch_add(1, Ordering::SeqCst);
-                let valid = crc64::crc64_file(&job.dest)
-                    .await
-                    .map(|hash| hash == job.crc64)
-                    .unwrap_or(false);
+                let valid = job.checksum.verify(&job.dest).await.unwrap_or(false);
                 counters.active_verifications.fetch_sub(1, Ordering::SeqCst);
                 if valid {
                     let part = part_path(&job.dest);
@@ -425,11 +483,11 @@ impl Downloader {
             }
 
             counters.active_verifications.fetch_add(1, Ordering::SeqCst);
-            let hash = crc64::crc64_file(&part).await;
+            let verified = job.checksum.verify(&part).await;
             counters.active_verifications.fetch_sub(1, Ordering::SeqCst);
 
-            match hash {
-                Ok(hash) if hash == job.crc64 => {
+            match verified {
+                Ok(true) => {
                     counters.active_commits.fetch_add(1, Ordering::SeqCst);
                     let committed = commit(&part, &job.dest).await;
                     counters.active_commits.fetch_sub(1, Ordering::SeqCst);
@@ -439,14 +497,14 @@ impl Downloader {
                     counters.files_done.fetch_add(1, Ordering::SeqCst);
                     return Ok(());
                 }
-                Ok(hash) => {
+                Ok(false) => {
                     last_error = Error::new(
                         ErrorCode::Checksum,
                         format!(
-                            "checksum mismatch for {}: expected {}, got {}",
+                            "checksum mismatch for {}: expected {} ({})",
                             job.dest.display(),
-                            job.crc64,
-                            hash
+                            job.checksum.expected(),
+                            job.checksum.algorithm()
                         ),
                     );
                 }
@@ -797,6 +855,7 @@ async fn sleep_backoff(attempt: u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::crc64;
     use std::sync::atomic::AtomicBool;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::{TcpListener, TcpStream};
@@ -858,6 +917,33 @@ mod tests {
         assert_eq!(
             part_path(Path::new("D:/game/UnityPlayer.dll")),
             PathBuf::from("D:/game/UnityPlayer.dll.yayl-part")
+        );
+    }
+
+    #[test]
+    fn orders_files_by_size() {
+        let mut jobs = vec![
+            FileJob::new("u", "large.bin", 1000, 0),
+            FileJob::new("u", "small.bin", 10, 0),
+            FileJob::new("u", "medium.bin", 100, 0),
+        ];
+
+        DownloadOrder::SmallestFirst.sort(&mut jobs);
+        assert_eq!(
+            jobs.iter().map(|job| job.size).collect::<Vec<_>>(),
+            vec![10, 100, 1000]
+        );
+
+        DownloadOrder::LargestFirst.sort(&mut jobs);
+        assert_eq!(
+            jobs.iter().map(|job| job.size).collect::<Vec<_>>(),
+            vec![1000, 100, 10]
+        );
+
+        DownloadOrder::Manifest.sort(&mut jobs);
+        assert_eq!(
+            jobs.iter().map(|job| job.size).collect::<Vec<_>>(),
+            vec![1000, 100, 10]
         );
     }
 

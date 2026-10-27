@@ -1,7 +1,9 @@
 //! Small launcher settings file. Kept outside the game folder so the official
 //! manifest/config stay untouched.
 
+use crate::downloader::DownloadOrder;
 use crate::error::Result;
+use crate::proxy::ProxySettings;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -12,6 +14,12 @@ pub struct Settings {
     pub install_roots: BTreeMap<String, PathBuf>,
     #[serde(default)]
     pub language: Option<String>,
+    /// Network proxy. The default is direct, matching the official launcher.
+    #[serde(default)]
+    pub proxy: ProxySettings,
+    /// File scheduling policy. Defaults to smallest-first.
+    #[serde(default)]
+    pub download_order: DownloadOrder,
 }
 
 impl Settings {
@@ -58,6 +66,9 @@ mod tests {
         let path = dir.path().join("settings.json");
         let mut settings = Settings::default();
         settings.set_install_root("stella", dir.path().join("StellaSora_EN"));
+        settings.proxy =
+            ProxySettings::manual("socks5://127.0.0.1:1080").with_no_proxy("localhost");
+        settings.download_order = DownloadOrder::LargestFirst;
         settings.save(&path).unwrap();
 
         let loaded = Settings::load(&path).unwrap();
@@ -65,6 +76,18 @@ mod tests {
             loaded.install_root("stella"),
             Some(dir.path().join("StellaSora_EN").as_path())
         );
+        assert_eq!(loaded.proxy, settings.proxy);
+        assert_eq!(loaded.download_order, DownloadOrder::LargestFirst);
+    }
+
+    #[test]
+    fn old_settings_files_still_load() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(&path, r#"{"install_roots":{},"language":"vi"}"#).unwrap();
+        let settings = Settings::load(&path).unwrap();
+        assert_eq!(settings.proxy, ProxySettings::default());
+        assert_eq!(settings.download_order, DownloadOrder::SmallestFirst);
     }
 
     #[test]

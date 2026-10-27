@@ -7,7 +7,7 @@
 
 use crate::crc64;
 use crate::error::{Error, Result};
-use crate::path::normalize_manifest_path;
+use crate::path::{normalize_manifest_path, path_key};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -49,6 +49,13 @@ pub struct ManifestSummary {
 }
 
 impl Manifest {
+    pub fn empty() -> Self {
+        Self {
+            source: String::new(),
+            files: Vec::new(),
+        }
+    }
+
     pub fn parse(json: &str) -> Result<Self> {
         let raw: RawManifest = serde_json::from_str(json)?;
         Self::from_raw(raw)
@@ -67,11 +74,7 @@ impl Manifest {
                 Error::manifest(format!("file #{index} ({}): {}", item.path, error.message))
             })?;
 
-            let key = relative
-                .components()
-                .map(|part| part.as_os_str().to_string_lossy())
-                .collect::<Vec<_>>()
-                .join("/");
+            let key = path_key(&relative);
             if !seen.insert(key.clone()) {
                 return Err(Error::manifest(format!("duplicate manifest path: {key}")));
             }

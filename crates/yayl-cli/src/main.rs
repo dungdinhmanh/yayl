@@ -10,6 +10,13 @@
 //!   yayl-cli probe --game <id> [--launcher-version V]
 //!   yayl-cli news --game <id> [--json]
 //!   yayl-cli manifest-url --game <id> [--launcher-version V]
+//!   yayl-cli verify --root <dir> [--concurrency N] [--json]
+//!   yayl-cli repair --root <dir> [--concurrency N]
+//!   yayl-cli diff --game <id> --root <dir> [--json]
+//!
+//! Network commands accept `--proxy <url>` (http/https/socks4/socks5),
+//! `--proxy system`, or `--direct`. The default is direct, matching the
+//! official launcher.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -18,12 +25,17 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use yayl_core::api::LauncherApi;
 use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, DownloadPlan, RemoteGame};
-use yayl_core::downloader::{CancelToken, DownloadReport, Downloader, FileJob, Progress};
+use yayl_core::downloader::{
+    CancelToken, DownloadOrder, DownloadReport, Downloader, FileJob, Progress,
+};
 use yayl_core::error::{Error, ErrorCode, Result};
 use yayl_core::install::{InstallPlan, plan_from_local_manifest};
-use yayl_core::local_manifest;
+use yayl_core::local_manifest::{self, LocalManifest};
 use yayl_core::manifest::{Manifest, fetch_manifest, load_manifest};
 use yayl_core::profile::{self, GameProfile};
+use yayl_core::proxy::{ProxySettings, build_client};
+use yayl_core::state;
+use yayl_core::verify::{self, ManifestDiff, VerifyReport};
 use yayl_core::{crc64, disk};
 
 const VALUE_OPTIONS: &[&str] = &[
@@ -32,6 +44,8 @@ const VALUE_OPTIONS: &[&str] = &[
     "--game",
     "--concurrency",
     "--launcher-version",
+    "--proxy",
+    "--order",
 ];
 
 #[tokio::main]
@@ -51,6 +65,9 @@ async fn main() -> ExitCode {
         "probe" => probe_command(&args[1..]).await,
         "news" => news_command(&args[1..]).await,
         "manifest-url" => manifest_url_command(&args[1..]).await,
+        "verify" => verify_command(&args[1..]).await,
+        "repair" => repair_command(&args[1..]).await,
+        "diff" => diff_command(&args[1..]).await,
         "-h" | "--help" | "help" => {
             print_usage();
             return ExitCode::SUCCESS;
@@ -82,7 +99,12 @@ fn print_usage() {
          download --game <id> --root <dir> [--launcher-version V] [--concurrency N]\n  \
          probe --game <id> [--launcher-version V]     Fetch config, CDN, and manifest\n  \
          news --game <id> [--json]                    Fetch banners and news\n  \
-         manifest-url --game <id>                     Print the current manifest URL\n",
+         manifest-url --game <id>                     Print the current manifest URL\n  \
+         verify --root <dir> [--concurrency N] [--json]   Verify plan or local manifest\n  \
+         repair --root <dir> [--concurrency N]        Re-download files reported by verify\n  \
+         diff --game <id> --root <dir> [--json]       Compare remote plan to local manifest\n\n\
+         Network options: --proxy <url> | --proxy system | --direct\n\
+         Download order:  --order smallest-first|largest-first|manifest (default: smallest-first)\n",
         env!("CARGO_PKG_VERSION")
     );
 }
@@ -98,7 +120,8 @@ async fn manifest_command(args: &[String]) -> Result<()> {
     let target = args
         .first()
         .ok_or_else(|| missing("manifest", "<path-or-url>"))?;
-    let manifest = load_manifest_target(target).await?;
+    let client = client_for(args)?;
+    let manifest = load_manifest_target(target, client).await?;
     let summary = manifest.summary();
     println!("source: {}", manifest.source);
     println!("files: {}", summary.files);
@@ -123,7 +146,8 @@ async fn plan_command(args: &[String]) -> Result<()> {
     let profile = game_option(args)?;
 
     let plan = if target.starts_with("http://") || target.starts_with("https://") {
-        yayl_core::install::plan_install(target, &root, profile).await?
+        let client = client_for(args)?;
+        yayl_core::install::plan_install_with_client(target, &root, profile, client).await?
     } else {
         plan_from_local_manifest(Path::new(target), &root, profile)?
     };
@@ -149,6 +173,8 @@ async fn download_command(args: &[String]) -> Result<()> {
     let root =
         PathBuf::from(option(args, "--root").ok_or_else(|| missing("download", "--root <dir>"))?);
     let concurrency = concurrency_option(args);
+    let order = order_option(args)?;
+    let client = client_for(args)?;
     let target = positional_target(args);
     let has_game = option(args, "--game").is_some();
 
@@ -157,8 +183,10 @@ async fn download_command(args: &[String]) -> Result<()> {
             ErrorCode::InvalidInput,
             "download accepts either <manifest> or --game, not both",
         )),
-        (true, None) => download_game(args, &root, concurrency).await,
-        (false, Some(target)) => download_manifest(args, target, &root, concurrency).await,
+        (true, None) => download_game(args, &root, concurrency, order, client).await,
+        (false, Some(target)) => {
+            download_manifest(args, target, &root, concurrency, order, client).await
+        }
         (false, None) => Err(missing("download", "<manifest> or --game <id>")),
     }
 }
@@ -168,10 +196,12 @@ async fn download_manifest(
     target: &str,
     root: &Path,
     concurrency: usize,
+    order: DownloadOrder,
+    client: reqwest::Client,
 ) -> Result<()> {
     let base = option(args, "--base").ok_or_else(|| missing("download", "--base <cdn-url>"))?;
 
-    let manifest = load_manifest_target(target).await?;
+    let manifest = load_manifest_target(target, client.clone()).await?;
     let mut jobs = Vec::with_capacity(manifest.files.len());
     for entry in &manifest.files {
         let dest = root.join(&entry.relative);
@@ -190,36 +220,72 @@ async fn download_manifest(
         root.display()
     );
 
-    let downloader = Downloader::new()?.concurrency(concurrency);
+    let downloader = Downloader::with_client(client)
+        .concurrency(concurrency)
+        .order(order);
     let report = downloader
         .download_all(root, jobs, CancelToken::new(), progress_printer())
         .await?;
     finish_report(report)
 }
 
-async fn download_game(args: &[String], root: &Path, concurrency: usize) -> Result<()> {
+async fn download_game(
+    args: &[String],
+    root: &Path,
+    concurrency: usize,
+    order: DownloadOrder,
+    client: reqwest::Client,
+) -> Result<()> {
     let profile = required_game(args, "download")?;
-    let plan = DownloadPlan::prepare(*profile, root.to_path_buf(), launcher_version(args)).await?;
-    let summary = plan.remote.manifest.summary();
+    let plan = DownloadPlan::prepare_with(
+        *profile,
+        root.to_path_buf(),
+        launcher_version(args),
+        client.clone(),
+        order,
+    )
+    .await?;
 
-    println!("game: {} ({})", profile.id, profile.game_tag);
-    println!("version: {}", plan.remote.game.game_latest_version);
-    println!("basis: {}", plan.remote.game.game_latest_file_path);
-    println!("manifest: {}", plan.remote.manifest_url);
-    println!("files: {}", summary.files);
-    println!("size: {}", disk::format_bytes(summary.total_bytes));
+    let files = plan.document.manifest.files.len();
+    let bytes: u64 = plan
+        .document
+        .manifest
+        .files
+        .iter()
+        .map(|file| file.size)
+        .sum();
+
+    println!(
+        "game: {} ({})",
+        plan.document.game.id, plan.document.game.tag
+    );
+    println!("version: {}", plan.document.game.version);
+    println!("basis: {}", plan.document.game.basis);
+    println!("manifest: {}", plan.document.manifest.url);
+    println!("files: {files}");
+    println!("size: {}", disk::format_bytes(bytes));
     println!("root: {}", plan.root.display());
-    println!("primary_cdn: {}", plan.remote.primary_cdn()?);
-    if let Some(backup) = plan.remote.backup_cdn() {
+    println!(
+        "primary_cdn: {}",
+        plan.document
+            .cdns
+            .first()
+            .ok_or_else(|| Error::new(ErrorCode::Http, "plan has no CDN host"))?
+    );
+    if let Some(backup) = plan.document.cdns.get(1) {
         println!("backup_cdn: {backup}");
     }
 
-    let downloader = Downloader::new()?.concurrency(concurrency);
+    let downloader = Downloader::with_client(client)
+        .concurrency(concurrency)
+        .order(order);
     let report = plan
         .run(&downloader, CancelToken::new(), progress_printer())
         .await?;
     finish_report(report)?;
 
+    println!("plan: {}", plan.plan_path().display());
+    println!("task: {}", plan.task_path().display());
     println!("manifest cache: {}", plan.remote_manifest_path().display());
     println!(
         "metadata: {}",
@@ -234,8 +300,10 @@ async fn download_game(args: &[String], root: &Path, concurrency: usize) -> Resu
 
 async fn probe_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "probe")?;
-    let remote = RemoteGame::fetch(*profile, launcher_version(args)).await?;
-    let api = LauncherApi::new(profile, launcher_version(args))?;
+    let client = client_for(args)?;
+    let remote =
+        RemoteGame::fetch_with_client(*profile, launcher_version(args), client.clone()).await?;
+    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
     let base = api.base_config().await?;
     let summary = remote.manifest.summary();
 
@@ -264,7 +332,8 @@ async fn probe_command(args: &[String]) -> Result<()> {
 
 async fn news_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "news")?;
-    let api = LauncherApi::new(profile, launcher_version(args))?;
+    let client = client_for(args)?;
+    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
     let feed = api.news().await?;
 
     if args.iter().any(|arg| arg == "--json") {
@@ -294,12 +363,184 @@ async fn news_command(args: &[String]) -> Result<()> {
 
 async fn manifest_url_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "manifest-url")?;
-    let api = LauncherApi::new(profile, launcher_version(args))?;
+    let client = client_for(args)?;
+    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
     let game = api.game_config().await?;
     let url = api
         .manifest_url(&game.game_latest_version, &game.game_latest_file_path)
         .await?;
     println!("{url}");
+    Ok(())
+}
+
+async fn verify_command(args: &[String]) -> Result<()> {
+    let root =
+        PathBuf::from(option(args, "--root").ok_or_else(|| missing("verify", "--root <dir>"))?);
+    let concurrency = concurrency_option(args);
+    let report = verify_root(&root, concurrency).await?;
+
+    if args.iter().any(|arg| arg == "--json") {
+        println!("{}", serde_json::to_string_pretty(&report)?);
+    } else {
+        print_verify(&report);
+    }
+
+    if report.is_healthy() {
+        Ok(())
+    } else {
+        Err(Error::new(
+            ErrorCode::Checksum,
+            format!("{} file(s) need repair", report.issues.len()),
+        ))
+    }
+}
+
+async fn repair_command(args: &[String]) -> Result<()> {
+    let root =
+        PathBuf::from(option(args, "--root").ok_or_else(|| missing("repair", "--root <dir>"))?);
+    let concurrency = concurrency_option(args);
+    let plan = DownloadPlan::load(&root)?;
+    ensure_plan_game(args, &plan)?;
+
+    let report = plan.verify(concurrency).await?;
+    if report.is_healthy() {
+        println!("healthy: {} files verified", report.verified);
+        return Ok(());
+    }
+
+    println!(
+        "repairing {} file(s), {}",
+        report.issues.len(),
+        disk::format_bytes(report.bytes_to_repair())
+    );
+    let client = client_for(args)?;
+    let downloader = Downloader::with_client(client)
+        .concurrency(concurrency)
+        .order(order_option(args)?);
+    let result = plan
+        .repair(&downloader, CancelToken::new(), &report, progress_printer())
+        .await?;
+    finish_report(result)?;
+
+    let after = plan.verify(concurrency).await?;
+    if !after.is_healthy() {
+        print_verify(&after);
+        return Err(Error::new(
+            ErrorCode::Checksum,
+            format!("{} file(s) still need repair", after.issues.len()),
+        ));
+    }
+    println!("repair complete: {} files verified", after.verified);
+    Ok(())
+}
+
+async fn diff_command(args: &[String]) -> Result<()> {
+    let root =
+        PathBuf::from(option(args, "--root").ok_or_else(|| missing("diff", "--root <dir>"))?);
+    let profile = required_game(args, "diff")?;
+    let client = client_for(args)?;
+    let plan = DownloadPlan::prepare_with(
+        *profile,
+        root,
+        launcher_version(args),
+        client,
+        order_option(args)?,
+    )
+    .await?;
+    let diff = plan.diff_against_local()?;
+
+    if args.iter().any(|arg| arg == "--json") {
+        println!("{}", serde_json::to_string_pretty(&diff)?);
+        return Ok(());
+    }
+    print_diff(&diff);
+    Ok(())
+}
+
+async fn verify_root(root: &Path, concurrency: usize) -> Result<VerifyReport> {
+    if state::plan_path(root).exists() {
+        return DownloadPlan::load(root)?.verify(concurrency).await;
+    }
+    let local = LocalManifest::load(&local_manifest::manifest_path(root))?;
+    verify::verify_manifest(root, &local.to_manifest()?, concurrency).await
+}
+
+fn print_verify(report: &VerifyReport) {
+    println!("files: {}", report.files);
+    println!("verified: {}", report.verified);
+    println!(
+        "bytes_verified: {}",
+        disk::format_bytes(report.bytes_verified)
+    );
+    println!("issues: {}", report.issues.len());
+    for issue in &report.issues {
+        let actual = issue
+            .actual_size
+            .map(disk::format_bytes)
+            .unwrap_or_else(|| "missing".to_owned());
+        println!(
+            "{} [{}] expected {}, got {}",
+            issue.path.display(),
+            issue.kind.as_str(),
+            disk::format_bytes(issue.expected_size),
+            actual
+        );
+    }
+}
+
+fn print_diff(diff: &ManifestDiff) {
+    println!(
+        "added: {} ({})",
+        diff.added.len(),
+        disk::format_bytes(diff.added_bytes)
+    );
+    for entry in &diff.added {
+        println!(
+            "  + {} ({})",
+            entry.path.display(),
+            disk::format_bytes(entry.size)
+        );
+    }
+    println!(
+        "removed: {} ({})",
+        diff.removed.len(),
+        disk::format_bytes(diff.removed_bytes)
+    );
+    for entry in &diff.removed {
+        println!(
+            "  - {} ({})",
+            entry.path.display(),
+            disk::format_bytes(entry.size)
+        );
+    }
+    println!(
+        "changed: {} ({})",
+        diff.changed.len(),
+        disk::format_bytes(diff.changed_bytes)
+    );
+    for entry in &diff.changed {
+        println!(
+            "  ~ {} ({} -> {})",
+            entry.path.display(),
+            disk::format_bytes(entry.old_size),
+            disk::format_bytes(entry.new_size)
+        );
+    }
+    println!("unchanged: {}", diff.unchanged);
+    if diff.is_empty() {
+        println!("up to date");
+    }
+}
+
+fn ensure_plan_game(args: &[String], plan: &DownloadPlan) -> Result<()> {
+    if let Some(id) = option(args, "--game") {
+        if id != plan.document.game.id {
+            return Err(Error::new(
+                ErrorCode::InvalidInput,
+                format!("plan belongs to {}, not {id}", plan.document.game.id),
+            ));
+        }
+    }
     Ok(())
 }
 
@@ -349,9 +590,8 @@ fn progress_printer() -> impl Fn(Progress) + Send + Sync + 'static {
     }
 }
 
-async fn load_manifest_target(target: &str) -> Result<Manifest> {
+async fn load_manifest_target(target: &str, client: reqwest::Client) -> Result<Manifest> {
     if target.starts_with("http://") || target.starts_with("https://") {
-        let client = yayl_core::downloader::http_client()?;
         fetch_manifest(&client, target).await
     } else {
         load_manifest(Path::new(target))
@@ -386,6 +626,38 @@ fn concurrency_option(args: &[String]) -> usize {
     option(args, "--concurrency")
         .and_then(|value| value.parse::<usize>().ok())
         .unwrap_or(10)
+}
+
+fn order_option(args: &[String]) -> Result<DownloadOrder> {
+    match option(args, "--order").unwrap_or("smallest-first") {
+        "smallest-first" | "smallest" => Ok(DownloadOrder::SmallestFirst),
+        "largest-first" | "largest" => Ok(DownloadOrder::LargestFirst),
+        "manifest" => Ok(DownloadOrder::Manifest),
+        other => Err(Error::new(
+            ErrorCode::InvalidInput,
+            format!("unknown download order: {other}"),
+        )),
+    }
+}
+
+fn proxy_settings(args: &[String]) -> Result<ProxySettings> {
+    if args.iter().any(|arg| arg == "--direct") {
+        return Ok(ProxySettings::direct());
+    }
+    match option(args, "--proxy") {
+        Some("system") => Ok(ProxySettings::system()),
+        Some("direct") => Ok(ProxySettings::direct()),
+        Some(url) => {
+            let settings = ProxySettings::manual(url);
+            settings.validate()?;
+            Ok(settings)
+        }
+        None => Ok(ProxySettings::default()),
+    }
+}
+
+fn client_for(args: &[String]) -> Result<reqwest::Client> {
+    build_client(&proxy_settings(args)?)
 }
 
 fn launcher_version(args: &[String]) -> &str {
