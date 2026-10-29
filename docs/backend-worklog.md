@@ -229,3 +229,6 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - `cargo test --workspace`: 74 test pass.
 - Sửa review: lỗi đọc manifest không còn bị coi là "không có file", chỉ xoá legacy khi bản mới có nội dung, thay `remove_file` + `rename` bằng `MoveFileExW(MOVEFILE_REPLACE_EXISTING)`, chặn plan Yostar thiếu raw manifest, chỉ đánh dấu progress đã lưu khi ghi thành công và bỏ qua khi đang ghi.
 - `cargo test --workspace`: 79 test pass.
+- Live E2E Arknights EN: tải 3.122 file / 3,47 GB; kill ở ~18 MB rồi resume, hoàn tất; verify phát hiện 1 file thiếu + 1 file sai checksum; repair tải lại 659,5 KB; verify lại 0 issue.
+- Sửa state: `task.json` được reuse khi resume và không bị repair ghi đè bằng tập file con.
+- `cargo test --workspace`: 81 test pass.

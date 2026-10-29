@@ -642,7 +642,7 @@ impl DownloadPlan {
         self.save_plan()?;
 
         let report = self
-            .run_jobs(self.jobs()?, downloader, cancel, on_progress)
+            .run_jobs(self.jobs()?, downloader, cancel, on_progress, true)
             .await?;
         if report.is_complete() {
             self.write_local_metadata()?;
@@ -670,7 +670,9 @@ impl DownloadPlan {
             });
         }
 
-        let result = self.run_jobs(jobs, downloader, cancel, on_progress).await?;
+        let result = self
+            .run_jobs(jobs, downloader, cancel, on_progress, false)
+            .await?;
         if result.is_complete() {
             self.write_local_metadata()?;
         }
@@ -683,23 +685,31 @@ impl DownloadPlan {
         downloader: &Downloader,
         cancel: CancelToken,
         on_progress: F,
+        track_task: bool,
     ) -> Result<DownloadReport>
     where
         F: Fn(Progress) + Send + Sync + 'static,
     {
         let files_total = jobs.len();
         let bytes_total: u64 = jobs.iter().map(|job| job.size).sum();
-        let task_path = self.task_path();
+        let task_path = track_task.then(|| self.task_path());
 
-        let mut task = DownloadTask::new(
-            self.document.game.id.clone(),
-            self.document.game.version.clone(),
-            self.document.game.basis.clone(),
-            files_total,
-            bytes_total,
-        );
+        let mut task = if track_task {
+            self.resumable_task(files_total, bytes_total)?
+        } else {
+            DownloadTask::new(
+                self.document.game.id.clone(),
+                self.document.game.version.clone(),
+                self.document.game.basis.clone(),
+                files_total,
+                bytes_total,
+            )
+        };
         task.state = TaskState::Running;
-        task.save(&task_path)?;
+        task.failures.clear();
+        if let Some(path) = &task_path {
+            task.save(path)?;
+        }
 
         let task = Arc::new(Mutex::new(task));
         let last_save = Arc::new(Mutex::new(ProgressSave::new()));
@@ -721,9 +731,11 @@ impl DownloadPlan {
                     }
                 };
                 if let Some(snapshot) = snapshot {
-                    let saved = snapshot.save_progress(&task_path).is_ok();
-                    let current = lock(&task);
-                    lock(&last_save).finish(&current, saved);
+                    if let Some(path) = &task_path {
+                        let saved = snapshot.save_progress(path).is_ok();
+                        let current = lock(&task);
+                        lock(&last_save).finish(&current, saved);
+                    }
                 }
                 user.as_ref()(progress);
             }
@@ -738,11 +750,13 @@ impl DownloadPlan {
             Ok(report) => task.finish(report),
             Err(error) => task.fail(error),
         }
-        let save_result = task.save(&task_path);
+        let save_result = task_path.as_ref().map(|path| task.save(path));
 
         match result {
             Ok(report) => {
-                save_result?;
+                if let Some(saved) = save_result {
+                    saved?;
+                }
                 Ok(report)
             }
             Err(error) => {
@@ -750,6 +764,28 @@ impl DownloadPlan {
                 Err(error)
             }
         }
+    }
+
+    /// Reuse the persisted task when it still describes this plan.
+    fn resumable_task(&self, files_total: usize, bytes_total: u64) -> Result<DownloadTask> {
+        let game = &self.document.game;
+        if let Some(task) = DownloadTask::load(&self.task_path())? {
+            if task.game_id == game.id
+                && task.version == game.version
+                && task.basis == game.basis
+                && task.files_total == files_total
+                && task.bytes_total == bytes_total
+            {
+                return Ok(task);
+            }
+        }
+        Ok(DownloadTask::new(
+            game.id.clone(),
+            game.version.clone(),
+            game.basis.clone(),
+            files_total,
+            bytes_total,
+        ))
     }
 }
 
@@ -858,6 +894,28 @@ mod tests {
         save.finish(&task, false);
 
         assert!(save.due(&task, Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn resumes_a_matching_task_only() {
+        let dir = tempfile::tempdir().unwrap();
+        let plan = sample_plan(dir.path().to_path_buf());
+        let game = &plan.document.game;
+        let mut task = DownloadTask::new(
+            game.id.clone(),
+            game.version.clone(),
+            game.basis.clone(),
+            2,
+            675_304,
+        );
+        task.started_at = 123;
+        task.save(&plan.task_path()).unwrap();
+
+        let resumed = plan.resumable_task(2, 675_304).unwrap();
+        assert_eq!(resumed.started_at, 123);
+
+        let fresh = plan.resumable_task(3, 675_304).unwrap();
+        assert_ne!(fresh.started_at, 123);
     }
 
     const REMOTE: &str = r#"{
@@ -1110,6 +1168,7 @@ mod tests {
         assert!(!plan.remote_manifest_path().exists());
         let task = DownloadTask::load(&plan.task_path()).unwrap().unwrap();
         assert_eq!(task.state, TaskState::Completed);
+        let task_before = std::fs::read(plan.task_path()).unwrap();
 
         std::fs::remove_file(dir.path().join("a.bin")).unwrap();
         let before = plan.verify(2).await.unwrap();
@@ -1125,6 +1184,7 @@ mod tests {
             .unwrap();
         assert!(repaired.is_complete());
         assert_eq!(std::fs::read(dir.path().join("a.bin")).unwrap(), body);
+        assert_eq!(std::fs::read(plan.task_path()).unwrap(), task_before);
         server.await.unwrap();
     }
 }
