@@ -85,8 +85,16 @@ impl DownloadTask {
         Ok(Some(task))
     }
 
+    /// Durable save for terminal states (paused, completed, failed).
     pub fn save(&self, path: &Path) -> Result<()> {
         state::write_json_atomic(path, self)
+    }
+
+    /// Periodic progress snapshot. The fsync is skipped: a crash can lose at
+    /// most the last second of counters, and the real resume position lives in
+    /// the `.yayl-part` checkpoint next to each partial file.
+    pub fn save_progress(&self, path: &Path) -> Result<()> {
+        state::write_json_atomic_with(path, self, state::Durability::Relaxed)
     }
 
     pub fn apply(&mut self, progress: Progress) {
@@ -162,6 +170,30 @@ mod tests {
         assert_eq!(loaded.state, TaskState::Running);
         assert_eq!(loaded.bytes_done, 400);
         assert_eq!(loaded.files_done, 2);
+    }
+
+    #[test]
+    fn progress_snapshot_is_compact_and_loadable() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+        let mut task = DownloadTask::new("stella", "2.0.0", "basis", 4, 400);
+        task.apply(Progress {
+            phase: Phase::Downloading,
+            downloaded: 100,
+            download_total: 400,
+            installed: 100,
+            install_total: 400,
+            bytes_per_sec: 10,
+            files_done: 1,
+            files_total: 4,
+        });
+        task.save_progress(&path).unwrap();
+
+        let body = std::fs::read_to_string(&path).unwrap();
+        assert!(!body.contains('\n'));
+        let loaded = DownloadTask::load(&path).unwrap().unwrap();
+        assert_eq!(loaded.bytes_done, 100);
+        assert_eq!(loaded.files_done, 1);
     }
 
     #[test]

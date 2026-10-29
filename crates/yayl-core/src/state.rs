@@ -37,17 +37,34 @@ pub fn now_unix() -> u64 {
         .unwrap_or(0)
 }
 
+/// Durability level for an atomic state write.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Durability {
+    /// fsync the temp file before the rename. Required for state that must
+    /// survive power loss: plans, raw manifests, and terminal task states.
+    Full,
+    /// Skip the fsync. Only the rename is durable. Used for periodic progress
+    /// snapshots that can be rebuilt from `.yayl-part` checkpoints anyway.
+    Relaxed,
+}
+
 /// Write a file and make the rename durable before replacing the old file.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
+    write_atomic_with(path, bytes, Durability::Full)
+}
+
+pub fn write_atomic_with(path: &Path, bytes: &[u8], durability: Durability) -> Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
     let tmp = path.with_extension("tmp");
     std::fs::write(&tmp, bytes)?;
-    std::fs::OpenOptions::new()
-        .write(true)
-        .open(&tmp)?
-        .sync_all()?;
+    if durability == Durability::Full {
+        std::fs::OpenOptions::new()
+            .write(true)
+            .open(&tmp)?
+            .sync_all()?;
+    }
     if path.exists() {
         std::fs::remove_file(path)?;
     }
@@ -55,10 +72,21 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// Compact JSON is 20-25% smaller than pretty JSON and parses faster. State
+/// files are machine-readable; use `serde_json::to_string_pretty` only for
+/// human-facing exports.
 pub fn write_json_atomic<T: serde::Serialize>(path: &Path, value: &T) -> Result<()> {
-    let body = serde_json::to_string_pretty(value)
-        .map_err(|error| Error::new(ErrorCode::Io, error.to_string()))?;
-    write_atomic(path, body.as_bytes())
+    write_json_atomic_with(path, value, Durability::Full)
+}
+
+pub fn write_json_atomic_with<T: serde::Serialize>(
+    path: &Path,
+    value: &T,
+    durability: Durability,
+) -> Result<()> {
+    let body =
+        serde_json::to_vec(value).map_err(|error| Error::new(ErrorCode::Io, error.to_string()))?;
+    write_atomic_with(path, &body, durability)
 }
 
 #[cfg(test)]
@@ -83,5 +111,24 @@ mod tests {
         write_atomic(&path, b"first").unwrap();
         write_atomic(&path, b"second").unwrap();
         assert_eq!(std::fs::read_to_string(&path).unwrap(), "second");
+    }
+
+    #[test]
+    fn relaxed_write_replaces_existing_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("task.json");
+        write_atomic(&path, b"first").unwrap();
+        write_atomic_with(&path, b"second", Durability::Relaxed).unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "second");
+    }
+
+    #[test]
+    fn json_state_is_written_compact() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("task.json");
+        write_json_atomic(&path, &serde_json::json!({"a": 1, "b": [1, 2]})).unwrap();
+        let body = std::fs::read_to_string(&path).unwrap();
+        assert!(!body.contains('\n'));
+        assert_eq!(body, r#"{"a":1,"b":[1,2]}"#);
     }
 }

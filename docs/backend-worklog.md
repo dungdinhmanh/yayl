@@ -196,6 +196,9 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - Kiểm tra dung lượng đĩa chỉ tính phần còn thiếu (trừ file đã có và part đã tải), tránh chặn resume game lớn.
 - Manifest remote được lưu trước khi tải tại `<root>/.yayl/remote-manifest.json`.
 - `plan.json` được lưu trước khi tải; `task.json` cập nhật tối đa mỗi giây và luôn ghi khi kết thúc/lỗi/cancel.
+- State nội bộ dùng JSON compact (`serde_json::to_vec`), không pretty-print.
+- Progress snapshot của `task.json` ghi kiểu `Durability::Relaxed` (không fsync) và bỏ qua nếu counters không đổi; chỉ state kết thúc (`paused/completed/failed`) mới fsync.
+- `plan.json` và `remote-manifest.json` ghi một lần nên luôn dùng `Durability::Full`.
 - `manifest.json` và `game-launcher-config.json` chỉ được ghi sau khi toàn bộ file pass checksum.
 
 ## 8. Nhật ký
@@ -213,3 +216,12 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - M2: thêm proxy, checksum abstraction, plan/task, smallest-first, verify/repair/diff.
 - `cargo test --workspace`: 70 test pass (M2), gồm test HTTP cục bộ cho generic plan + repair.
 - Lưu ý: `cargo` trên PowerShell có thể trả exit code 1 vì ghi stderr; kiểm tra dòng `Finished`/`test result: ok` thay vì chỉ exit code.
+
+### 2026-10-29
+
+- Benchmark state formats: JSON compact vs Postcard/MessagePack/CBOR/Bincode/rkyv/FlatBuffers trên plan 9.254 file.
+- Kết luận: giữ JSON compact. FlatBuffers chỉ nhỏ hơn 9%, `root()` vẫn validate 2,5 ms, và Rust runtime không có mutator.
+- Đổi progress snapshot của `task.json` sang `Durability::Relaxed`, bỏ ghi khi counters không đổi; terminal state vẫn fsync.
+- `cargo fmt --all -- --check`: pass.
+- `cargo clippy --workspace --all-targets -- -D warnings`: pass.
+- `cargo test --workspace`: 74 test pass.

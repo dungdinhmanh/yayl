@@ -708,7 +708,7 @@ impl DownloadPlan {
         task.save(&task_path)?;
 
         let task = Arc::new(Mutex::new(task));
-        let last_save = Arc::new(Mutex::new(Instant::now()));
+        let last_save = Arc::new(Mutex::new(ProgressSave::new()));
         let user = Arc::new(on_progress);
         let callback = {
             let task = task.clone();
@@ -719,15 +719,16 @@ impl DownloadPlan {
                     let mut task = lock(&task);
                     task.apply(progress);
                     let mut last = lock(&last_save);
-                    if last.elapsed() >= Duration::from_secs(1) {
-                        *last = Instant::now();
+                    let due = last.due(&task, last.at.elapsed());
+                    if due {
+                        last.mark(&task);
                         Some(task.clone())
                     } else {
                         None
                     }
                 };
                 if let Some(snapshot) = snapshot {
-                    let _ = snapshot.save(&task_path);
+                    let _ = snapshot.save_progress(&task_path);
                 }
                 user.as_ref()(progress);
             }
@@ -757,6 +758,36 @@ impl DownloadPlan {
     }
 }
 
+/// Throttles and deduplicates progress snapshots. Counters are cheap to
+/// rebuild from `.yayl-part` checkpoints, so snapshots skip the fsync; only
+/// terminal task states are written with `Durability::Full`.
+struct ProgressSave {
+    at: Instant,
+    last: Option<(TaskState, usize, u64)>,
+}
+
+impl ProgressSave {
+    fn new() -> Self {
+        Self {
+            at: Instant::now(),
+            last: None,
+        }
+    }
+
+    fn due(&self, task: &DownloadTask, elapsed: Duration) -> bool {
+        elapsed >= Duration::from_secs(1) && self.last != Some(signature(task))
+    }
+
+    fn mark(&mut self, task: &DownloadTask) {
+        self.at = Instant::now();
+        self.last = Some(signature(task));
+    }
+}
+
+fn signature(task: &DownloadTask) -> (TaskState, usize, u64) {
+    (task.state, task.files_done, task.bytes_done)
+}
+
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     match mutex.lock() {
         Ok(guard) => guard,
@@ -783,10 +814,35 @@ fn validate_http_url(url: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::downloader::Phase;
     use crate::profile::ARKNIGHTS_EN;
     use sha2::{Digest as _, Sha256};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
+
+    #[test]
+    fn progress_snapshots_are_throttled_and_deduplicated() {
+        let mut task = DownloadTask::new("stella", "2.0.0", "basis", 10, 1000);
+        let mut save = ProgressSave::new();
+
+        assert!(!save.due(&task, Duration::from_millis(500)));
+        assert!(save.due(&task, Duration::from_secs(1)));
+
+        save.mark(&task);
+        assert!(!save.due(&task, Duration::from_secs(5)));
+
+        task.apply(Progress {
+            phase: Phase::Downloading,
+            downloaded: 100,
+            download_total: 1000,
+            installed: 0,
+            install_total: 1000,
+            bytes_per_sec: 10,
+            files_done: 1,
+            files_total: 10,
+        });
+        assert!(save.due(&task, Duration::from_secs(2)));
+    }
 
     const REMOTE: &str = r#"{
       "source": "/Arknights_EN-042.0.0-game",
