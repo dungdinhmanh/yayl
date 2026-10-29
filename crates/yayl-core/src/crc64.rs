@@ -151,6 +151,17 @@ mod tests {
     }
 
     #[test]
+    fn chunked_updates_match_a_single_pass() {
+        let bytes: Vec<u8> = (0..2_000_003).map(|value| (value % 251) as u8).collect();
+        let expected = crc64(&bytes);
+        let mut crc = !0u64;
+        for chunk in bytes.chunks(1024 * 1024) {
+            crc = update(crc, chunk);
+        }
+        assert_eq!(!crc, expected);
+    }
+
+    #[test]
     fn handles_lengths_around_the_eight_byte_block() {
         let bytes: Vec<u8> = (0..64).collect();
         for len in 0..bytes.len() {
