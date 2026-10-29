@@ -38,13 +38,7 @@ impl Settings {
         let body = serde_json::to_string_pretty(self).map_err(|error| {
             crate::error::Error::new(crate::error::ErrorCode::Io, error.to_string())
         })?;
-        let tmp = path.with_extension("json.tmp");
-        std::fs::write(&tmp, body)?;
-        if path.exists() {
-            std::fs::remove_file(path)?;
-        }
-        std::fs::rename(&tmp, path)?;
-        Ok(())
+        crate::state::write_atomic(path, body.as_bytes())
     }
 
     pub fn install_root(&self, game_id: &str) -> Option<&Path> {

@@ -120,7 +120,7 @@ impl LocalManifest {
                 format!("serialize manifest: {error}"),
             )
         })?;
-        write_atomic(path, body.as_bytes())
+        crate::state::write_atomic(path, body.as_bytes())
     }
 
     /// Convert back to the remote manifest shape for checksum and size
@@ -173,7 +173,7 @@ impl GameConfigFile {
                 format!("serialize game config: {error}"),
             )
         })?;
-        write_atomic(path, body.as_bytes())
+        crate::state::write_atomic(path, body.as_bytes())
     }
 
     pub fn load(path: &Path) -> Result<Self> {
@@ -224,30 +224,6 @@ fn game_config_hash(
         version.to_owned(),
         game_uninstall_script.to_owned(),
     ])
-}
-
-fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let tmp = path.with_extension(format!(
-        "{}tmp",
-        path.extension()
-            .and_then(|value| value.to_str())
-            .map(|value| format!("{value}."))
-            .unwrap_or_default()
-    ));
-    std::fs::write(&tmp, bytes)?;
-    // Make the rename durable before replacing the old metadata.
-    std::fs::OpenOptions::new()
-        .write(true)
-        .open(&tmp)?
-        .sync_all()?;
-    if path.exists() {
-        std::fs::remove_file(path)?;
-    }
-    std::fs::rename(&tmp, path)?;
-    Ok(())
 }
 
 #[cfg(test)]

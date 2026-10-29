@@ -140,7 +140,10 @@ pub fn plan_from_local_manifest(
 /// True when the selected folder already contains a game executable or the
 /// official launcher config.
 pub fn detect_existing(root: &Path, profile: &GameProfile) -> bool {
-    root.join(profile.executable).is_file() || root.join("game-launcher-config.json").is_file()
+    root.join(profile.executable).is_file()
+        || root
+            .join(crate::local_manifest::GAME_CONFIG_FILE_NAME)
+            .is_file()
 }
 
 /// Create the install root only when the user confirms, never during planning.
