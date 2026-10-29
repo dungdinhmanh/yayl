@@ -10,8 +10,9 @@
 //! - `.yayl/plan.json` — immutable desired state: game config, CDNs, manifest
 //!   snapshot, and job list.
 //! - `.yayl/task.json` — mutable progress/failure state.
-//! - `.yayl/remote-manifest.json` — exact manifest bytes for the official
-//!   metadata writer and offline diagnostics.
+//! - `.yayl/manifest.json` — exact manifest bytes for the official
+//!   metadata writer and offline diagnostics. Distinct from the generated
+//!   `<install root>/manifest.json`.
 //!
 //! Official `manifest.json` and `game-launcher-config.json` are written only
 //! after every file passes verification.
@@ -480,8 +481,7 @@ impl DownloadPlan {
         })?;
         let document: PlanDocument = serde_json::from_str(&body)?;
         document.validate()?;
-        let raw_manifest =
-            std::fs::read_to_string(state::remote_manifest_path(root)).unwrap_or_default();
+        let raw_manifest = state::read_remote_manifest(root).unwrap_or_default();
         Ok(Self {
             document,
             root: root.to_path_buf(),
@@ -905,7 +905,7 @@ mod tests {
         let plan = sample_plan(dir.path().to_path_buf());
 
         let cache = plan.save_remote_manifest().unwrap();
-        assert_eq!(cache, dir.path().join(".yayl/remote-manifest.json"));
+        assert_eq!(cache, dir.path().join(".yayl/manifest.json"));
         assert_eq!(std::fs::read_to_string(&cache).unwrap(), REMOTE);
         assert!(!manifest_path(dir.path()).exists());
 

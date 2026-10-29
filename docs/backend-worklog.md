@@ -63,7 +63,7 @@
   - `.yayl/plan.json` = desired state bất biến: game config, CDN, manifest snapshot, jobs, order.
   - `.yayl/task.json` = execution state thay đổi: progress, failures, timestamps.
   - Tách ra để cập nhật tiến độ không phải ghi lại manifest snapshot; verify/repair/diff đọc plan ổn định.
-  - `.yayl/remote-manifest.json` giữ nguyên byte manifest gốc để ghi metadata và chẩn đoán offline.
+  - `.yayl/manifest.json` giữ nguyên byte manifest gốc để ghi metadata và chẩn đoán offline.
 - **gRPC:** không dùng trong downloader hiện tại.
   - Tauri IPC + event đủ cho một tiến trình, một client.
   - gRPC/tonic chỉ hợp lý nếu tách download daemon, nhiều client, hoặc điều khiển từ xa; khi đó tăng footprint và độ phức tạp không cần thiết.
@@ -88,7 +88,7 @@
 
 - [x] `checksum.rs`: CRC-64/MD5/SHA-256/None, tagged JSON, verify async + blocking.
 - [x] `proxy.rs`: direct/system/manual, WinINET registry, env fallback, SOCKS normalize, `no_proxy`, client builder.
-- [x] `state.rs`: `.yayl/plan.json`, `.yayl/task.json`, `.yayl/remote-manifest.json`, atomic writes.
+- [x] `state.rs`: `.yayl/plan.json`, `.yayl/task.json`, `.yayl/manifest.json`, atomic writes.
 - [x] `task.rs`: `DownloadTask`, `TaskState`, failure persistence, progress apply.
 - [x] `settings.rs`: thêm `proxy` + `download_order`; file settings cũ vẫn load.
 - [x] `downloader.rs`: `DownloadOrder`, `FileJob.checksum`, `http_client_with`, checksum abstraction.
@@ -194,11 +194,12 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - Nếu server trả `206`: kiểm tra `Content-Range` bắt đầu đúng offset; sai thì bỏ response, không append.
 - Checkpoint được ghi cả khi stream lỗi/bị cancel, nên lần chạy sau vẫn resume được.
 - Kiểm tra dung lượng đĩa chỉ tính phần còn thiếu (trừ file đã có và part đã tải), tránh chặn resume game lớn.
-- Manifest remote được lưu trước khi tải tại `<root>/.yayl/remote-manifest.json`.
+- Manifest remote được lưu trước khi tải tại `<root>/.yayl/manifest.json`.
 - `plan.json` được lưu trước khi tải; `task.json` cập nhật tối đa mỗi giây và luôn ghi khi kết thúc/lỗi/cancel.
 - State nội bộ dùng JSON compact (`serde_json::to_vec`), không pretty-print.
 - Progress snapshot của `task.json` ghi kiểu `Durability::Relaxed` (không fsync) và bỏ qua nếu counters không đổi; chỉ state kết thúc (`paused/completed/failed`) mới fsync.
-- `plan.json` và `remote-manifest.json` ghi một lần nên luôn dùng `Durability::Full`.
+- `plan.json` và `manifest.json` ghi một lần nên luôn dùng `Durability::Full`.
+- `.yayl/manifest.json` là manifest gốc của server; `<root>/manifest.json` là file official do YAYL sinh ra sau verify. Tên cũ `.yayl/remote-manifest.json` được tự migrate khi load.
 - `manifest.json` và `game-launcher-config.json` chỉ được ghi sau khi toàn bộ file pass checksum.
 
 ## 8. Nhật ký
@@ -222,6 +223,7 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - Benchmark state formats: JSON compact vs Postcard/MessagePack/CBOR/Bincode/rkyv/FlatBuffers trên plan 9.254 file.
 - Kết luận: giữ JSON compact. FlatBuffers chỉ nhỏ hơn 9%, `root()` vẫn validate 2,5 ms, và Rust runtime không có mutator.
 - Đổi progress snapshot của `task.json` sang `Durability::Relaxed`, bỏ ghi khi counters không đổi; terminal state vẫn fsync.
+- Đổi tên `.yayl/remote-manifest.json` → `.yayl/manifest.json`; file tên cũ được tự migrate khi load.
 - `cargo fmt --all -- --check`: pass.
 - `cargo clippy --workspace --all-targets -- -D warnings`: pass.
 - `cargo test --workspace`: 74 test pass.
