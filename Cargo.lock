@@ -1467,6 +1467,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "windows-sys 0.59.0",
  "winreg",
 ]
 

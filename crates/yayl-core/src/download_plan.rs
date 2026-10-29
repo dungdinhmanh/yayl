@@ -5,17 +5,9 @@
 //! URLs, sizes, and checksums, so another game can build the same document
 //! without changing the download engine.
 //!
-//! State layout inside an install root:
-//!
-//! - `.yayl/plan.json` — immutable desired state: game config, CDNs, manifest
-//!   snapshot, and job list.
-//! - `.yayl/task.json` — mutable progress/failure state.
-//! - `.yayl/manifest.json` — exact manifest bytes for the official
-//!   metadata writer and offline diagnostics. Distinct from the generated
-//!   `<install root>/manifest.json`.
-//!
-//! Official `manifest.json` and `game-launcher-config.json` are written only
-//! after every file passes verification.
+//! State lives under `<root>/.yayl`: `plan.json` (immutable), `task.json`
+//! (mutable), and `manifest.json` (raw server bytes). Official `manifest.json`
+//! and `game-launcher-config.json` are written only after full verification.
 
 use crate::api::{CdnConfig, GameConfig, LauncherApi};
 use crate::checksum::Checksum;
@@ -481,7 +473,7 @@ impl DownloadPlan {
         })?;
         let document: PlanDocument = serde_json::from_str(&body)?;
         document.validate()?;
-        let raw_manifest = state::read_remote_manifest(root).unwrap_or_default();
+        let raw_manifest = state::load_remote_manifest(root)?.unwrap_or_default();
         Ok(Self {
             document,
             root: root.to_path_buf(),
@@ -508,11 +500,13 @@ impl DownloadPlan {
         Ok(path)
     }
 
-    /// Persist the exact remote manifest before downloading. This is the file
-    /// used for checksums, so a crash never leaves the install without it.
+    /// Persist the exact server manifest before downloading.
     pub fn save_remote_manifest(&self) -> Result<PathBuf> {
         let path = self.remote_manifest_path();
         let raw = if self.raw_manifest.trim().is_empty() {
+            if self.document.game.provider == YOSTAR_PROVIDER {
+                return Err(plan_error("yostar plan is missing its raw manifest"));
+            }
             self.document.to_raw_manifest_json()?
         } else {
             self.raw_manifest.clone()
@@ -719,16 +713,17 @@ impl DownloadPlan {
                     let mut task = lock(&task);
                     task.apply(progress);
                     let mut last = lock(&last_save);
-                    let due = last.due(&task, last.at.elapsed());
-                    if due {
-                        last.mark(&task);
+                    if last.due(&task, last.at.elapsed()) {
+                        last.begin();
                         Some(task.clone())
                     } else {
                         None
                     }
                 };
                 if let Some(snapshot) = snapshot {
-                    let _ = snapshot.save_progress(&task_path);
+                    let saved = snapshot.save_progress(&task_path).is_ok();
+                    let current = lock(&task);
+                    lock(&last_save).finish(&current, saved);
                 }
                 user.as_ref()(progress);
             }
@@ -758,12 +753,12 @@ impl DownloadPlan {
     }
 }
 
-/// Throttles and deduplicates progress snapshots. Counters are cheap to
-/// rebuild from `.yayl-part` checkpoints, so snapshots skip the fsync; only
-/// terminal task states are written with `Durability::Full`.
+/// Throttles and deduplicates progress snapshots. They skip the fsync because
+/// resume positions live in `.yayl-part` checkpoints.
 struct ProgressSave {
     at: Instant,
     last: Option<(TaskState, usize, u64)>,
+    saving: bool,
 }
 
 impl ProgressSave {
@@ -771,16 +766,24 @@ impl ProgressSave {
         Self {
             at: Instant::now(),
             last: None,
+            saving: false,
         }
     }
 
     fn due(&self, task: &DownloadTask, elapsed: Duration) -> bool {
-        elapsed >= Duration::from_secs(1) && self.last != Some(signature(task))
+        !self.saving && elapsed >= Duration::from_secs(1) && self.last != Some(signature(task))
     }
 
-    fn mark(&mut self, task: &DownloadTask) {
-        self.at = Instant::now();
-        self.last = Some(signature(task));
+    fn begin(&mut self) {
+        self.saving = true;
+    }
+
+    fn finish(&mut self, task: &DownloadTask, saved: bool) {
+        self.saving = false;
+        if saved {
+            self.at = Instant::now();
+            self.last = Some(signature(task));
+        }
     }
 }
 
@@ -828,7 +831,9 @@ mod tests {
         assert!(!save.due(&task, Duration::from_millis(500)));
         assert!(save.due(&task, Duration::from_secs(1)));
 
-        save.mark(&task);
+        save.begin();
+        assert!(!save.due(&task, Duration::from_secs(5)));
+        save.finish(&task, true);
         assert!(!save.due(&task, Duration::from_secs(5)));
 
         task.apply(Progress {
@@ -842,6 +847,17 @@ mod tests {
             files_total: 10,
         });
         assert!(save.due(&task, Duration::from_secs(2)));
+    }
+
+    #[test]
+    fn failed_progress_saves_are_retried_immediately() {
+        let task = DownloadTask::new("stella", "2.0.0", "basis", 10, 1000);
+        let mut save = ProgressSave::new();
+
+        save.begin();
+        save.finish(&task, false);
+
+        assert!(save.due(&task, Duration::from_secs(1)));
     }
 
     const REMOTE: &str = r#"{
@@ -897,6 +913,17 @@ mod tests {
         assert_eq!(jobs[0].dest, dir.path().join("Arknights.exe"));
         assert_eq!(jobs[0].size, 675_304);
         assert_eq!(jobs[1].size, 0);
+    }
+
+    #[test]
+    fn yostar_plan_requires_a_raw_manifest() {
+        let dir = tempfile::tempdir().unwrap();
+        let remote = sample_remote();
+        let document = PlanDocument::from_remote(&remote, DownloadOrder::Manifest).unwrap();
+        let plan =
+            DownloadPlan::from_document(document, dir.path().to_path_buf(), String::new()).unwrap();
+
+        assert!(plan.save_remote_manifest().is_err());
     }
 
     #[test]

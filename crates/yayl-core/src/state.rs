@@ -1,12 +1,8 @@
 //! YAYL's private state directory inside an install root.
 //!
-//! `plan.json` is the immutable download plan (game config, CDN list, manifest
-//! snapshot, jobs). `task.json` is the mutable execution state. Keeping them
-//! separate means a progress update never rewrites the manifest snapshot that
-//! verify/repair and manifest diff rely on.
-//!
-//! `manifest.json` here is the raw server manifest, not the official local
-//! manifest at the install root. The directory makes the distinction explicit.
+//! `plan.json` is the immutable desired state, `task.json` the mutable
+//! execution state, and `manifest.json` the raw server manifest. The last one
+//! is distinct from the generated `<install root>/manifest.json`.
 
 use crate::error::{Error, ErrorCode, Result};
 use std::path::{Path, PathBuf};
@@ -15,11 +11,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub const STATE_DIR: &str = ".yayl";
 pub const PLAN_FILE: &str = "plan.json";
 pub const TASK_FILE: &str = "task.json";
-/// Raw server manifest. Distinct from `<install root>/manifest.json`, which is
-/// generated after verification.
+/// Raw server manifest, not the generated `<install root>/manifest.json`.
 pub const REMOTE_MANIFEST_FILE: &str = "manifest.json";
-/// Name used before the manifest was renamed. Read once and migrated.
-pub const LEGACY_REMOTE_MANIFEST_FILE: &str = "remote-manifest.json";
+const LEGACY_REMOTE_MANIFEST_FILE: &str = "remote-manifest.json";
 
 pub fn state_dir(root: &Path) -> PathBuf {
     root.join(STATE_DIR)
@@ -37,24 +31,35 @@ pub fn remote_manifest_path(root: &Path) -> PathBuf {
     state_dir(root).join(REMOTE_MANIFEST_FILE)
 }
 
-pub fn legacy_remote_manifest_path(root: &Path) -> PathBuf {
+fn legacy_remote_manifest_path(root: &Path) -> PathBuf {
     state_dir(root).join(LEGACY_REMOTE_MANIFEST_FILE)
 }
 
-/// Read the raw server manifest, migrating the pre-rename file if needed.
-pub fn read_remote_manifest(root: &Path) -> Option<String> {
+/// Load the raw server manifest, renaming the pre-rename file into place.
+pub fn load_remote_manifest(root: &Path) -> Result<Option<String>> {
     let path = remote_manifest_path(root);
     let legacy = legacy_remote_manifest_path(root);
-    if let Ok(body) = std::fs::read_to_string(&path) {
-        // Clean up the pre-rename file if both exist.
+    if let Some(body) = read_non_empty(&path)? {
         let _ = std::fs::remove_file(&legacy);
-        return Some(body);
+        return Ok(Some(body));
     }
-    let body = std::fs::read_to_string(&legacy).ok()?;
-    // Best effort: if the rename fails (permissions, open handle) the legacy
-    // file still loads on the next run.
-    let _ = std::fs::rename(&legacy, &path);
-    Some(body)
+    match read_non_empty(&legacy)? {
+        Some(body) => {
+            let _ = std::fs::remove_file(&path);
+            let _ = std::fs::rename(&legacy, &path);
+            Ok(Some(body))
+        }
+        None => Ok(None),
+    }
+}
+
+fn read_non_empty(path: &Path) -> Result<Option<String>> {
+    match std::fs::read_to_string(path) {
+        Ok(body) if body.trim().is_empty() => Ok(None),
+        Ok(body) => Ok(Some(body)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(error.into()),
+    }
 }
 
 pub fn now_unix() -> u64 {
@@ -64,18 +69,16 @@ pub fn now_unix() -> u64 {
         .unwrap_or(0)
 }
 
-/// Durability level for an atomic state write.
+/// fsync policy for atomic state writes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Durability {
-    /// fsync the temp file before the rename. Required for state that must
-    /// survive power loss: plans, raw manifests, and terminal task states.
+    /// fsync before replace. Required for plans, raw manifests, terminal states.
     Full,
-    /// Skip the fsync. Only the rename is durable. Used for periodic progress
-    /// snapshots that can be rebuilt from `.yayl-part` checkpoints anyway.
+    /// Skip the fsync. Progress snapshots rebuild from `.yayl-part` checkpoints.
     Relaxed,
 }
 
-/// Write a file and make the rename durable before replacing the old file.
+/// Write a file atomically with a full fsync.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
     write_atomic_with(path, bytes, Durability::Full)
 }
@@ -92,16 +95,39 @@ pub fn write_atomic_with(path: &Path, bytes: &[u8], durability: Durability) -> R
             .open(&tmp)?
             .sync_all()?;
     }
-    if path.exists() {
-        std::fs::remove_file(path)?;
+    replace_file(&tmp, path)
+}
+
+#[cfg(windows)]
+fn replace_file(tmp: &Path, path: &Path) -> Result<()> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Storage::FileSystem::{MOVEFILE_REPLACE_EXISTING, MoveFileExW};
+
+    let from: Vec<u16> = tmp
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let to: Vec<u16> = path
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    // SAFETY: both paths are null-terminated UTF-16 buffers that outlive the call.
+    let moved = unsafe { MoveFileExW(from.as_ptr(), to.as_ptr(), MOVEFILE_REPLACE_EXISTING) };
+    if moved == 0 {
+        return Err(std::io::Error::last_os_error().into());
     }
-    std::fs::rename(&tmp, path)?;
     Ok(())
 }
 
-/// Compact JSON is 20-25% smaller than pretty JSON and parses faster. State
-/// files are machine-readable; use `serde_json::to_string_pretty` only for
-/// human-facing exports.
+#[cfg(not(windows))]
+fn replace_file(tmp: &Path, path: &Path) -> Result<()> {
+    std::fs::rename(tmp, path)?;
+    Ok(())
+}
+
+/// Serialize compact JSON and write it atomically.
 pub fn write_json_atomic<T: serde::Serialize>(path: &Path, value: &T) -> Result<()> {
     write_json_atomic_with(path, value, Durability::Full)
 }
@@ -136,15 +162,48 @@ mod tests {
     }
 
     #[test]
-    fn reads_and_migrates_the_legacy_manifest_name() {
+    fn loads_and_migrates_the_legacy_manifest_name() {
         let dir = tempfile::tempdir().unwrap();
         let legacy = legacy_remote_manifest_path(dir.path());
         std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
         std::fs::write(&legacy, b"{\"file\":[]}").unwrap();
 
-        let body = read_remote_manifest(dir.path()).unwrap();
+        let body = load_remote_manifest(dir.path()).unwrap().unwrap();
+
         assert_eq!(body, "{\"file\":[]}");
         assert!(remote_manifest_path(dir.path()).exists());
+        assert!(!legacy.exists());
+    }
+
+    #[test]
+    fn loading_prefers_the_non_empty_manifest() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = remote_manifest_path(dir.path());
+        let legacy = legacy_remote_manifest_path(dir.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"new").unwrap();
+        std::fs::write(&legacy, b"old").unwrap();
+
+        let body = load_remote_manifest(dir.path()).unwrap().unwrap();
+
+        assert_eq!(body, "new");
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "new");
+        assert!(!legacy.exists());
+    }
+
+    #[test]
+    fn loading_replaces_an_empty_manifest_with_the_legacy_copy() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = remote_manifest_path(dir.path());
+        let legacy = legacy_remote_manifest_path(dir.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"").unwrap();
+        std::fs::write(&legacy, b"old").unwrap();
+
+        let body = load_remote_manifest(dir.path()).unwrap().unwrap();
+
+        assert_eq!(body, "old");
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "old");
         assert!(!legacy.exists());
     }
 

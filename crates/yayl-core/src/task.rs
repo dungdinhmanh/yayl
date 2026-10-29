@@ -90,9 +90,8 @@ impl DownloadTask {
         state::write_json_atomic(path, self)
     }
 
-    /// Periodic progress snapshot. The fsync is skipped: a crash can lose at
-    /// most the last second of counters, and the real resume position lives in
-    /// the `.yayl-part` checkpoint next to each partial file.
+    /// Progress snapshot without fsync. A crash loses at most the last second
+    /// of counters; resume positions live in `.yayl-part` checkpoints.
     pub fn save_progress(&self, path: &Path) -> Result<()> {
         state::write_json_atomic_with(path, self, state::Durability::Relaxed)
     }

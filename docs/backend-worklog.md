@@ -227,3 +227,5 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - `cargo fmt --all -- --check`: pass.
 - `cargo clippy --workspace --all-targets -- -D warnings`: pass.
 - `cargo test --workspace`: 74 test pass.
+- Sửa review: lỗi đọc manifest không còn bị coi là "không có file", chỉ xoá legacy khi bản mới có nội dung, thay `remove_file` + `rename` bằng `MoveFileExW(MOVEFILE_REPLACE_EXISTING)`, chặn plan Yostar thiếu raw manifest, chỉ đánh dấu progress đã lưu khi ghi thành công và bỏ qua khi đang ghi.
+- `cargo test --workspace`: 79 test pass.
