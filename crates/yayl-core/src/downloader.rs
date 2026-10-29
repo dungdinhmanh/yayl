@@ -957,6 +957,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn falls_back_to_the_backup_url() {
+        let body = sample_body();
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let _ = read_request(&mut socket).await;
+            write_response(
+                &mut socket,
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                &[],
+            )
+            .await;
+
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let _ = read_request(&mut socket).await;
+            let header = format!(
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                server_body.len()
+            );
+            write_response(&mut socket, &header, &server_body).await;
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/missing.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        )
+        .with_backup(format!("http://127.0.0.1:{port}/file.bin"));
+
+        let report = Downloader::new()
+            .unwrap()
+            .retries(0)
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(report.is_complete());
+        assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
+    }
+
+    #[tokio::test]
     async fn resumes_and_verifies() {
         let body = Arc::new(b"abcdefghijklmnopqrstuvwxyz".repeat(4096));
         let saw_range = Arc::new(AtomicBool::new(false));

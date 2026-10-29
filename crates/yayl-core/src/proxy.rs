@@ -136,7 +136,10 @@ impl ProxySettings {
 pub fn build_client(settings: &ProxySettings) -> Result<Client> {
     let builder = Client::builder()
         .user_agent(concat!("YAYL/", env!("CARGO_PKG_VERSION")))
-        .connect_timeout(Duration::from_secs(15));
+        .connect_timeout(Duration::from_secs(15))
+        // Per-read idle timeout, not a total request deadline: large files must
+        // stay downloadable, but a stalled CDN connection must not hang resume.
+        .read_timeout(Duration::from_secs(30));
 
     let builder = match settings.resolve()? {
         ResolvedProxy::Direct => builder.no_proxy(),
