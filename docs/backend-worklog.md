@@ -232,3 +232,5 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - Live E2E Arknights EN: tải 3.122 file / 3,47 GB; kill ở ~18 MB rồi resume, hoàn tất; verify phát hiện 1 file thiếu + 1 file sai checksum; repair tải lại 659,5 KB; verify lại 0 issue.
 - Sửa state: `task.json` được reuse khi resume và không bị repair ghi đè bằng tập file con.
 - `cargo test --workspace`: 81 test pass.
+- Đo lại bằng release: CRC-64 file ~1,3 GB/s; verify 3,47 GB mất 5,0s (concurrency 8) và 1,1s (concurrency 32, cache nóng). 5,5 phút trước đó là debug build, không phải giới hạn thuật toán.
+- `cargo test --workspace`: 82 test pass.
