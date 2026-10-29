@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     fn default_root_uses_the_profile_folder() {
-        let root = default_root(Path::new("D:/Games/YAYL"), &STELLA_SORA_EN);
-        assert_eq!(root, PathBuf::from("D:/Games/YAYL/StellaSora_EN"));
+        let root = default_root(Path::new("games"), &STELLA_SORA_EN);
+        assert_eq!(root, Path::new("games").join(STELLA_SORA_EN.install_dir));
     }
 }

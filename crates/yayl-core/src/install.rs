@@ -183,7 +183,7 @@ mod tests {
         let plan = InstallPlan::from_parts(
             manifest.total_bytes(),
             manifest.total_bytes(),
-            Path::new("D:/Games/YAYL/StellaSora_EN"),
+            &Path::new("games").join(STELLA_SORA_EN.install_dir),
             space,
             Some(&STELLA_SORA_EN),
         );
@@ -201,7 +201,7 @@ mod tests {
         let plan = InstallPlan::from_parts(
             50,
             60,
-            Path::new("D:/Games/YAYL/StellaSora_EN"),
+            &Path::new("games").join(STELLA_SORA_EN.install_dir),
             space,
             Some(&STELLA_SORA_EN),
         );

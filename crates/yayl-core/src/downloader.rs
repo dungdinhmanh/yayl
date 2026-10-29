@@ -914,9 +914,10 @@ mod tests {
 
     #[test]
     fn part_path_keeps_the_extension() {
+        let path = PathBuf::from("game").join("UnityPlayer.dll");
         assert_eq!(
-            part_path(Path::new("D:/game/UnityPlayer.dll")),
-            PathBuf::from("D:/game/UnityPlayer.dll.yayl-part")
+            part_path(&path),
+            PathBuf::from("game").join("UnityPlayer.dll.yayl-part")
         );
     }
 

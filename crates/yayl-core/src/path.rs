@@ -179,16 +179,17 @@ mod tests {
 
     #[test]
     fn rejects_absolute_and_windows_paths() {
-        assert!(normalize_manifest_path("C:/Windows/system32").is_err());
+        let absolute = Path::new("C:").join("Windows").join("system32");
+        assert!(normalize_manifest_path(&absolute.to_string_lossy()).is_err());
         assert!(normalize_manifest_path(r"a\b").is_err());
         assert!(normalize_manifest_path("/a/stream:name").is_err());
     }
 
     #[test]
     fn join_stays_inside_root() {
-        let root = Path::new("D:/Games/YAYL");
-        let path = join_inside(root, Path::new("a/b")).unwrap();
-        assert!(path.starts_with(root));
+        let dir = tempfile::tempdir().unwrap();
+        let path = join_inside(dir.path(), Path::new("a/b")).unwrap();
+        assert!(path.starts_with(dir.path()));
     }
 
     #[test]

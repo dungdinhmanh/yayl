@@ -148,15 +148,15 @@ mod tests {
 
     #[test]
     fn state_paths_live_under_dot_yayl() {
-        let root = Path::new("D:/Games/StellaSora_EN");
-        assert_eq!(plan_path(root), root.join(".yayl").join("plan.json"));
-        assert_eq!(task_path(root), root.join(".yayl").join("task.json"));
+        let root = Path::new("games").join("sample");
+        assert_eq!(plan_path(&root), root.join(".yayl").join("plan.json"));
+        assert_eq!(task_path(&root), root.join(".yayl").join("task.json"));
         assert_eq!(
-            remote_manifest_path(root),
+            remote_manifest_path(&root),
             root.join(".yayl").join("manifest.json")
         );
         assert_eq!(
-            legacy_remote_manifest_path(root),
+            legacy_remote_manifest_path(&root),
             root.join(".yayl").join("remote-manifest.json")
         );
     }
