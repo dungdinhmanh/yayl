@@ -6,6 +6,7 @@ node_modules/
 dist/
 target/
 apps/*/src-tauri/target/
+apps/*/src-tauri/gen/
 apps/*/dist/
 *.tsbuildinfo
 

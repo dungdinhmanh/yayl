@@ -374,6 +374,7 @@ impl LauncherApi {
                 "game profile has no API base",
             ));
         }
+        crate::url::validate_remote_url(profile.api_base.trim())?;
         Ok(Self {
             client,
             base_url: profile.api_base.trim_end_matches('/').to_owned(),
@@ -473,6 +474,7 @@ impl LauncherApi {
     /// need the signed launcher header.
     pub async fn fetch_manifest(&self, game_version: &str, basis: &str) -> Result<FetchedManifest> {
         let url = self.manifest_url(game_version, basis).await?;
+        crate::url::validate_remote_url(&url)?;
         let response = self
             .client
             .get(&url)

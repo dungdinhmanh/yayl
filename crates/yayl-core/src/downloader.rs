@@ -250,6 +250,10 @@ impl Downloader {
                     job.dest.display()
                 )));
             }
+            crate::path::reject_symlink_components(root, &job.dest)?;
+            for url in &job.urls {
+                crate::url::validate_remote_url(url)?;
+            }
         }
 
         let total_bytes: u64 = jobs.iter().map(|job| job.size).sum();
@@ -293,6 +297,7 @@ impl Downloader {
 
         let semaphore = Arc::new(Semaphore::new(self.concurrency));
         let mut set: JoinSet<(PathBuf, Result<()>)> = JoinSet::new();
+        let root_buf = root.to_path_buf();
 
         for job in jobs {
             let permit = semaphore
@@ -304,10 +309,13 @@ impl Downloader {
             let counters = counters.clone();
             let tracker = tracker.clone();
             let cancel = cancel.clone();
+            let root = root_buf.clone();
             set.spawn(async move {
                 let _permit = permit;
                 let dest = job.dest.clone();
-                let result = this.download_one(&job, &counters, &tracker, &cancel).await;
+                let result = this
+                    .download_one(&root, &job, &counters, &tracker, &cancel)
+                    .await;
                 (dest, result)
             });
         }
@@ -357,6 +365,7 @@ impl Downloader {
 
     async fn download_one(
         &self,
+        root: &Path,
         job: &FileJob,
         counters: &Counters,
         tracker: &SpeedTracker,
@@ -365,6 +374,10 @@ impl Downloader {
         if cancel.is_cancelled() {
             return Err(Error::cancelled());
         }
+
+        // Re-check right before reading or writing: a link planted after the
+        // batch-level check must not redirect this file outside the root.
+        crate::path::reject_symlink_components(root, &job.dest)?;
 
         if self.verify_existing && job.dest.is_file() {
             let size = tokio::fs::metadata(&job.dest)
@@ -392,6 +405,7 @@ impl Downloader {
         if let Some(parent) = job.dest.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
+        crate::path::reject_symlink_components(root, &part)?;
 
         let mut part_len = tokio::fs::metadata(&part)
             .await
@@ -435,7 +449,7 @@ impl Downloader {
             counters.active_downloads.fetch_add(1, Ordering::SeqCst);
             for url in &job.urls {
                 match self
-                    .stream_to_part(url, &part, job.size, counters, tracker, cancel)
+                    .stream_to_part(root, url, &part, job.size, counters, tracker, cancel)
                     .await
                 {
                     Ok(()) => {
@@ -488,6 +502,7 @@ impl Downloader {
 
             match verified {
                 Ok(true) => {
+                    crate::path::reject_symlink_components(root, &job.dest)?;
                     counters.active_commits.fetch_add(1, Ordering::SeqCst);
                     let committed = commit(&part, &job.dest).await;
                     counters.active_commits.fetch_sub(1, Ordering::SeqCst);
@@ -518,8 +533,12 @@ impl Downloader {
         Err(last_error)
     }
 
+    // The arguments are one cohesive download step; grouping them into a
+    // struct would only move the same values around.
+    #[allow(clippy::too_many_arguments)]
     async fn stream_to_part(
         &self,
+        root: &Path,
         url: &str,
         part: &Path,
         size: u64,
@@ -586,15 +605,18 @@ impl Downloader {
             counters.downloaded.fetch_sub(offset, Ordering::SeqCst);
         }
 
+        crate::path::reject_symlink_components(root, part)?;
         let mut file = if append {
             tokio::fs::OpenOptions::new()
                 .append(true)
                 .open(part)
                 .await?
         } else {
+            // Remove the old part (including a link planted at this path) and
+            // create a fresh file. `create_new` refuses to follow a link.
+            tokio::fs::remove_file(part).await.ok();
             tokio::fs::OpenOptions::new()
-                .create(true)
-                .truncate(true)
+                .create_new(true)
                 .write(true)
                 .open(part)
                 .await?
@@ -817,9 +839,17 @@ async fn read_checkpoint(part: &Path) -> Option<u64> {
 async fn write_checkpoint(part: &Path, durable: u64) -> Result<()> {
     let path = checkpoint_path(part);
     let tmp = path.with_extension("ckpt.tmp");
-    tokio::fs::write(&tmp, durable.to_string()).await?;
-    let file = tokio::fs::OpenOptions::new().write(true).open(&tmp).await?;
+    // A planted symlink at the temp path must not redirect this write. Remove
+    // the link itself (remove_file never follows it) and create the file fresh.
+    tokio::fs::remove_file(&tmp).await.ok();
+    let mut file = tokio::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&tmp)
+        .await?;
+    file.write_all(durable.to_string().as_bytes()).await?;
     file.sync_all().await?;
+    drop(file);
     if path.exists() {
         tokio::fs::remove_file(&path).await.ok();
     }
@@ -910,6 +940,18 @@ mod tests {
                 .map(|value| (value % 251) as u8)
                 .collect::<Vec<u8>>(),
         )
+    }
+
+    #[tokio::test]
+    async fn rejects_plain_http_remote_urls() {
+        let dir = tempfile::tempdir().unwrap();
+        let job = FileJob::new("http://example.com/a.bin", dir.path().join("a.bin"), 1, 0);
+        let error = Downloader::new()
+            .unwrap()
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, ErrorCode::InvalidInput);
     }
 
     #[test]

@@ -5,6 +5,7 @@
 //! is distinct from the generated `<install root>/manifest.json`.
 
 use crate::error::{Error, ErrorCode, Result};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -88,13 +89,22 @@ pub fn write_atomic_with(path: &Path, bytes: &[u8], durability: Durability) -> R
         std::fs::create_dir_all(parent)?;
     }
     let tmp = path.with_extension("tmp");
-    std::fs::write(&tmp, bytes)?;
-    if durability == Durability::Full {
-        std::fs::OpenOptions::new()
-            .write(true)
-            .open(&tmp)?
-            .sync_all()?;
+    // A planted symlink at the temp path must not redirect this write. Remove
+    // the link itself (remove_file never follows it) and create the file fresh.
+    match std::fs::remove_file(&tmp) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error.into()),
     }
+    let mut file = std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&tmp)?;
+    file.write_all(bytes)?;
+    if durability == Durability::Full {
+        file.sync_all()?;
+    }
+    drop(file);
     replace_file(&tmp, path)
 }
 

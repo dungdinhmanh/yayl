@@ -20,6 +20,55 @@ export interface InstallPlan {
   missingBytes: number;
 }
 
+export type DownloadState =
+  | "pending"
+  | "running"
+  | "verifying"
+  | "paused"
+  | "completed"
+  | "failed";
+
+export type DownloadPhase =
+  | "preparing"
+  | "downloading"
+  | "verifying"
+  | "committing"
+  | "done"
+  | "paused"
+  | "failed";
+
+export interface DownloadSnapshot {
+  game: string;
+  version: string;
+  state: DownloadState;
+  filesDone: number;
+  filesTotal: number;
+  bytesDone: number;
+  bytesTotal: number;
+  installed: boolean;
+  resumable: boolean;
+  active: boolean;
+}
+
+export interface DownloadProgress {
+  game: string;
+  phase: DownloadPhase;
+  downloaded: number;
+  downloadTotal: number;
+  installed: number;
+  installTotal: number;
+  bytesPerSec: number;
+  filesDone: number;
+  filesTotal: number;
+  code?: string;
+  detail?: string;
+}
+
+export interface Settings {
+  installRoots: Record<string, string>;
+  language: string | null;
+}
+
 const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 const GIB = 1024 ** 3;
@@ -45,6 +94,10 @@ function delay(ms: number) {
 async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   const { invoke: call } = await import("@tauri-apps/api/core");
   return call<T>(command, args);
+}
+
+export function isTauri(): boolean {
+  return IS_TAURI;
 }
 
 export function driveOf(path: string): string {
@@ -127,12 +180,81 @@ export async function chooseInstallFolder(current: string): Promise<string> {
   return current.replace(/^[A-Za-z]:/, next);
 }
 
-export async function openInstallFolder(path: string): Promise<void> {
+export async function openInstallFolder(gameId: GameId, path: string): Promise<void> {
   if (IS_TAURI) {
-    await invoke("open_install_folder", { path });
+    await invoke("open_install_folder", { game: gameId, path });
     return;
   }
   console.info(`[YAYL mock] open install folder: ${path}`);
+}
+
+export async function defaultInstallRoot(gameId: GameId): Promise<string> {
+  if (IS_TAURI) {
+    return invoke<string>("default_install_root", { game: gameId });
+  }
+  return GAMES[gameId].path;
+}
+
+export async function loadSettings(): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("load_settings");
+  }
+  return { installRoots: {}, language: null };
+}
+
+export async function saveInstallRoot(gameId: GameId, path: string): Promise<void> {
+  if (IS_TAURI) {
+    await invoke("save_install_root", { game: gameId, path });
+  }
+}
+
+export async function downloadStatus(
+  gameId: GameId,
+  path: string
+): Promise<DownloadSnapshot | null> {
+  if (!IS_TAURI || !path.trim()) return null;
+  return invoke<DownloadSnapshot | null>("download_status", { game: gameId, path });
+}
+
+/* Returns true when a real backend accepted the download. The web lab keeps
+   its static download state so the UI can still be reviewed. */
+export async function startDownload(gameId: GameId, path: string): Promise<boolean> {
+  if (!IS_TAURI) return false;
+  await invoke("start_download", { game: gameId, path });
+  return true;
+}
+
+export async function cancelDownload(gameId: GameId): Promise<void> {
+  if (IS_TAURI) {
+    await invoke("cancel_download", { game: gameId });
+  }
+}
+
+/* Drop the saved resume state but keep downloaded and partial files. */
+export async function discardDownload(gameId: GameId, path: string): Promise<void> {
+  if (IS_TAURI) {
+    await invoke("discard_download", { game: gameId, path });
+  }
+}
+
+export async function onDownloadProgress(
+  handler: (progress: DownloadProgress) => void
+): Promise<() => void> {
+  if (!IS_TAURI) return () => undefined;
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<DownloadProgress>("download-progress", (event) => handler(event.payload));
+}
+
+export async function windowMinimize(): Promise<void> {
+  if (IS_TAURI) await invoke("window_minimize");
+}
+
+export async function windowToggleMaximize(): Promise<void> {
+  if (IS_TAURI) await invoke("window_toggle_maximize");
+}
+
+export async function windowClose(): Promise<void> {
+  if (IS_TAURI) await invoke("window_close");
 }
 
 export function fileUrl(path: string): string {

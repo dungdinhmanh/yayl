@@ -603,6 +603,7 @@ impl DownloadPlan {
             game.basis.clone(),
             &manifest,
         );
+        crate::path::reject_symlink_components(&self.root, &manifest_path(&self.root))?;
         local.save(&manifest_path(&self.root))?;
 
         let name = if game.launch.executable.trim().is_empty() {
@@ -617,6 +618,7 @@ impl DownloadPlan {
             game.version.clone(),
             game.launch.uninstall_script.clone(),
         );
+        crate::path::reject_symlink_components(&self.root, &game_config_path(&self.root))?;
         config.save(&game_config_path(&self.root))?;
         Ok(())
     }
@@ -634,6 +636,7 @@ impl DownloadPlan {
         F: Fn(Progress) + Send + Sync + 'static,
     {
         std::fs::create_dir_all(&self.root)?;
+        crate::path::reject_symlink_components(&self.root, &state::state_dir(&self.root))?;
         // The exact official manifest cache is Yostar-specific. Generic plans
         // keep their manifest snapshot in plan.json.
         if !self.raw_manifest.trim().is_empty() || self.document.game.provider == YOSTAR_PROVIDER {
@@ -705,6 +708,19 @@ impl DownloadPlan {
                 bytes_total,
             )
         };
+        // Counters are per run. On a resume the downloader re-verifies files
+        // that are already complete, so its counters start at zero and climb
+        // back to the old value. Keep the persisted value as a floor so the
+        // progress bar never moves backwards. A completed task is a new run
+        // and starts from zero.
+        let resume_counters = matches!(
+            task.state,
+            TaskState::Running | TaskState::Verifying | TaskState::Paused | TaskState::Failed
+        );
+        if !resume_counters {
+            task.files_done = 0;
+            task.bytes_done = 0;
+        }
         task.state = TaskState::Running;
         task.failures.clear();
         if let Some(path) = &task_path {
@@ -718,9 +734,10 @@ impl DownloadPlan {
             let task = task.clone();
             let last_save = last_save.clone();
             let task_path = task_path.clone();
-            move |progress: Progress| {
+            move |mut progress: Progress| {
                 let snapshot = {
                     let mut task = lock(&task);
+                    progress = resume_progress(progress, &task, resume_counters);
                     task.apply(progress);
                     let mut last = lock(&last_save);
                     if last.due(&task, last.at.elapsed()) {
@@ -789,6 +806,17 @@ impl DownloadPlan {
     }
 }
 
+/// Keep the persisted counters as a floor while a resumed run re-verifies
+/// files that were already complete. Without this the UI progress bar moves
+/// backwards to zero on every resume.
+fn resume_progress(mut progress: Progress, task: &DownloadTask, resumed: bool) -> Progress {
+    if resumed {
+        progress.downloaded = progress.downloaded.max(task.bytes_done);
+        progress.files_done = progress.files_done.max(task.files_done);
+    }
+    progress
+}
+
 /// Throttles and deduplicates progress snapshots. They skip the fsync because
 /// resume positions live in `.yayl-part` checkpoints.
 struct ProgressSave {
@@ -839,15 +867,7 @@ fn plan_error(message: impl Into<String>) -> Error {
 }
 
 fn validate_http_url(url: &str) -> Result<()> {
-    let parsed = reqwest::Url::parse(url)
-        .map_err(|error| plan_error(format!("invalid plan URL {url}: {error}")))?;
-    if !matches!(parsed.scheme(), "http" | "https") {
-        return Err(plan_error(format!(
-            "unsupported plan URL scheme: {}",
-            parsed.scheme()
-        )));
-    }
-    Ok(())
+    crate::url::validate_remote_url(url)
 }
 
 #[cfg(test)]
@@ -894,6 +914,44 @@ mod tests {
         save.finish(&task, false);
 
         assert!(save.due(&task, Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn resumed_progress_never_moves_backwards() {
+        let mut task = DownloadTask::new("stella", "2.0.0", "basis", 10, 1000);
+        task.files_done = 5;
+        task.bytes_done = 500;
+
+        let progress = Progress {
+            phase: Phase::Verifying,
+            downloaded: 100,
+            download_total: 1000,
+            installed: 0,
+            install_total: 1000,
+            bytes_per_sec: 0,
+            files_done: 1,
+            files_total: 10,
+        };
+
+        let resumed = resume_progress(progress, &task, true);
+        assert_eq!(resumed.downloaded, 500);
+        assert_eq!(resumed.files_done, 5);
+
+        let ahead = resume_progress(
+            Progress {
+                downloaded: 600,
+                files_done: 6,
+                ..progress
+            },
+            &task,
+            true,
+        );
+        assert_eq!(ahead.downloaded, 600);
+        assert_eq!(ahead.files_done, 6);
+
+        let fresh = resume_progress(progress, &task, false);
+        assert_eq!(fresh.downloaded, 100);
+        assert_eq!(fresh.files_done, 1);
     }
 
     #[test]

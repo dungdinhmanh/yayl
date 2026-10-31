@@ -1,0 +1,30 @@
+[package]
+name = "yayl-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "YAYL desktop launcher"
+
+[lib]
+name = "yayl_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+# Enabled by the Tauri CLI for production builds.
+custom-protocol = ["tauri/custom-protocol"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+yayl-core = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

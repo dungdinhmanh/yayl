@@ -14,6 +14,7 @@ import {
 interface Props {
   gameId: GameId;
   game: (typeof GAMES)[GameId];
+  initialPath: string;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onClose: () => void;
   onConfirm: (path: string) => void;
@@ -39,27 +40,36 @@ function percent(value: number) {
   return `${Math.max(0, Math.min(100, value))}%`;
 }
 
-export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: Props) {
-  const [path, setPath] = useState<string>(game.path);
+export default function InstallDialog({ gameId, game, initialPath, t, onClose, onConfirm }: Props) {
+  const [path, setPath] = useState<string>(initialPath || game.path);
   const [downloadBytes, setDownloadBytes] = useState<number | null>(null);
   const [disk, setDisk] = useState<DiskSpace | null>(null);
   const [sizeLoading, setSizeLoading] = useState(true);
+  const [sizeError, setSizeError] = useState(false);
+  const [sizeAttempt, setSizeAttempt] = useState(0);
   const [diskLoading, setDiskLoading] = useState(true);
   const [diskError, setDiskError] = useState(false);
   const [choosing, setChoosing] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Only the saved/default root is allowed by the backend. Once the user edits
+  // the path it is a pending choice, not an install root yet.
+  const canLocate = path.trim() === initialPath.trim();
 
   // Total size is fetched once. The disk query runs in parallel and only
   // re-runs when the path changes.
   useEffect(() => {
     let active = true;
     setSizeLoading(true);
+    setSizeError(false);
     fetchDownloadBytes(gameId)
       .then((bytes) => {
         if (active) setDownloadBytes(bytes);
       })
       .catch(() => {
-        if (active) setDownloadBytes(game.downloadBytes);
+        if (active) {
+          setDownloadBytes(null);
+          setSizeError(true);
+        }
       })
       .finally(() => {
         if (active) setSizeLoading(false);
@@ -67,7 +77,7 @@ export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: P
     return () => {
       active = false;
     };
-  }, [gameId, game.downloadBytes]);
+  }, [gameId, sizeAttempt]);
 
   useEffect(() => {
     let active = true;
@@ -103,7 +113,7 @@ export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: P
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const requiredBytes = downloadBytes ?? game.downloadBytes;
+  const requiredBytes = downloadBytes ?? 0;
   const usedBytes = disk ? disk.totalBytes - disk.freeBytes : 0;
   const usedPercent = disk ? (usedBytes / disk.totalBytes) * 100 : 0;
   const gamePercent = disk
@@ -113,7 +123,12 @@ export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: P
   const missingBytes = disk ? Math.max(0, requiredBytes - disk.freeBytes) : 0;
   const enoughSpace = disk !== null && missingBytes === 0;
   const ready =
-    !sizeLoading && !diskLoading && downloadBytes !== null && disk !== null && !diskError;
+    !sizeLoading &&
+    !diskLoading &&
+    downloadBytes !== null &&
+    disk !== null &&
+    !diskError &&
+    !sizeError;
   const drive = /^([A-Za-z]):/.exec(path)?.[1]?.toUpperCase() ?? "D";
 
   const browse = async () => {
@@ -248,6 +263,19 @@ export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: P
               <span>{t("install.spaceError")}</span>
             </div>
           )}
+          {sizeError && (
+            <div className="install-warning" role="alert">
+              {glyph(ALERT)}
+              <span>{t("install.sizeError")}</span>
+              <button
+                className="install-warning-retry"
+                type="button"
+                onClick={() => setSizeAttempt((attempt) => attempt + 1)}
+              >
+                {t("install.retry")}
+              </button>
+            </div>
+          )}
           {ready && !enoughSpace && (
             <div className="install-warning" role="alert">
               {glyph(ALERT)}
@@ -259,16 +287,20 @@ export default function InstallDialog({ gameId, game, t, onClose, onConfirm }: P
         </div>
 
         <div className="install-foot">
-          <a
-            className="install-locate"
-            href={fileUrl(path)}
-            onClick={(event) => {
-              event.preventDefault();
-              void openInstallFolder(path);
-            }}
-          >
-            {t("home.action.locateGame")}
-          </a>
+          {canLocate ? (
+            <a
+              className="install-locate"
+              href={fileUrl(path)}
+              onClick={(event) => {
+                event.preventDefault();
+                void openInstallFolder(gameId, path);
+              }}
+            >
+              {t("home.action.locateGame")}
+            </a>
+          ) : (
+            <span aria-hidden="true" />
+          )}
           <div className="install-actions">
             <button
               className="install-confirm"

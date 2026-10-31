@@ -19,6 +19,7 @@ pub mod proxy;
 pub mod settings;
 pub mod state;
 pub mod task;
+pub mod url;
 pub mod verify;
 
 pub use api::{

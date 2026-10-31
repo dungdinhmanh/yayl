@@ -85,6 +85,41 @@ pub fn join_inside(root: &Path, relative: &Path) -> Result<PathBuf> {
     Ok(root.join(relative))
 }
 
+/// Reject symlinks and junctions in existing components of `path` below
+/// `root`. Missing components are allowed because they will be created as real
+/// directories. The root itself is trusted: the user chose it and may point it
+/// at another drive.
+pub fn reject_symlink_components(root: &Path, path: &Path) -> Result<()> {
+    let relative = path.strip_prefix(root).map_err(|_| {
+        Error::path(format!(
+            "path is outside the install root: {}",
+            path.display()
+        ))
+    })?;
+    let mut current = root.to_path_buf();
+    for component in relative.components() {
+        let Component::Normal(part) = component else {
+            return Err(Error::path(format!(
+                "path contains a non-normal component: {}",
+                path.display()
+            )));
+        };
+        current.push(part);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(Error::path(format!(
+                    "refusing to write through a symlink or junction: {}",
+                    current.display()
+                )));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(())
+}
+
 /// Validate an install root before planning or writing.
 pub fn validate_install_root(root: &Path) -> Result<()> {
     if root.as_os_str().is_empty() {
@@ -198,5 +233,47 @@ mod tests {
             path_key(Path::new("StellaSora_Data").join("app.info").as_path()),
             "StellaSora_Data/app.info"
         );
+    }
+
+    #[test]
+    fn accepts_missing_components_under_the_root() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("new").join("nested").join("file.bin");
+        reject_symlink_components(dir.path(), &target).unwrap();
+    }
+
+    #[test]
+    fn rejects_paths_outside_the_root() {
+        let dir = tempfile::tempdir().unwrap();
+        let outside = dir.path().join("other");
+        assert!(reject_symlink_components(&dir.path().join("root"), &outside).is_err());
+    }
+
+    #[test]
+    fn rejects_a_symlinked_component() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("root");
+        std::fs::create_dir_all(&root).unwrap();
+        let outside = dir.path().join("outside");
+        std::fs::create_dir_all(&outside).unwrap();
+        let link = root.join("link");
+
+        #[cfg(windows)]
+        {
+            let status = std::process::Command::new("cmd")
+                .args(["/C", "mklink", "/J"])
+                .arg(&link)
+                .arg(&outside)
+                .status()
+                .unwrap();
+            assert!(status.success(), "could not create a test junction");
+        }
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(&outside, &link).unwrap();
+        }
+
+        let error = reject_symlink_components(&root, &link.join("file.bin")).unwrap_err();
+        assert_eq!(error.code, crate::error::ErrorCode::PathInvalid);
     }
 }

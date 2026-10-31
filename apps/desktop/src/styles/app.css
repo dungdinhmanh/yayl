@@ -6122,3 +6122,14 @@ body[data-layout="topbar"] .backdrop-art {
     text-align: center;
   }
 }
+
+.install-warning-retry {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

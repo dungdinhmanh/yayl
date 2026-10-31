@@ -234,3 +234,53 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 - `cargo test --workspace`: 81 test pass.
 - Đo lại bằng release: CRC-64 file ~1,3 GB/s; verify 3,47 GB mất 5,0s (concurrency 8) và 1,1s (concurrency 32, cache nóng). 5,5 phút trước đó là debug build, không phải giới hạn thuật toán.
 - `cargo test --workspace`: 82 test pass.
+
+### 2026-10-30
+
+- Added the M3 Tauri command layer in `apps/desktop/src-tauri`:
+  - size, disk, folder, settings and window commands;
+  - `download_status`, `start_download`, `cancel_download`, `discard_download`.
+- `download-progress` emits 4 Hz snapshots with phase, bytes, speed, files and a stable error code. `done` is emitted only after the official metadata is written.
+- `download_status` reads `plan.json`/`task.json` and maps a persisted `running`/`verifying` task to `paused` when no live token exists.
+- The resume UI uses the saved install root from `%APPDATA%\yayl\settings.json`; the web build keeps mock fallbacks.
+- Fixed issues found by the real Tauri E2E run:
+  - download handles now have ids, so an old task cannot remove a newer resumed handle;
+  - an early `.exe` is no longer treated as a complete install; `installed` requires a completed task (or no task yet);
+  - resumed progress keeps the persisted counters as a floor, so the bar never drops back to zero;
+  - cancel on a paused download drops plan/task but keeps `.yayl-part` and downloaded files;
+  - `open_install_folder` opens the nearest existing ancestor for a folder that does not exist yet.
+- Real webview E2E (temporary CDP config, reverted): start, pause, resume and restart with Arknights EN 3,122 files / 3,727,697,138 bytes. Paused at 32,689,697 bytes, resumed to 34,864,013 bytes; a mid-run kill reopened as `paused` and resumed. No game data was kept after the test.
+- `cargo test --workspace`: 83 core + 11 desktop = 94 tests pass.
+- `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`: pass.
+- `bun run build`: pass; JS 321.28 KB (99.42 KB gzip), CSS 88.50 KB (16.62 KB gzip).
+
+### 2026-10-31 — Security hardening from audit run-1
+
+Audit findings (`security-audit/`): AUTH-001, PATH-001, IPC-001. All were
+`needs_validation`; source review against the extracted official launchers
+confirmed the salt and unauthenticated manifest GET are protocol behavior, not
+defects.
+
+- **Remote URLs:** added `yayl_core::url::validate_remote_url`. Manifest URLs,
+  API base URLs, and plan/CDN URLs now require `https`; plain `http` is allowed
+  only for loopback hosts so local tests keep working. Credentials embedded in
+  URLs are rejected.
+- **Path/symlink guard:** added `yayl_core::path::reject_symlink_components`.
+  The downloader rejects symlinks/junctions in existing components below the
+  install root before reading, creating directories, opening `.yayl-part`, and
+  committing. `.yayl` state reads/writes and `discard_download` use the same
+  guard. Checkpoint/state temp files use `create_new` so a planted link cannot
+  redirect the write; fresh parts are created with `create_new` as well.
+  Residual TOCTOU between the check and the OS call is documented; the root
+  itself stays trusted because the user may point it at another drive.
+- **Tauri IPC scope:** `download_status`, `start_download`, `discard_download`,
+  and `open_install_folder` now require the saved install root for that game or
+  the default root. `disk_space` still accepts a new folder for the install
+  dialog but requires an absolute path. `save_install_root` remains the
+  user-intent boundary. The install dialog hides "locate game" once the path is
+  edited, because an unsaved path is not an allowed root yet.
+- Tests: HTTPS/loopback URL cases, Windows junction rejection, and path
+  comparison for the IPC allowlist.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace
+  --all-targets -- -D warnings`, `cargo test --workspace` (91 core + 13 desktop),
+  `bun run build`, `bun run design:check` pass.

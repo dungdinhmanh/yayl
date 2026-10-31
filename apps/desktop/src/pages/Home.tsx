@@ -11,8 +11,14 @@ interface Props {
   state: GameState;
   lang: Lang;
   t: (key: string, vars?: Record<string, string | number>) => string;
+  installRoot: string;
+  progress?: number | null;
+  errorCode?: string | null;
   onInstall: () => void;
   onLocate: () => void;
+  onResume: () => void;
+  onPause: () => void;
+  onMinimize: () => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -32,29 +38,53 @@ function icon(name: string) {
   return <span dangerouslySetInnerHTML={{ __html: ICONS[name] ?? "" }} />;
 }
 
-function secondaryAction(state: GameState): { key: string; locate?: boolean } | null {
-  if (state === "update") return { key: "home.action.playAnyway" };
-  if (state === "install") return { key: "home.action.locateGame", locate: true };
-  if (state === "error") return { key: "home.action.errorDetails" };
-  if (state === "offline") return { key: "home.action.retry" };
-  if (state === "running") return { key: "home.action.minimize" };
+type SecondaryAction = {
+  key: string;
+  action: "locate" | "pause" | "minimize" | "none";
+};
+
+function secondaryAction(state: GameState): SecondaryAction | null {
+  if (state === "update") return { key: "home.action.playAnyway", action: "none" };
+  if (state === "install") return { key: "home.action.locateGame", action: "locate" };
+  if (state === "error") return { key: "home.action.errorDetails", action: "none" };
+  if (state === "offline") return { key: "home.action.retry", action: "none" };
+  if (state === "running") return { key: "home.action.minimize", action: "minimize" };
+  if (state === "downloading") return { key: "home.action.pause", action: "pause" };
+  if (state === "paused") return { key: "home.action.cancel", action: "pause" };
+  if (state === "verifying") return { key: "home.action.details", action: "none" };
+  if (state === "ready") return { key: "home.action.verify", action: "none" };
   return null;
 }
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
 const MENU_ITEMS = ["home.menu.verify", "home.menu.repair", "home.menu.settings", "home.menu.shortcut"];
 
-export default function Home({ gameId, state, lang, t, onInstall, onLocate }: Props) {
+export default function Home({
+  gameId,
+  state,
+  lang,
+  t,
+  installRoot,
+  progress,
+  errorCode,
+  onInstall,
+  onLocate,
+  onResume,
+  onPause,
+  onMinimize,
+}: Props) {
   const game = GAMES[gameId];
   const meta = STATE_META[state];
   const secondary = secondaryAction(state);
+  const percent = Math.round(progress ?? meta.progress ?? 0);
   const vars = {
     game: game.name,
-    percent: meta.progress || 42,
+    percent,
     size: game.updateSize,
     required: game.required,
     drive: game.drive,
     free: game.free,
+    code: errorCode ?? "",
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,12 +128,15 @@ export default function Home({ gameId, state, lang, t, onInstall, onLocate }: Pr
           <button
             className={"home-play is-" + state}
             type="button"
-            disabled={Boolean((meta as { disabled?: boolean }).disabled)}
+            disabled={Boolean((meta as { disabled?: boolean }).disabled) || state === "downloading"}
             onClick={() => {
-              if (state === "install") onInstall();
+              if (state === "install" || state === "update") onInstall();
+              else if (state === "paused") onResume();
             }}
           >
-            {DOWNLOAD_STATES.includes(state) && <BubbleProgress progress={(meta.progress || 0) / 100} />}
+            {DOWNLOAD_STATES.includes(state) && (
+              <BubbleProgress progress={Math.min(1, Math.max(0, percent / 100))} />
+            )}
             <span className="home-play-icon">
               {state === "install" ? (
                 <DownloadBadge state="downloading" corner={false} size="30px" />
@@ -154,10 +187,12 @@ export default function Home({ gameId, state, lang, t, onInstall, onLocate }: Pr
         {secondary && (
           <a
             className="home-action-link"
-            href={secondary.locate ? fileUrl(game.path) : "#"}
+            href={secondary.action === "locate" ? fileUrl(installRoot) : "#"}
             onClick={(event) => {
               event.preventDefault();
-              if (secondary.locate) onLocate();
+              if (secondary.action === "locate") onLocate();
+              else if (secondary.action === "pause") onPause();
+              else if (secondary.action === "minimize") onMinimize();
             }}
           >
             {t(secondary.key, vars)}
