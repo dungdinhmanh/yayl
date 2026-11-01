@@ -576,6 +576,19 @@ impl DownloadPlan {
         verify::verify_targets(&self.root, &targets, concurrency).await
     }
 
+    /// Verify with per-file progress for the desktop UI.
+    pub async fn verify_with_progress<F>(
+        &self,
+        concurrency: usize,
+        on_progress: F,
+    ) -> Result<VerifyReport>
+    where
+        F: Fn(usize, u64) + Send + Sync,
+    {
+        let targets = self.targets()?;
+        verify::verify_targets_with_progress(&self.root, &targets, concurrency, on_progress).await
+    }
+
     /// Compare this remote plan with the official local `manifest.json`.
     pub fn diff_against_local(&self) -> Result<ManifestDiff> {
         let path = manifest_path(&self.root);

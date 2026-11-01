@@ -6,15 +6,18 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, Manager, State};
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, RemoteGame};
 use yayl_core::downloader::DownloadOrder;
 use yayl_core::path::nearest_existing;
+use yayl_core::playtime::{PLAYTIME_FILE, PlaytimeEntry, PlaytimeStore};
 use yayl_core::profile::{self, GameProfile};
 use yayl_core::proxy::{ProxyMode, ProxySettings};
 use yayl_core::settings::{BackgroundMode, Settings as CoreSettings};
+use yayl_core::state::now_unix;
 use yayl_core::{disk, path::validate_install_root};
 
 use crate::error::CommandError;
@@ -326,6 +329,102 @@ pub fn app_info(app: AppHandle) -> AppInfoView {
         version: app.package_info().version.to_string(),
         debug: cfg!(debug_assertions),
     }
+}
+
+const GAME_EXIT_EVENT: &str = "game-exit";
+
+/// Serializes the read-modify-write of the playtime file when two games are
+/// running at the same time.
+static PLAYTIME_LOCK: Mutex<()> = Mutex::new(());
+
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaytimeView {
+    pub seconds: u64,
+    pub last_played: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GameExitEvent {
+    game: String,
+    /// Total seconds across every session, so the UI can update without a
+    /// second round trip.
+    total_seconds: u64,
+    last_played: u64,
+}
+
+fn playtime_path(app: &AppHandle) -> Result<PathBuf, CommandError> {
+    let settings = settings::path(app)?;
+    let dir = settings
+        .parent()
+        .ok_or_else(|| CommandError::new("io", "settings path has no parent"))?;
+    Ok(dir.join(PLAYTIME_FILE))
+}
+
+#[tauri::command]
+pub fn playtime(app: AppHandle, game: String) -> Result<PlaytimeView, CommandError> {
+    profile(&game)?;
+    let store = PlaytimeStore::load(&playtime_path(&app)?)?;
+    let entry = store.entry(&game);
+    Ok(PlaytimeView {
+        seconds: entry.seconds,
+        last_played: entry.last_played,
+    })
+}
+
+/// Start the game and record the session when it exits.
+#[tauri::command]
+pub fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandError> {
+    let profile = profile(&game)?;
+    let settings = settings::load(&app)?;
+    let root = match settings.install_roots.get(&game) {
+        Some(root) => root.clone(),
+        None => default_root(&app, &profile)?,
+    };
+
+    let mut child = yayl_core::process::launch(&root, &profile)?;
+    let pid = child.id();
+    let started = now_unix();
+
+    let handle = app.clone();
+    let id = game.clone();
+    std::thread::spawn(move || {
+        let _ = child.wait();
+        let ended = now_unix();
+        let seconds = ended.saturating_sub(started);
+        let entry = record_session(&handle, &id, seconds, ended);
+        let _ = handle.emit(
+            GAME_EXIT_EVENT,
+            GameExitEvent {
+                game: id,
+                total_seconds: entry.seconds,
+                last_played: ended,
+            },
+        );
+    });
+
+    Ok(pid)
+}
+
+fn record_session(app: &AppHandle, game: &str, seconds: u64, ended: u64) -> PlaytimeEntry {
+    let entry = PlaytimeEntry {
+        seconds,
+        last_played: Some(ended),
+    };
+    let Ok(path) = playtime_path(app) else {
+        return entry;
+    };
+    let _guard = PLAYTIME_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let mut store = PlaytimeStore::load(&path).unwrap_or_default();
+    let updated = store.record(game, seconds, ended);
+    if let Err(error) = store.save(&path) {
+        #[cfg(debug_assertions)]
+        eprintln!("cannot save playtime: {error}");
+    }
+    updated
 }
 
 #[tauri::command]

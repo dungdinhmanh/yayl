@@ -27,6 +27,8 @@ pub fn run() {
             commands::reset_settings,
             commands::game_profiles,
             commands::app_info,
+            commands::playtime,
+            commands::launch_game,
             commands::choose_install_folder,
             commands::open_install_folder,
             commands::window_minimize,
@@ -36,6 +38,8 @@ pub fn run() {
             download::start_download,
             download::cancel_download,
             download::discard_download,
+            download::verify_game,
+            download::repair_game,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run YAYL");

@@ -4836,6 +4836,23 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
+.home-menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.home-menu-item:disabled:hover {
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.home-error {
+  margin-right: calc(var(--action-menu-size) + 10px);
+  color: var(--danger);
+  font-size: 12.8px;
+  text-align: right;
+}
+
 /* Sits under the primary button, right-aligned with it. Plain text link, no button chrome. */
 .home-action-link {
   margin-right: calc(var(--action-menu-size) + 10px);

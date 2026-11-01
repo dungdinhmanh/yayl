@@ -89,6 +89,20 @@ pub async fn verify_targets(
     targets: &[VerifyTarget],
     concurrency: usize,
 ) -> Result<VerifyReport> {
+    verify_targets_with_progress(root, targets, concurrency, |_, _| {}).await
+}
+
+/// Same as [`verify_targets`] but reports `(files_done, bytes_done)` after each
+/// file. The callback runs on the verification task, so it must be cheap.
+pub async fn verify_targets_with_progress<F>(
+    root: &Path,
+    targets: &[VerifyTarget],
+    concurrency: usize,
+    on_progress: F,
+) -> Result<VerifyReport>
+where
+    F: Fn(usize, u64) + Send + Sync,
+{
     validate_install_root(root)?;
     let concurrency = concurrency.clamp(1, 32);
     let semaphore = Arc::new(Semaphore::new(concurrency));
@@ -162,9 +176,13 @@ pub async fn verify_targets(
         bytes_verified: 0,
         issues: Vec::new(),
     };
+    let mut checked_files = 0usize;
+    let mut checked_bytes = 0u64;
     while let Some(joined) = set.join_next().await {
         let (target, result) =
             joined.map_err(|error| Error::new(ErrorCode::Unknown, error.to_string()))?;
+        checked_files += 1;
+        checked_bytes = checked_bytes.saturating_add(target.size);
         match result? {
             None => {
                 report.verified += 1;
@@ -172,6 +190,7 @@ pub async fn verify_targets(
             }
             Some(issue) => report.issues.push(issue),
         }
+        on_progress(checked_files, checked_bytes);
     }
     report
         .issues

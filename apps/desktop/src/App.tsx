@@ -11,17 +11,23 @@ import {
   defaultSettings,
   discardDownload,
   downloadStatus,
+  fetchPlaytime,
   isTauri,
+  launchGame,
   loadSettings,
   onDownloadProgress,
+  onGameExit,
   openInstallFolder,
+  repairGame,
   saveInstallRoot,
   startDownload,
+  verifyGame,
   windowClose,
   windowMinimize,
   windowToggleMaximize,
   type DownloadProgress,
   type DownloadSnapshot,
+  type PlaytimeEntry,
   type Settings,
 } from "./lib/ipc";
 
@@ -170,6 +176,7 @@ export default function App() {
   const [installOpen, setInstallOpen] = useState(false);
   const [view, setView] = useState<View>("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [playtimes, setPlaytimes] = useState<Partial<Record<GameId, PlaytimeEntry>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
   const [onboarding, setOnboarding] = useState(
     () => !isTauri() && QUERY.get("onboarding") === "1"
@@ -236,8 +243,21 @@ export default function App() {
         })
       );
 
+      const nextPlaytimes: Partial<Record<GameId, PlaytimeEntry>> = {};
+      await Promise.all(
+        GAME_IDS.map(async (id) => {
+          try {
+            const entry = await fetchPlaytime(id);
+            if (entry) nextPlaytimes[id] = entry;
+          } catch (error) {
+            console.error(`[YAYL] cannot load ${id} playtime`, error);
+          }
+        })
+      );
+
       if (!active) return;
       setRoots(nextRoots);
+      setPlaytimes(nextPlaytimes);
       setLive((current) => ({ ...current, ...nextLive }));
       setStates((current) => {
         const merged = { ...current, ...nextStates };
@@ -276,6 +296,30 @@ export default function App() {
         delete next[id];
         return next;
       });
+    }).then((stop) => {
+      if (active) unlisten = stop;
+      else stop();
+    });
+
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, []);
+
+  // The backend reports the finished session after the game process exits.
+  useEffect(() => {
+    let active = true;
+    let unlisten: (() => void) | undefined;
+
+    void onGameExit((event) => {
+      const id = event.game as GameId;
+      if (!GAME_IDS.includes(id)) return;
+      setPlaytimes((current) => ({
+        ...current,
+        [id]: { seconds: event.totalSeconds, lastPlayed: event.lastPlayed },
+      }));
+      setStates((current) => ({ ...current, [id]: "ready" }));
     }).then((stop) => {
       if (active) unlisten = stop;
       else stop();
@@ -342,6 +386,59 @@ export default function App() {
     void openInstallFolder(gameId, roots[gameId]).catch((error: unknown) => {
       console.error("[YAYL] cannot open install folder", error);
     });
+  };
+
+  const play = () => {
+    if (!isTauri()) {
+      // The lab has no game process; show the running state for a moment.
+      setState("running");
+      window.setTimeout(() => setState("ready"), 4000);
+      return;
+    }
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[gameId];
+      return next;
+    });
+    void launchGame(gameId)
+      .then((started) => {
+        if (started) setState("running");
+      })
+      .catch((error: unknown) => {
+        console.error("[YAYL] cannot launch game", error);
+        setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+      });
+  };
+
+  const check = (repair: boolean) => {
+    const id = gameId;
+    setState("verifying");
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    const action = repair ? repairGame : verifyGame;
+    void action(id, roots[id])
+      .then((report) => {
+        if (!report) {
+          // The lab has no verifier.
+          window.setTimeout(() => setStates((current) => ({ ...current, [id]: "ready" })), 1200);
+          return;
+        }
+        if (report.issues.length > 0) {
+          setErrors((current) => ({ ...current, [id]: "checksum" }));
+          setStates((current) => ({ ...current, [id]: "error" }));
+        } else {
+          setStates((current) => ({ ...current, [id]: "ready" }));
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("[YAYL] cannot check install", error);
+        setErrors((current) => ({ ...current, [id]: errorCode(error) }));
+        setStates((current) => ({ ...current, [id]: "error" }));
+      });
   };
 
   const confirmInstall = async (path: string) => {
@@ -528,11 +625,16 @@ export default function App() {
                   installRoot={roots[gameId]}
                   progress={live[gameId]?.progress ?? null}
                   errorCode={errors[gameId] ?? null}
+                  playtime={playtimes[gameId] ?? null}
                   onInstall={() => setInstallOpen(true)}
                   onLocate={locate}
                   onResume={() => void resume()}
                   onPause={() => void pause()}
                   onMinimize={() => void windowMinimize()}
+                  onPlay={play}
+                  onVerify={() => check(false)}
+                  onRepair={() => check(true)}
+                  onSettings={() => setView("settings")}
                 />
               )}
             </div>

@@ -3,7 +3,7 @@ import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
-import { fileUrl } from "../lib/ipc";
+import { fileUrl, type PlaytimeEntry } from "../lib/ipc";
 import type { Lang } from "../App";
 
 interface Props {
@@ -14,11 +14,16 @@ interface Props {
   installRoot: string;
   progress?: number | null;
   errorCode?: string | null;
+  playtime?: PlaytimeEntry | null;
   onInstall: () => void;
   onLocate: () => void;
   onResume: () => void;
   onPause: () => void;
   onMinimize: () => void;
+  onPlay: () => void;
+  onVerify: () => void;
+  onRepair: () => void;
+  onSettings: () => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -40,24 +45,43 @@ function icon(name: string) {
 
 type SecondaryAction = {
   key: string;
-  action: "locate" | "pause" | "minimize" | "none";
+  action: "locate" | "pause" | "minimize" | "verify" | "none";
 };
 
 function secondaryAction(state: GameState): SecondaryAction | null {
   if (state === "update") return { key: "home.action.playAnyway", action: "none" };
   if (state === "install") return { key: "home.action.locateGame", action: "locate" };
-  if (state === "error") return { key: "home.action.errorDetails", action: "none" };
   if (state === "offline") return { key: "home.action.retry", action: "none" };
   if (state === "running") return { key: "home.action.minimize", action: "minimize" };
   if (state === "downloading") return { key: "home.action.pause", action: "pause" };
   if (state === "paused") return { key: "home.action.cancel", action: "pause" };
-  if (state === "verifying") return { key: "home.action.details", action: "none" };
-  if (state === "ready") return { key: "home.action.verify", action: "none" };
+  if (state === "ready") return { key: "home.action.verify", action: "verify" };
   return null;
 }
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
-const MENU_ITEMS = ["home.menu.verify", "home.menu.repair", "home.menu.settings", "home.menu.shortcut"];
+type MenuAction = "verify" | "repair" | "settings";
+const MENU_ITEMS: { key: string; action: MenuAction }[] = [
+  { key: "home.menu.verify", action: "verify" },
+  { key: "home.menu.repair", action: "repair" },
+  { key: "home.menu.settings", action: "settings" },
+];
+const CHECK_STATES: GameState[] = ["ready", "error", "update"];
+
+function formatPlaytime(seconds: number, t: Props["t"]): string {
+  if (seconds <= 0) return t("stats.never");
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) return t("stats.hoursMinutes", { hours, minutes });
+  return t("stats.minutes", { minutes });
+}
+
+function formatLastPlayed(unixSeconds: number, lang: Lang): string {
+  return new Date(unixSeconds * 1000).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
 
 export default function Home({
   gameId,
@@ -67,16 +91,29 @@ export default function Home({
   installRoot,
   progress,
   errorCode,
+  playtime,
   onInstall,
   onLocate,
   onResume,
   onPause,
   onMinimize,
+  onPlay,
+  onVerify,
+  onRepair,
+  onSettings,
 }: Props) {
   const game = GAMES[gameId];
   const meta = STATE_META[state];
   const secondary = secondaryAction(state);
   const percent = Math.round(progress ?? meta.progress ?? 0);
+  const canCheck = CHECK_STATES.includes(state);
+  const playtimeText = playtime
+    ? formatPlaytime(playtime.seconds, t)
+    : game.playtime[lang];
+  const lastPlayedText =
+    playtime?.lastPlayed != null
+      ? formatLastPlayed(playtime.lastPlayed, lang)
+      : game.lastPlayed[lang];
   const vars = {
     game: game.name,
     percent,
@@ -114,11 +151,11 @@ export default function Home({
         <div className="hero-stats">
           <div className="hero-stat">
             <div className="hero-stat-label">{t("stats.playtime")}</div>
-            <div className="hero-stat-value">{game.playtime[lang]}</div>
+            <div className="hero-stat-value">{playtimeText}</div>
           </div>
           <div className="hero-stat">
             <div className="hero-stat-label">{t("stats.lastPlayed")}</div>
-            <div className="hero-stat-value">{game.lastPlayed[lang]}</div>
+            <div className="hero-stat-value">{lastPlayedText}</div>
           </div>
         </div>
       )}
@@ -132,6 +169,8 @@ export default function Home({
             onClick={() => {
               if (state === "install" || state === "update") onInstall();
               else if (state === "paused") onResume();
+              else if (state === "ready") onPlay();
+              else if (state === "error") onRepair();
             }}
           >
             {DOWNLOAD_STATES.includes(state) && (
@@ -169,17 +208,26 @@ export default function Home({
             </button>
             {menuOpen && (
               <div className="home-menu-pop" role="menu">
-                {MENU_ITEMS.map((key) => (
-                  <button
-                    key={key}
-                    className="home-menu-item"
-                    type="button"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {t(key)}
-                  </button>
-                ))}
+                {MENU_ITEMS.map((item) => {
+                  const disabled = item.action !== "settings" && !canCheck;
+                  return (
+                    <button
+                      key={item.key}
+                      className="home-menu-item"
+                      type="button"
+                      role="menuitem"
+                      disabled={disabled}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (item.action === "verify") onVerify();
+                        else if (item.action === "repair") onRepair();
+                        else onSettings();
+                      }}
+                    >
+                      {t(item.key)}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -193,10 +241,16 @@ export default function Home({
               if (secondary.action === "locate") onLocate();
               else if (secondary.action === "pause") onPause();
               else if (secondary.action === "minimize") onMinimize();
+              else if (secondary.action === "verify") onVerify();
             }}
           >
             {t(secondary.key, vars)}
           </a>
+        )}
+        {state === "ready" && errorCode && (
+          <div className="home-error" role="alert">
+            {t("home.launch.error")}
+          </div>
         )}
       </div>
     </div>

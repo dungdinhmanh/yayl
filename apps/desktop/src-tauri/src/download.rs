@@ -55,6 +55,30 @@ impl DownloadEvent {
         }
     }
 
+    /// Verification is read-only, so the downloaded counters mirror the checked
+    /// bytes. The UI only needs the percentage and the file counts.
+    fn verifying(
+        game: &str,
+        checked: u64,
+        total: u64,
+        files_done: usize,
+        files_total: usize,
+    ) -> Self {
+        Self {
+            game: game.to_owned(),
+            phase: "verifying".to_owned(),
+            downloaded: checked,
+            download_total: total,
+            installed: checked,
+            install_total: total,
+            bytes_per_sec: 0,
+            files_done,
+            files_total,
+            code: None,
+            detail: None,
+        }
+    }
+
     fn from_progress(game: &str, progress: Progress) -> Self {
         Self {
             game: game.to_owned(),
@@ -309,6 +333,291 @@ fn discard_state(root: &Path) -> Result<(), CommandError> {
         }
     }
     Ok(())
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VerifyIssueView {
+    pub path: String,
+    pub kind: &'static str,
+    pub expected_size: u64,
+    pub actual_size: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VerifyView {
+    pub files: usize,
+    pub verified: usize,
+    pub bytes_verified: u64,
+    pub bytes_to_repair: u64,
+    pub issues: Vec<VerifyIssueView>,
+}
+
+impl From<&yayl_core::verify::VerifyReport> for VerifyView {
+    fn from(report: &yayl_core::verify::VerifyReport) -> Self {
+        Self {
+            files: report.files,
+            verified: report.verified,
+            bytes_verified: report.bytes_verified,
+            bytes_to_repair: report.bytes_to_repair(),
+            issues: report
+                .issues
+                .iter()
+                .map(|issue| VerifyIssueView {
+                    path: yayl_core::path::path_key(&issue.path),
+                    kind: issue.kind.as_str(),
+                    expected_size: issue.expected_size,
+                    actual_size: issue.actual_size,
+                })
+                .collect(),
+        }
+    }
+}
+
+/// Check the installed files against the saved plan, or against a fresh plan
+/// when the folder was imported from the official launcher.
+#[tauri::command]
+pub async fn verify_game(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    game: String,
+    path: String,
+) -> Result<VerifyView, CommandError> {
+    let profile = profile::by_id(&game)
+        .copied()
+        .ok_or_else(|| CommandError::new("invalid_input", format!("unknown game: {game}")))?;
+    let root = PathBuf::from(path);
+    ensure_allowed_root(&app, &game, &root)?;
+    yayl_core::path::reject_symlink_components(&root, &core_state::state_dir(&root))?;
+
+    let cancel = CancelToken::new();
+    let Some(handle_id) = state.begin(game.clone(), cancel.clone()) else {
+        return Err(CommandError::new(
+            "already_running",
+            "an operation is already running for this game",
+        ));
+    };
+    let result = run_verify(app.clone(), profile, root, cancel).await;
+    state.finish(&game, handle_id);
+    result
+}
+
+/// Re-download only the files that `verify_game` reported.
+#[tauri::command]
+pub async fn repair_game(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    game: String,
+    path: String,
+) -> Result<VerifyView, CommandError> {
+    let profile = profile::by_id(&game)
+        .copied()
+        .ok_or_else(|| CommandError::new("invalid_input", format!("unknown game: {game}")))?;
+    let root = PathBuf::from(path);
+    ensure_allowed_root(&app, &game, &root)?;
+    yayl_core::path::reject_symlink_components(&root, &core_state::state_dir(&root))?;
+
+    let cancel = CancelToken::new();
+    let Some(handle_id) = state.begin(game.clone(), cancel.clone()) else {
+        return Err(CommandError::new(
+            "already_running",
+            "an operation is already running for this game",
+        ));
+    };
+    let result = run_repair(app.clone(), profile, root, cancel).await;
+    state.finish(&game, handle_id);
+    result
+}
+
+async fn run_verify(
+    app: AppHandle,
+    profile: GameProfile,
+    root: PathBuf,
+    cancel: CancelToken,
+) -> Result<VerifyView, CommandError> {
+    let game = profile.id.to_owned();
+    let settings = settings::load(&app).unwrap_or_default();
+    let client = yayl_core::proxy::build_client(&settings.proxy)?;
+    let plan = if core_state::plan_path(&root).is_file() {
+        DownloadPlan::load(&root)?
+    } else {
+        DownloadPlan::prepare_with(
+            profile,
+            root.clone(),
+            DEFAULT_LAUNCHER_VERSION,
+            client,
+            settings.download_order,
+        )
+        .await?
+    };
+
+    let files_total = plan.document.jobs.len();
+    let bytes_total: u64 = plan.document.jobs.iter().map(|job| job.size).sum();
+    emit(
+        &app,
+        DownloadEvent::verifying(&game, 0, bytes_total, 0, files_total),
+    );
+
+    let progress_app = app.clone();
+    let progress_game = game.clone();
+    let report = plan
+        .verify_with_progress(
+            settings.concurrency.clamp(1, 32),
+            move |files_done, checked| {
+                emit(
+                    &progress_app,
+                    DownloadEvent::verifying(
+                        &progress_game,
+                        checked,
+                        bytes_total,
+                        files_done,
+                        files_total,
+                    ),
+                );
+            },
+        )
+        .await;
+
+    match report {
+        Ok(report) => {
+            if cancel.is_cancelled() {
+                emit(
+                    &app,
+                    DownloadEvent::terminal(&game, "paused", None, None, None),
+                );
+                return Err(CommandError::new("cancelled", "verification cancelled"));
+            }
+            Ok(VerifyView::from(&report))
+        }
+        Err(error) => Err(fail_core(&app, &game, error)),
+    }
+}
+
+async fn run_repair(
+    app: AppHandle,
+    profile: GameProfile,
+    root: PathBuf,
+    cancel: CancelToken,
+) -> Result<VerifyView, CommandError> {
+    let game = profile.id.to_owned();
+    let settings = settings::load(&app).unwrap_or_default();
+    let concurrency = settings.concurrency.clamp(1, 32);
+    let client = yayl_core::proxy::build_client(&settings.proxy)?;
+    let plan = if core_state::plan_path(&root).is_file() {
+        DownloadPlan::load(&root)?
+    } else {
+        DownloadPlan::prepare_with(
+            profile,
+            root.clone(),
+            DEFAULT_LAUNCHER_VERSION,
+            client.clone(),
+            settings.download_order,
+        )
+        .await?
+    };
+
+    let files_total = plan.document.jobs.len();
+    let bytes_total: u64 = plan.document.jobs.iter().map(|job| job.size).sum();
+    emit(
+        &app,
+        DownloadEvent::verifying(&game, 0, bytes_total, 0, files_total),
+    );
+
+    let progress_app = app.clone();
+    let progress_game = game.clone();
+    let report = plan
+        .verify_with_progress(concurrency, move |files_done, checked| {
+            emit(
+                &progress_app,
+                DownloadEvent::verifying(
+                    &progress_game,
+                    checked,
+                    bytes_total,
+                    files_done,
+                    files_total,
+                ),
+            );
+        })
+        .await
+        .map_err(|error| fail_core(&app, &game, error))?;
+
+    if report.is_healthy() {
+        emit(
+            &app,
+            DownloadEvent::terminal(&game, "done", None, None, None),
+        );
+        return Ok(VerifyView::from(&report));
+    }
+
+    let downloader = Downloader::with_client(client)
+        .concurrency(concurrency)
+        .order(settings.download_order);
+    let last = Arc::new(Mutex::new(None::<Progress>));
+    let result = {
+        let last = last.clone();
+        let app = app.clone();
+        let game = game.clone();
+        plan.repair(&downloader, cancel.clone(), &report, move |progress| {
+            *lock(&last) = Some(progress);
+            emit(&app, DownloadEvent::from_progress(&game, progress));
+        })
+        .await
+    };
+
+    let last_progress = *lock(&last);
+    match result {
+        Ok(report) if report.is_complete() => {
+            // Confirm the repaired files before calling the install healthy.
+            let after = plan.verify(concurrency).await?;
+            if after.is_healthy() {
+                emit(
+                    &app,
+                    DownloadEvent::terminal(&game, "done", last_progress, None, None),
+                );
+            } else {
+                emit(
+                    &app,
+                    DownloadEvent::terminal(
+                        &game,
+                        "failed",
+                        last_progress,
+                        Some(ErrorCode::Checksum.as_str()),
+                        Some("files still need repair".to_owned()),
+                    ),
+                );
+            }
+            Ok(VerifyView::from(&after))
+        }
+        Ok(report) => {
+            let failure = report.failures.first();
+            let code = failure
+                .map(|failure| failure.code.as_str())
+                .unwrap_or(ErrorCode::Unknown.as_str());
+            let detail = failure
+                .map(|failure| failure.message.clone())
+                .unwrap_or_else(|| "repair finished with failures".to_owned());
+            emit(
+                &app,
+                DownloadEvent::terminal(
+                    &game,
+                    "failed",
+                    last_progress,
+                    Some(code),
+                    Some(detail.clone()),
+                ),
+            );
+            Err(CommandError::new(code, detail))
+        }
+        Err(error) if error.code == ErrorCode::Cancelled => {
+            emit(
+                &app,
+                DownloadEvent::terminal(&game, "paused", last_progress, None, None),
+            );
+            Ok(VerifyView::from(&report))
+        }
+        Err(error) => Err(fail_core(&app, &game, error)),
+    }
 }
 
 async fn run_download(

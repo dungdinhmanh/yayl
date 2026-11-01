@@ -310,3 +310,26 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace
   --all-targets -- -D warnings`, `cargo test --workspace` (92 core + 13 desktop),
   `bun run build` (327.27 KB JS / 100.99 KB gzip), `bun run design:check` pass.
+
+### 2026-11-01 - Launch, playtime, verify and repair
+
+- Added `yayl_core::process` (resolve the profile executable inside the install
+  root, reject symlinks, spawn with the root as cwd) and `yayl_core::playtime`
+  (`playtime.json` under the launcher data dir, saturating session totals).
+- Added Tauri commands `playtime`, `launch_game`, `verify_game`, and
+  `repair_game`. `launch_game` waits on the child in a background thread and
+  emits `game-exit` with `{ game, totalSeconds, lastPlayed }`.
+- Verify reuses `DownloadPlan::verify_with_progress`; repair reuses
+  `DownloadPlan::repair`, then re-verifies before reporting done. Both register
+  in `AppState.begin`, so downloads and checks stay mutually exclusive per game.
+- Verify emits `verifying` progress without a terminal event, because the command
+  result is authoritative for the final state. Repair reuses `download-progress`
+  while files transfer.
+- Wired the Home primary action (Play / Repair / Resume), the secondary link
+  (Verify / Pause / Cancel / Minimize), and the overflow menu (Verify, Repair,
+  Settings). Launch failures map to a localized note instead of a raw error.
+- Playtime and last-played now come from the backend; the web lab keeps the
+  static fallback and simulates running/verifying states.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
+  -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
+  `bun run build` (329.98 KB JS / 101.73 KB gzip), `bun run design:check` pass.

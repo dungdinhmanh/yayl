@@ -101,6 +101,32 @@ export interface AppInfo {
   debug: boolean;
 }
 
+export interface PlaytimeEntry {
+  seconds: number;
+  lastPlayed: number | null;
+}
+
+export interface GameExitEvent {
+  game: string;
+  totalSeconds: number;
+  lastPlayed: number;
+}
+
+export interface VerifyIssue {
+  path: string;
+  kind: "missing" | "size_mismatch" | "checksum_mismatch";
+  expectedSize: number;
+  actualSize: number | null;
+}
+
+export interface VerifyReport {
+  files: number;
+  verified: number;
+  bytesVerified: number;
+  bytesToRepair: number;
+  issues: VerifyIssue[];
+}
+
 export function defaultSettings(): Settings {
   return {
     installRoots: {},
@@ -365,6 +391,42 @@ export async function appInfo(): Promise<AppInfo> {
     return invoke<AppInfo>("app_info");
   }
   return { version: "0.1.0", debug: true };
+}
+
+export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | null> {
+  if (!IS_TAURI) return null;
+  return invoke<PlaytimeEntry>("playtime", { game: gameId });
+}
+
+/* Returns true when a real backend started the game. */
+export async function launchGame(gameId: GameId): Promise<boolean> {
+  if (!IS_TAURI) return false;
+  await invoke("launch_game", { game: gameId });
+  return true;
+}
+
+export async function onGameExit(
+  handler: (event: GameExitEvent) => void
+): Promise<() => void> {
+  if (!IS_TAURI) return () => undefined;
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<GameExitEvent>("game-exit", (event) => handler(event.payload));
+}
+
+export async function verifyGame(
+  gameId: GameId,
+  path: string
+): Promise<VerifyReport | null> {
+  if (!IS_TAURI) return null;
+  return invoke<VerifyReport>("verify_game", { game: gameId, path });
+}
+
+export async function repairGame(
+  gameId: GameId,
+  path: string
+): Promise<VerifyReport | null> {
+  if (!IS_TAURI) return null;
+  return invoke<VerifyReport>("repair_game", { game: gameId, path });
 }
 
 export async function downloadStatus(
