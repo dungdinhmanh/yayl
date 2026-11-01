@@ -284,3 +284,29 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace
   --all-targets -- -D warnings`, `cargo test --workspace` (91 core + 13 desktop),
   `bun run build`, `bun run design:check` pass.
+
+### 2026-10-31 — Settings and first-run
+
+- Extended `yayl_core::Settings` with `concurrency` (default 10), `reduced_motion`,
+  `background` (`art`/`solid`), and `onboarding_complete`. Old settings files
+  migrate `onboarding_complete` to `true`; a missing file stays `false`.
+- Added Tauri commands: `set_language`, `save_network_settings`,
+  `save_appearance`, `save_first_run`, `complete_onboarding`, `reset_settings`,
+  `game_profiles`, and `app_info`. Reset keeps install roots and onboarding
+  state; game files are never touched.
+- The real downloader now uses the saved proxy, download order, and concurrency
+  (clamped to 1–32) instead of hard-coded defaults.
+- Added the React settings page (General, Game, Network, Advanced, About) and
+  the three-step first-run flow. Both are lazy-loaded. The web lab keeps
+  in-memory mock settings and can replay onboarding with `?onboarding=1`.
+- First-run saves language and roots on "Get started" and marks onboarding
+  complete only on "Open YAYL". Quitting early replays the flow with saved roots
+  prefilled. It does not start a download automatically.
+- Settings only expose behavior that exists: language, motion, background,
+  proxy, download order, connections, install path/open folder, reset, and app
+  info. Fake verify/repair/uninstall/tray controls were left out.
+- Fixed first-run layout so language and game rows stack, added an insufficient
+  space warning, and kept the settings path "saved" state after saving.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace
+  --all-targets -- -D warnings`, `cargo test --workspace` (92 core + 13 desktop),
+  `bun run build` (327.27 KB JS / 100.99 KB gzip), `bun run design:check` pass.

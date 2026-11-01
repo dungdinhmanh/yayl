@@ -2619,6 +2619,10 @@ body[data-game="stella"] .backdrop-art {
   color: var(--text);
 }
 
+.language-option > span:last-child {
+  display: grid;
+}
+
 .language-flag {
   display: grid;
   place-items: center;
@@ -2785,6 +2789,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .game-select-copy {
+  display: grid;
   min-width: 0;
   flex: 1;
 }

@@ -64,12 +64,64 @@ export interface DownloadProgress {
   detail?: string;
 }
 
+export type ProxyMode = "direct" | "system" | "manual";
+export type DownloadOrder = "smallest_first" | "largest_first" | "manifest";
+export type BackgroundMode = "art" | "solid";
+
+export interface ProxySettings {
+  mode: ProxyMode;
+  url?: string | null;
+  noProxy?: string | null;
+}
+
 export interface Settings {
   installRoots: Record<string, string>;
   language: string | null;
+  proxy: ProxySettings;
+  downloadOrder: DownloadOrder;
+  concurrency: number;
+  reducedMotion: boolean;
+  background: BackgroundMode;
+  onboardingComplete: boolean;
+}
+
+export interface GameProfileInfo {
+  id: string;
+  installDir: string;
+  defaultRoot: string;
+}
+
+export interface GameProfiles {
+  base: string;
+  games: GameProfileInfo[];
+}
+
+export interface AppInfo {
+  version: string;
+  debug: boolean;
+}
+
+export function defaultSettings(): Settings {
+  return {
+    installRoots: {},
+    language: null,
+    proxy: { mode: "direct", url: null, noProxy: null },
+    downloadOrder: "smallest_first",
+    concurrency: 10,
+    reducedMotion: false,
+    background: "art",
+    onboardingComplete: false,
+  };
 }
 
 const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+/* The web lab has no settings file. Keep one in memory so the settings and
+   first-run screens behave the same way they do in the real app. */
+let mockSettings: Settings = {
+  ...defaultSettings(),
+  onboardingComplete: true,
+};
 
 const GIB = 1024 ** 3;
 
@@ -199,13 +251,120 @@ export async function loadSettings(): Promise<Settings> {
   if (IS_TAURI) {
     return invoke<Settings>("load_settings");
   }
-  return { installRoots: {}, language: null };
+  return { ...mockSettings };
 }
 
 export async function saveInstallRoot(gameId: GameId, path: string): Promise<void> {
   if (IS_TAURI) {
     await invoke("save_install_root", { game: gameId, path });
+    return;
   }
+  mockSettings = {
+    ...mockSettings,
+    installRoots: { ...mockSettings.installRoots, [gameId]: path },
+  };
+}
+
+export async function setLanguage(language: "vi" | "en"): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("set_language", { language });
+  }
+  mockSettings = { ...mockSettings, language };
+  return { ...mockSettings };
+}
+
+export interface NetworkSettingsPatch {
+  mode: ProxyMode;
+  url: string | null;
+  noProxy: string | null;
+  downloadOrder: DownloadOrder;
+  concurrency: number;
+}
+
+export async function saveNetworkSettings(
+  patch: NetworkSettingsPatch
+): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("save_network_settings", { patch });
+  }
+  mockSettings = {
+    ...mockSettings,
+    proxy: {
+      mode: patch.mode,
+      url: patch.mode === "manual" ? patch.url : null,
+      noProxy: patch.mode === "manual" ? patch.noProxy : null,
+    },
+    downloadOrder: patch.downloadOrder,
+    concurrency: patch.concurrency,
+  };
+  return { ...mockSettings };
+}
+
+export async function saveAppearance(
+  reducedMotion: boolean,
+  background: BackgroundMode
+): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("save_appearance", { reducedMotion, background });
+  }
+  mockSettings = { ...mockSettings, reducedMotion, background };
+  return { ...mockSettings };
+}
+
+export async function saveFirstRun(
+  language: "vi" | "en",
+  roots: Record<string, string>
+): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("save_first_run", { input: { language, roots } });
+  }
+  mockSettings = {
+    ...mockSettings,
+    language,
+    installRoots: { ...mockSettings.installRoots, ...roots },
+  };
+  return { ...mockSettings };
+}
+
+export async function completeOnboarding(): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("complete_onboarding");
+  }
+  mockSettings = { ...mockSettings, onboardingComplete: true };
+  return { ...mockSettings };
+}
+
+export async function resetSettings(): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("reset_settings");
+  }
+  mockSettings = {
+    ...defaultSettings(),
+    installRoots: mockSettings.installRoots,
+    onboardingComplete: mockSettings.onboardingComplete,
+  };
+  return { ...mockSettings };
+}
+
+export async function gameProfiles(): Promise<GameProfiles> {
+  if (IS_TAURI) {
+    return invoke<GameProfiles>("game_profiles");
+  }
+  return {
+    base: "D:\\Games\\YAYL",
+    games: (Object.keys(GAMES) as GameId[]).map((id) => ({
+      id,
+      installDir: GAMES[id].path.split("\\").pop() ?? id,
+      defaultRoot: GAMES[id].path,
+    })),
+  };
+}
+
+export async function appInfo(): Promise<AppInfo> {
+  if (IS_TAURI) {
+    return invoke<AppInfo>("app_info");
+  }
+  return { version: "0.1.0", debug: true };
 }
 
 export async function downloadStatus(

@@ -2619,6 +2619,10 @@ body[data-game="stella"] .backdrop-art {
   color: var(--text);
 }
 
+.language-option > span:last-child {
+  display: grid;
+}
+
 .language-flag {
   display: grid;
   place-items: center;
@@ -2785,6 +2789,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .game-select-copy {
+  display: grid;
   min-width: 0;
   flex: 1;
 }
@@ -6132,4 +6137,74 @@ body[data-layout="topbar"] .backdrop-art {
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Settings and first-run runtime states
+   -------------------------------------------------------------------------- */
+
+body[data-background="solid"] .backdrop-art {
+  display: none;
+}
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.boot-screen {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.boot-mark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-accent);
+  color: var(--accent-ink);
+}
+
+.boot-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.settings-status {
+  margin-top: 6px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+.settings-status.is-saved {
+  color: var(--success);
+}
+
+.settings-status.is-error {
+  color: var(--danger);
+}
+
+.onboarding-error {
+  margin-top: 10px;
+  color: var(--danger);
+  font-size: 13.2px;
+}
+
+.onboarding-actions {
+  flex-wrap: wrap;
+}
+
+.game-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

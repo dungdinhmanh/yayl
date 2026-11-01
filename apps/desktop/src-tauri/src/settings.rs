@@ -7,7 +7,9 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use yayl_core::settings::Settings;
+use yayl_core::downloader::DownloadOrder;
+use yayl_core::proxy::{ProxyMode, ProxySettings};
+use yayl_core::settings::{BackgroundMode, Settings};
 
 use crate::error::CommandError;
 
@@ -15,9 +17,33 @@ const SETTINGS_FILE: &str = "settings.json";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ProxyView {
+    pub mode: ProxyMode,
+    pub url: Option<String>,
+    pub no_proxy: Option<String>,
+}
+
+impl From<ProxySettings> for ProxyView {
+    fn from(value: ProxySettings) -> Self {
+        Self {
+            mode: value.mode,
+            url: value.url,
+            no_proxy: value.no_proxy,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SettingsView {
     pub install_roots: BTreeMap<String, String>,
     pub language: Option<String>,
+    pub proxy: ProxyView,
+    pub download_order: DownloadOrder,
+    pub concurrency: usize,
+    pub reduced_motion: bool,
+    pub background: BackgroundMode,
+    pub onboarding_complete: bool,
 }
 
 impl From<Settings> for SettingsView {
@@ -29,6 +55,12 @@ impl From<Settings> for SettingsView {
                 .map(|(game, root)| (game, root.to_string_lossy().into_owned()))
                 .collect(),
             language: value.language,
+            proxy: value.proxy.into(),
+            download_order: value.download_order,
+            concurrency: value.concurrency,
+            reduced_motion: value.reduced_motion,
+            background: value.background,
+            onboarding_complete: value.onboarding_complete,
         }
     }
 }

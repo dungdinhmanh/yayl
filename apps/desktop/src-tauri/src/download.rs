@@ -8,17 +8,17 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::{AppHandle, Emitter, Manager, State};
 use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, DownloadPlan};
-use yayl_core::downloader::{CancelToken, DownloadOrder, Downloader, Phase, Progress};
+use yayl_core::downloader::{CancelToken, Downloader, Phase, Progress};
 use yayl_core::profile::{self, GameProfile};
 use yayl_core::task::{DownloadTask, TaskState};
 use yayl_core::{ErrorCode, install, state as core_state};
 
 use crate::commands::ensure_allowed_root;
 use crate::error::CommandError;
+use crate::settings;
 use crate::state::AppState;
 
 pub const PROGRESS_EVENT: &str = "download-progress";
-const DEFAULT_CONCURRENCY: usize = 10;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -320,7 +320,10 @@ async fn run_download(
     let game = profile.id.to_owned();
     emit(&app, DownloadEvent::preparing(&game, 0, 0));
 
-    let client = yayl_core::downloader::http_client()?;
+    let settings = settings::load(&app).unwrap_or_default();
+    let order = settings.download_order;
+    let concurrency = settings.concurrency.clamp(1, 32);
+    let client = yayl_core::proxy::build_client(&settings.proxy)?;
     let plan = match resume_plan(&root, &game) {
         Ok(Some(plan)) => plan,
         Ok(None) => match DownloadPlan::prepare_with(
@@ -328,7 +331,7 @@ async fn run_download(
             root.clone(),
             DEFAULT_LAUNCHER_VERSION,
             client.clone(),
-            DownloadOrder::default(),
+            order,
         )
         .await
         {
@@ -346,8 +349,8 @@ async fn run_download(
     );
 
     let downloader = Downloader::with_client(client)
-        .concurrency(DEFAULT_CONCURRENCY)
-        .order(DownloadOrder::default());
+        .concurrency(concurrency)
+        .order(order);
     let last = Arc::new(Mutex::new(None::<Progress>));
 
     let result = {
@@ -458,6 +461,7 @@ mod tests {
     use yayl_core::download_plan::{
         PLAN_SCHEMA_VERSION, PlanDocument, PlanFile, PlanGame, PlanJob, PlanManifest,
     };
+    use yayl_core::downloader::DownloadOrder;
 
     fn sample_plan(root: &Path, game: &str) -> DownloadPlan {
         let checksum = Checksum::Crc64(1);

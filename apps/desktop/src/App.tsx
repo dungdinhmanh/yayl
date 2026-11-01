@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { GAMES, HOME_STATES, type GameState } from "./data";
 import { I18N } from "./i18n";
 import Rail from "./components/Rail";
@@ -8,6 +8,7 @@ import InstallDialog from "./components/InstallDialog";
 import {
   cancelDownload,
   defaultInstallRoot,
+  defaultSettings,
   discardDownload,
   downloadStatus,
   isTauri,
@@ -23,6 +24,11 @@ import {
   type DownloadSnapshot,
   type Settings,
 } from "./lib/ipc";
+
+const SettingsPage = lazy(() => import("./pages/Settings"));
+const FirstRunPage = lazy(() => import("./pages/FirstRun"));
+
+type View = "home" | "settings";
 
 export type GameId = keyof typeof GAMES;
 export type Lang = "vi" | "en";
@@ -144,6 +150,16 @@ function initialStateMap(): Record<GameId, GameState> {
   return initial;
 }
 
+function BootMark() {
+  return (
+    <span className="boot-mark">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z" />
+      </svg>
+    </span>
+  );
+}
+
 export default function App() {
   const [gameId, setGameId] = useState<GameId>(queryGame);
   const [states, setStates] = useState<Record<GameId, GameState>>(initialStateMap);
@@ -152,6 +168,12 @@ export default function App() {
   const [errors, setErrors] = useState<Partial<Record<GameId, string>>>({});
   const [lang, setLang] = useState<Lang>(queryLang);
   const [installOpen, setInstallOpen] = useState(false);
+  const [view, setView] = useState<View>("home");
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [booted, setBooted] = useState(() => !isTauri());
+  const [onboarding, setOnboarding] = useState(
+    () => !isTauri() && QUERY.get("onboarding") === "1"
+  );
 
   const state = states[gameId];
 
@@ -159,17 +181,40 @@ export default function App() {
     setStates((current) => ({ ...current, [gameId]: next }));
   };
 
-  // Restore saved install folders and any paused download before the first
-  // paint of a live state.
+  // Settings load first: language and onboarding must be correct before the
+  // first paint. Download state can arrive afterwards.
   useEffect(() => {
-    if (!isTauri()) return;
     let active = true;
 
     void (async () => {
-      const settings = await loadSettings().catch((error: unknown): Settings => {
+      let loaded: Settings;
+      try {
+        loaded = await loadSettings();
+      } catch (error) {
         console.error("[YAYL] cannot load settings", error);
-        return { installRoots: {}, language: null };
-      });
+        loaded = defaultSettings();
+        if (!isTauri()) loaded.onboardingComplete = true;
+      }
+      if (!active) return;
+
+      setSettings(loaded);
+      if (loaded.language === "vi" || loaded.language === "en") {
+        setLang(loaded.language);
+      }
+      // The lab can replay onboarding with ?onboarding=1.
+      const forcedOnboarding = !isTauri() && QUERY.get("onboarding") === "1";
+      setOnboarding(forcedOnboarding || !loaded.onboardingComplete);
+      setBooted(true);
+
+      if (!isTauri()) {
+        const nextRoots = {} as Record<GameId, string>;
+        for (const id of GAME_IDS) {
+          nextRoots[id] = loaded.installRoots[id] || GAMES[id].path;
+        }
+        setRoots(nextRoots);
+        return;
+      }
+
       const nextRoots = {} as Record<GameId, string>;
       const nextStates: Partial<Record<GameId, GameState>> = {};
       const nextLive: Partial<Record<GameId, LiveDownload>> = {};
@@ -177,7 +222,7 @@ export default function App() {
       await Promise.all(
         GAME_IDS.map(async (id) => {
           try {
-            const root = settings.installRoots[id] || (await defaultInstallRoot(id));
+            const root = loaded.installRoots[id] || (await defaultInstallRoot(id));
             nextRoots[id] = root;
             const snapshot = await downloadStatus(id, root);
             if (!snapshot) return;
@@ -202,6 +247,7 @@ export default function App() {
       });
     })().catch((error: unknown) => {
       console.error("[YAYL] bootstrap failed", error);
+      if (active) setBooted(true);
     });
 
     return () => {
@@ -245,9 +291,16 @@ export default function App() {
   useLayoutEffect(() => {
     document.body.dataset.game = gameId;
     document.body.dataset.state = state;
-    document.body.dataset.layout = "rail";
+    document.body.dataset.layout = onboarding ? "onboarding" : "rail";
+    document.body.dataset.page = onboarding
+      ? "first-run"
+      : view === "settings"
+        ? "settings"
+        : "home";
+    document.body.dataset.background = settings.background;
     document.documentElement.lang = lang;
-  }, [gameId, state, lang]);
+    document.documentElement.dataset.motion = settings.reducedMotion ? "off" : "on";
+  }, [gameId, state, lang, view, onboarding, settings.background, settings.reducedMotion]);
 
   const t = useMemo(() => {
     const dict = I18N[lang] ?? I18N.vi;
@@ -262,6 +315,29 @@ export default function App() {
     };
   }, [lang]);
 
+  const applySettings = (next: Settings) => {
+    setSettings(next);
+    if (next.language === "vi" || next.language === "en") setLang(next.language);
+    setRoots((current) => {
+      let merged = current;
+      for (const id of GAME_IDS) {
+        const path = next.installRoots[id];
+        if (!path || path === current[id]) continue;
+        if (merged === current) merged = { ...current };
+        merged[id] = path;
+      }
+      return merged;
+    });
+  };
+
+  const rememberRoot = (id: GameId, path: string) => {
+    setRoots((current) => ({ ...current, [id]: path }));
+    setSettings((current) => ({
+      ...current,
+      installRoots: { ...current.installRoots, [id]: path },
+    }));
+  };
+
   const locate = () => {
     void openInstallFolder(gameId, roots[gameId]).catch((error: unknown) => {
       console.error("[YAYL] cannot open install folder", error);
@@ -270,7 +346,7 @@ export default function App() {
 
   const confirmInstall = async (path: string) => {
     setInstallOpen(false);
-    setRoots((current) => ({ ...current, [gameId]: path }));
+    rememberRoot(gameId, path);
     setErrors((current) => {
       const next = { ...current };
       delete next[gameId];
@@ -355,10 +431,22 @@ export default function App() {
               <path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z" />
             </svg>
           </span>
-          <div className="brand-name" data-tauri-drag-region>
-            YAYL
+          <div>
+            <div className="brand-name" data-tauri-drag-region>
+              YAYL
+            </div>
+            {(onboarding || view === "settings") && (
+              <div className="brand-sub" data-tauri-drag-region>
+                {t("app.launcher")}
+              </div>
+            )}
           </div>
         </div>
+        {onboarding && (
+          <div className="titlebar-center">
+            <span className="titlebar-note">{t("firstRun.setup")}</span>
+          </div>
+        )}
         <div className="window-controls">
           <button className="win-btn" type="button" aria-label="Minimize" onClick={() => void windowMinimize()}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M5 12h14" /></svg>
@@ -372,29 +460,87 @@ export default function App() {
         </div>
       </header>
 
-      <div className="shell">
-        <Rail gameId={gameId} states={states} t={t} onSelect={setGameId} />
-        <main className="main">
-          <div className="main-scroll">
-            <Home
-              gameId={gameId}
-              state={state}
-              lang={lang}
-              t={t}
-              installRoot={roots[gameId]}
-              progress={live[gameId]?.progress ?? null}
-              errorCode={errors[gameId] ?? null}
-              onInstall={() => setInstallOpen(true)}
-              onLocate={locate}
-              onResume={() => void resume()}
-              onPause={() => void pause()}
-              onMinimize={() => void windowMinimize()}
-            />
-          </div>
-        </main>
-      </div>
+      {!booted ? (
+        <div className="boot-screen" aria-busy="true">
+          <BootMark />
+        </div>
+      ) : onboarding ? (
+        <Suspense
+          fallback={
+            <div className="boot-screen" aria-busy="true">
+              <BootMark />
+            </div>
+          }
+        >
+          <FirstRunPage
+            settings={settings}
+            lang={lang}
+            t={t}
+            onLang={setLang}
+            onSettings={applySettings}
+            onDone={() => {
+              setOnboarding(false);
+              setView("home");
+            }}
+          />
+        </Suspense>
+      ) : (
+        <div className="shell">
+          <Rail
+            gameId={gameId}
+            view={view}
+            states={states}
+            t={t}
+            onSelect={(id) => {
+              setGameId(id);
+              setView("home");
+            }}
+            onNavigate={setView}
+          />
+          <main className="main">
+            <div className="main-scroll">
+              {view === "settings" ? (
+                <Suspense
+                  fallback={
+                    <div className="boot-screen" aria-busy="true">
+                      <BootMark />
+                    </div>
+                  }
+                >
+                  <SettingsPage
+                    gameId={gameId}
+                    settings={settings}
+                    roots={roots}
+                    states={states}
+                    version={GAMES[gameId].version}
+                    t={t}
+                    onSettings={applySettings}
+                    onLang={setLang}
+                    onRoot={rememberRoot}
+                  />
+                </Suspense>
+              ) : (
+                <Home
+                  gameId={gameId}
+                  state={state}
+                  lang={lang}
+                  t={t}
+                  installRoot={roots[gameId]}
+                  progress={live[gameId]?.progress ?? null}
+                  errorCode={errors[gameId] ?? null}
+                  onInstall={() => setInstallOpen(true)}
+                  onLocate={locate}
+                  onResume={() => void resume()}
+                  onPause={() => void pause()}
+                  onMinimize={() => void windowMinimize()}
+                />
+              )}
+            </div>
+          </main>
+        </div>
+      )}
 
-      {(import.meta.env.DEV || !isTauri()) && (
+      {!onboarding && (import.meta.env.DEV || !isTauri()) && (
         <DevBar
           gameId={gameId}
           state={state}

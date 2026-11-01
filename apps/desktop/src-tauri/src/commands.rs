@@ -3,14 +3,18 @@
 //! Commands validate untrusted paths and return stable error codes. The
 //! webview only renders localized copy mapped from those codes.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, RemoteGame};
+use yayl_core::downloader::DownloadOrder;
 use yayl_core::path::nearest_existing;
 use yayl_core::profile::{self, GameProfile};
+use yayl_core::proxy::{ProxyMode, ProxySettings};
+use yayl_core::settings::{BackgroundMode, Settings as CoreSettings};
 use yayl_core::{disk, path::validate_install_root};
 
 use crate::error::CommandError;
@@ -24,13 +28,18 @@ fn profile(game: &str) -> Result<GameProfile, CommandError> {
 }
 
 #[tauri::command]
-pub async fn download_bytes(state: State<'_, AppState>, game: String) -> Result<u64, CommandError> {
+pub async fn download_bytes(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    game: String,
+) -> Result<u64, CommandError> {
     let profile = profile(&game)?;
     if let Some(bytes) = state.cached_size(&game) {
         return Ok(bytes);
     }
 
-    let remote = RemoteGame::fetch(profile, DEFAULT_LAUNCHER_VERSION).await?;
+    let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
+    let remote = RemoteGame::fetch_with_client(profile, DEFAULT_LAUNCHER_VERSION, client).await?;
     let bytes = remote.manifest.total_bytes();
     state.cache_size(game, bytes);
     Ok(bytes)
@@ -64,12 +73,16 @@ pub async fn disk_space(path: String) -> Result<DiskSpaceView, CommandError> {
     })
 }
 
-fn default_root(app: &AppHandle, profile: &GameProfile) -> Result<PathBuf, CommandError> {
+fn default_base(app: &AppHandle) -> Result<PathBuf, CommandError> {
     let home = app
         .path()
         .home_dir()
         .map_err(|error| CommandError::new("io", error.to_string()))?;
-    Ok(home.join("Games").join("YAYL").join(profile.install_dir))
+    Ok(home.join("Games").join("YAYL"))
+}
+
+fn default_root(app: &AppHandle, profile: &GameProfile) -> Result<PathBuf, CommandError> {
+    Ok(default_base(app)?.join(profile.install_dir))
 }
 
 /// Commands that read or mutate an install root only accept the root saved for
@@ -133,6 +146,186 @@ pub fn save_install_root(app: AppHandle, game: String, path: String) -> Result<(
     let mut settings = settings::load(&app)?;
     settings.set_install_root(&game, root);
     settings::save(&app, &settings)
+}
+
+fn validate_language(language: &str) -> Result<(), CommandError> {
+    match language {
+        "vi" | "en" => Ok(()),
+        _ => Err(CommandError::new(
+            "invalid_input",
+            format!("unsupported language: {language}"),
+        )),
+    }
+}
+
+#[tauri::command]
+pub fn set_language(app: AppHandle, language: String) -> Result<SettingsView, CommandError> {
+    validate_language(&language)?;
+    let mut settings = settings::load(&app)?;
+    settings.language = Some(language);
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkSettingsPatch {
+    pub mode: ProxyMode,
+    pub url: Option<String>,
+    pub no_proxy: Option<String>,
+    pub download_order: DownloadOrder,
+    pub concurrency: usize,
+}
+
+#[tauri::command]
+pub fn save_network_settings(
+    app: AppHandle,
+    patch: NetworkSettingsPatch,
+) -> Result<SettingsView, CommandError> {
+    if !(1..=32).contains(&patch.concurrency) {
+        return Err(CommandError::new(
+            "invalid_input",
+            "concurrency must be between 1 and 32",
+        ));
+    }
+    let mut proxy = ProxySettings {
+        mode: patch.mode,
+        url: None,
+        no_proxy: patch.no_proxy.filter(|value| !value.trim().is_empty()),
+    };
+    if proxy.mode == ProxyMode::Manual {
+        proxy.url = patch.url.filter(|value| !value.trim().is_empty());
+    }
+    proxy.validate()?;
+
+    let mut settings = settings::load(&app)?;
+    settings.proxy = proxy;
+    settings.download_order = patch.download_order;
+    settings.concurrency = patch.concurrency;
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+#[tauri::command]
+pub fn save_appearance(
+    app: AppHandle,
+    reduced_motion: bool,
+    background: BackgroundMode,
+) -> Result<SettingsView, CommandError> {
+    let mut settings = settings::load(&app)?;
+    settings.reduced_motion = reduced_motion;
+    settings.background = background;
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FirstRunInput {
+    pub language: String,
+    pub roots: BTreeMap<String, String>,
+}
+
+/// Persist the first-run choices before the summary step. Onboarding stays
+/// incomplete until the user confirms the summary, so quitting early replays
+/// the flow with the saved roots already filled in.
+#[tauri::command]
+pub fn save_first_run(app: AppHandle, input: FirstRunInput) -> Result<SettingsView, CommandError> {
+    validate_language(&input.language)?;
+    if input.roots.is_empty() {
+        return Err(CommandError::new(
+            "invalid_input",
+            "select at least one game",
+        ));
+    }
+
+    let mut roots = BTreeMap::new();
+    for (game, path) in input.roots {
+        profile(&game)?;
+        let root = PathBuf::from(path);
+        validate_install_root(&root)?;
+        roots.insert(game, root);
+    }
+
+    let mut settings = settings::load(&app)?;
+    settings.language = Some(input.language);
+    for (game, root) in roots {
+        settings.set_install_root(&game, root);
+    }
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+#[tauri::command]
+pub fn complete_onboarding(app: AppHandle) -> Result<SettingsView, CommandError> {
+    let mut settings = settings::load(&app)?;
+    settings.onboarding_complete = true;
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+/// Reset preferences but keep install folders and onboarding state. Game files
+/// are never touched.
+#[tauri::command]
+pub fn reset_settings(app: AppHandle) -> Result<SettingsView, CommandError> {
+    let current = settings::load(&app)?;
+    let next = CoreSettings {
+        install_roots: current.install_roots,
+        onboarding_complete: current.onboarding_complete,
+        ..CoreSettings::default()
+    };
+    settings::save(&app, &next)?;
+    Ok(next.into())
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameProfileView {
+    pub id: String,
+    pub install_dir: String,
+    pub default_root: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameProfilesView {
+    pub base: String,
+    pub games: Vec<GameProfileView>,
+}
+
+#[tauri::command]
+pub fn game_profiles(app: AppHandle) -> Result<GameProfilesView, CommandError> {
+    let base = default_base(&app)?;
+    let games = profile::PROFILES
+        .iter()
+        .map(|profile| GameProfileView {
+            id: profile.id.to_owned(),
+            install_dir: profile.install_dir.to_owned(),
+            default_root: base
+                .join(profile.install_dir)
+                .to_string_lossy()
+                .into_owned(),
+        })
+        .collect();
+    Ok(GameProfilesView {
+        base: base.to_string_lossy().into_owned(),
+        games,
+    })
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppInfoView {
+    pub version: String,
+    pub debug: bool,
+}
+
+#[tauri::command]
+pub fn app_info(app: AppHandle) -> AppInfoView {
+    AppInfoView {
+        version: app.package_info().version.to_string(),
+        debug: cfg!(debug_assertions),
+    }
 }
 
 #[tauri::command]

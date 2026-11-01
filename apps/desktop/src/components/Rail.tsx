@@ -2,11 +2,15 @@ import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import DownloadBadge from "./DownloadBadge";
 import type { DownloadBadgeState } from "./DownloadBadge";
 
+export type RailView = "home" | "settings";
+
 interface Props {
   gameId: GameId;
+  view: RailView;
   states: Record<GameId, GameState>;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onSelect: (id: GameId) => void;
+  onNavigate: (view: RailView) => void;
 }
 
 const RAIL_PATH =
@@ -14,7 +18,7 @@ const RAIL_PATH =
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
 
-export default function Rail({ gameId, states, t, onSelect }: Props) {
+export default function Rail({ gameId, view, states, t, onSelect, onNavigate }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-scroll">
@@ -73,12 +77,26 @@ export default function Rail({ gameId, states, t, onSelect }: Props) {
         </div>
 
         <nav className="nav">
-          <a className="nav-item is-active" href="#" title={t("nav.home")} aria-label={t("nav.home")}>
+          <button
+            className={"nav-item" + (view === "home" ? " is-active" : "")}
+            type="button"
+            title={t("nav.home")}
+            aria-label={t("nav.home")}
+            aria-current={view === "home" ? "page" : undefined}
+            onClick={() => onNavigate("home")}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3.5 10.5 8.5-7 8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M9.5 20v-6h5v6" /></svg>
-          </a>
-          <a className="nav-item" href="#" title={t("nav.settings")} aria-label={t("nav.settings")}>
+          </button>
+          <button
+            className={"nav-item" + (view === "settings" ? " is-active" : "")}
+            type="button"
+            title={t("nav.settings")}
+            aria-label={t("nav.settings")}
+            aria-current={view === "settings" ? "page" : undefined}
+            onClick={() => onNavigate("settings")}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21h-4v-.08a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3v-4h.08a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3h4v.08a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.12.4.45.74.85.92H21v4h-.08a1.7 1.7 0 0 0-1.52 1.08Z" /></svg>
-          </a>
+          </button>
         </nav>
       </div>
     </aside>
