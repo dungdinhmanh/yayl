@@ -83,6 +83,7 @@ export interface Settings {
   reducedMotion: boolean;
   background: BackgroundMode;
   onboardingComplete: boolean;
+  closeToTray: boolean;
 }
 
 export interface GameProfileInfo {
@@ -127,6 +128,29 @@ export interface VerifyReport {
   issues: VerifyIssue[];
 }
 
+export interface NewsBanner {
+  image: string;
+  url: string;
+  remark: string;
+}
+
+export interface NewsItem {
+  title: string;
+  url: string;
+  date: string;
+  image: string;
+}
+
+export interface NewsSection {
+  label: string;
+  items: NewsItem[];
+}
+
+export interface NewsFeed {
+  banners: NewsBanner[];
+  sections: NewsSection[];
+}
+
 export function defaultSettings(): Settings {
   return {
     installRoots: {},
@@ -137,6 +161,7 @@ export function defaultSettings(): Settings {
     reducedMotion: false,
     background: "art",
     onboardingComplete: false,
+    closeToTray: true,
   };
 }
 
@@ -337,6 +362,14 @@ export async function saveAppearance(
   return { ...mockSettings };
 }
 
+export async function saveWindowBehavior(closeToTray: boolean): Promise<Settings> {
+  if (IS_TAURI) {
+    return invoke<Settings>("save_window_behavior", { closeToTray });
+  }
+  mockSettings = { ...mockSettings, closeToTray };
+  return { ...mockSettings };
+}
+
 export async function saveFirstRun(
   language: "vi" | "en",
   roots: Record<string, string>
@@ -396,6 +429,21 @@ export async function appInfo(): Promise<AppInfo> {
 export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | null> {
   if (!IS_TAURI) return null;
   return invoke<PlaytimeEntry>("playtime", { game: gameId });
+}
+
+export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
+  if (!IS_TAURI) return null;
+  return invoke<NewsFeed>("fetch_news", { game: gameId });
+}
+
+/* Open an https link in the system browser instead of navigating the webview. */
+export async function openExternal(url: string): Promise<void> {
+  if (!url) return;
+  if (IS_TAURI) {
+    await invoke("open_external", { url });
+    return;
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 /* Returns true when a real backend started the game. */

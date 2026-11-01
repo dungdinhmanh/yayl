@@ -47,10 +47,17 @@ pub struct Settings {
     /// true because they predate onboarding.
     #[serde(default)]
     pub onboarding_complete: bool,
+    /// Keep YAYL in the tray when the window is closed.
+    #[serde(default = "default_true")]
+    pub close_to_tray: bool,
 }
 
 fn default_concurrency() -> usize {
     DEFAULT_CONCURRENCY
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for Settings {
@@ -64,6 +71,7 @@ impl Default for Settings {
             reduced_motion: false,
             background: BackgroundMode::default(),
             onboarding_complete: false,
+            close_to_tray: true,
         }
     }
 }
@@ -121,6 +129,7 @@ mod tests {
         settings.reduced_motion = true;
         settings.background = BackgroundMode::Solid;
         settings.onboarding_complete = true;
+        settings.close_to_tray = false;
         settings.save(&path).unwrap();
 
         let loaded = Settings::load(&path).unwrap();
@@ -134,6 +143,7 @@ mod tests {
         assert!(loaded.reduced_motion);
         assert_eq!(loaded.background, BackgroundMode::Solid);
         assert!(loaded.onboarding_complete);
+        assert!(!loaded.close_to_tray);
     }
 
     #[test]
@@ -147,6 +157,7 @@ mod tests {
         assert_eq!(settings.concurrency, DEFAULT_CONCURRENCY);
         // Existing users are not sent through onboarding again.
         assert!(settings.onboarding_complete);
+        assert!(settings.close_to_tray);
     }
 
     #[test]

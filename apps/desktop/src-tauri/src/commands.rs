@@ -165,8 +165,9 @@ fn validate_language(language: &str) -> Result<(), CommandError> {
 pub fn set_language(app: AppHandle, language: String) -> Result<SettingsView, CommandError> {
     validate_language(&language)?;
     let mut settings = settings::load(&app)?;
-    settings.language = Some(language);
+    settings.language = Some(language.clone());
     settings::save(&app, &settings)?;
+    crate::refresh_tray(&app, &language);
     Ok(settings.into())
 }
 
@@ -218,6 +219,17 @@ pub fn save_appearance(
     let mut settings = settings::load(&app)?;
     settings.reduced_motion = reduced_motion;
     settings.background = background;
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+#[tauri::command]
+pub fn save_window_behavior(
+    app: AppHandle,
+    close_to_tray: bool,
+) -> Result<SettingsView, CommandError> {
+    let mut settings = settings::load(&app)?;
+    settings.close_to_tray = close_to_tray;
     settings::save(&app, &settings)?;
     Ok(settings.into())
 }
@@ -278,6 +290,7 @@ pub fn reset_settings(app: AppHandle) -> Result<SettingsView, CommandError> {
         ..CoreSettings::default()
     };
     settings::save(&app, &next)?;
+    crate::refresh_tray(&app, "vi");
     Ok(next.into())
 }
 
@@ -447,6 +460,27 @@ pub async fn choose_install_folder(
     Ok(folder
         .and_then(|path| path.into_path().ok())
         .map(|path| path.to_string_lossy().into_owned()))
+}
+
+#[tauri::command]
+pub async fn fetch_news(
+    app: AppHandle,
+    game: String,
+) -> Result<yayl_core::api::NewsFeed, CommandError> {
+    let profile = profile(&game)?;
+    let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    Ok(api.news().await?)
+}
+
+/// Open an https link in the user's browser. The webview must never navigate
+/// away from the launcher, so every external link goes through this command.
+#[tauri::command]
+pub fn open_external(app: AppHandle, url: String) -> Result<(), CommandError> {
+    yayl_core::url::validate_remote_url(&url)?;
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|error| CommandError::new("unknown", error.to_string()))
 }
 
 #[tauri::command]

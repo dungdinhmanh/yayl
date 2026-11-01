@@ -11,6 +11,7 @@ import {
   defaultSettings,
   discardDownload,
   downloadStatus,
+  fetchNews,
   fetchPlaytime,
   isTauri,
   launchGame,
@@ -27,6 +28,7 @@ import {
   windowToggleMaximize,
   type DownloadProgress,
   type DownloadSnapshot,
+  type NewsFeed,
   type PlaytimeEntry,
   type Settings,
 } from "./lib/ipc";
@@ -177,6 +179,7 @@ export default function App() {
   const [view, setView] = useState<View>("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [playtimes, setPlaytimes] = useState<Partial<Record<GameId, PlaytimeEntry>>>({});
+  const [news, setNews] = useState<Partial<Record<GameId, NewsFeed | null>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
   const [onboarding, setOnboarding] = useState(
     () => !isTauri() && QUERY.get("onboarding") === "1"
@@ -331,6 +334,24 @@ export default function App() {
     };
   }, []);
 
+  // News is fetched per game and cached for the session. The lab keeps the
+  // static feed so the widget can still be reviewed offline.
+  useEffect(() => {
+    if (!isTauri() || !booted || news[gameId] !== undefined) return;
+    let active = true;
+    void fetchNews(gameId)
+      .then((feed) => {
+        if (active) setNews((current) => ({ ...current, [gameId]: feed }));
+      })
+      .catch((error: unknown) => {
+        console.error(`[YAYL] cannot load ${gameId} news`, error);
+        if (active) setNews((current) => ({ ...current, [gameId]: null }));
+      });
+    return () => {
+      active = false;
+    };
+  }, [gameId, booted, news]);
+
   // Layout effect so the root attributes are in place before paint.
   useLayoutEffect(() => {
     document.body.dataset.game = gameId;
@@ -441,6 +462,13 @@ export default function App() {
       });
   };
 
+  const retry = () => {
+    // Offline is a network failure, so re-checking is the honest retry. An
+    // update with "play anyway" just launches the installed build.
+    if (state === "offline") check(false);
+    else play();
+  };
+
   const confirmInstall = async (path: string) => {
     setInstallOpen(false);
     rememberRoot(gameId, path);
@@ -545,13 +573,13 @@ export default function App() {
           </div>
         )}
         <div className="window-controls">
-          <button className="win-btn" type="button" aria-label="Minimize" onClick={() => void windowMinimize()}>
+          <button className="win-btn" type="button" aria-label={t("window.minimize")} onClick={() => void windowMinimize()}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M5 12h14" /></svg>
           </button>
-          <button className="win-btn" type="button" aria-label="Maximize" onClick={() => void windowToggleMaximize()}>
+          <button className="win-btn" type="button" aria-label={t("window.maximize")} onClick={() => void windowToggleMaximize()}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="5" y="5" width="14" height="14" rx="2" /></svg>
           </button>
-          <button className="win-btn is-close" type="button" aria-label="Close" onClick={() => void windowClose()}>
+          <button className="win-btn is-close" type="button" aria-label={t("window.close")} onClick={() => void windowClose()}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg>
           </button>
         </div>
@@ -587,6 +615,11 @@ export default function App() {
             gameId={gameId}
             view={view}
             states={states}
+            progress={
+              Object.fromEntries(
+                GAME_IDS.map((id) => [id, live[id]?.progress ?? 0])
+              ) as Record<GameId, number>
+            }
             t={t}
             onSelect={(id) => {
               setGameId(id);
@@ -626,6 +659,7 @@ export default function App() {
                   progress={live[gameId]?.progress ?? null}
                   errorCode={errors[gameId] ?? null}
                   playtime={playtimes[gameId] ?? null}
+                  news={news[gameId]}
                   onInstall={() => setInstallOpen(true)}
                   onLocate={locate}
                   onResume={() => void resume()}
@@ -634,6 +668,7 @@ export default function App() {
                   onPlay={play}
                   onVerify={() => check(false)}
                   onRepair={() => check(true)}
+                  onRetry={retry}
                   onSettings={() => setView("settings")}
                 />
               )}

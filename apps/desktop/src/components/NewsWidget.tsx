@@ -1,102 +1,245 @@
 import { useEffect, useMemo, useState } from "react";
 import { NEWS } from "../data";
+import { isTauri, openExternal, type NewsFeed } from "../lib/ipc";
 import type { Lang } from "../App";
 
 interface Props {
   lang: Lang;
   t: (key: string, vars?: Record<string, string | number>) => string;
+  news?: NewsFeed | null;
 }
+
+type BannerView = {
+  id: string;
+  image: string;
+  kicker: string;
+  title: string;
+  url: string;
+};
+
+type TabView = {
+  id: string;
+  label: string;
+  items: { title: string; date: string; url: string }[];
+};
 
 function asset(path: string) {
   return "/news/" + path.split("/").pop();
 }
 
-export default function NewsWidget({ lang, t }: Props) {
+/* The feed is untrusted input: only remote images and https links are used. */
+function safeImage(url: string) {
+  return /^https?:\/\//i.test(url) ? url : "";
+}
+
+function safeLink(url: string) {
+  return /^https:\/\//i.test(url) ? url : "";
+}
+
+function mockBanners(lang: Lang): BannerView[] {
+  return NEWS.banners.map((item) => ({
+    id: item.id,
+    image: asset(item.image),
+    kicker: item.kicker[lang],
+    title: item.title[lang],
+    url: "",
+  }));
+}
+
+function mockTabs(lang: Lang): TabView[] {
+  return NEWS.tabs.map((tab) => ({
+    id: tab.id,
+    label: tab.label[lang],
+    items: tab.items.map((item) => ({
+      title: item.title[lang],
+      date: item.date,
+      url: "",
+    })),
+  }));
+}
+
+export default function NewsWidget({ lang, t, news }: Props) {
+  const live = isTauri();
+  const loading = live && news === undefined;
+  const unavailable =
+    live &&
+    (news === null ||
+      (news !== undefined && news.banners.length === 0 && news.sections.length === 0));
+
+  const data = useMemo(() => {
+    if (!live || !news) {
+      return { banners: mockBanners(lang), tabs: mockTabs(lang) };
+    }
+    return {
+      banners: news.banners.map((item, index) => ({
+        id: `banner-${index}`,
+        image: safeImage(item.image),
+        kicker: t("news.banner"),
+        title: item.remark || t("news.banner"),
+        url: safeLink(item.url),
+      })),
+      tabs: news.sections.map((section, index) => ({
+        id: `section-${index}`,
+        label: section.label || t("news.updates"),
+        items: section.items.map((item) => ({
+          title: item.title,
+          date: item.date,
+          url: safeLink(item.url),
+        })),
+      })),
+    };
+  }, [live, news, lang, t]);
+
   const [banner, setBanner] = useState(0);
-  const [tabId, setTabId] = useState(NEWS.tabs[0].id as string);
+  const [tabId, setTabId] = useState(() => data.tabs[0]?.id ?? "");
+
+  // A new feed starts from the first banner and first tab.
+  useEffect(() => {
+    setBanner(0);
+    setTabId(data.tabs[0]?.id ?? "");
+  }, [live, news, data.tabs]);
 
   // A timeout keyed on the current slide: manual navigation restarts autoplay.
   useEffect(() => {
+    if (data.banners.length < 2) return;
     const timer = window.setTimeout(() => {
-      setBanner((current) => (current + 1) % NEWS.banners.length);
+      setBanner((current) => (current + 1) % data.banners.length);
     }, 6000);
     return () => window.clearTimeout(timer);
-  }, [banner]);
+  }, [banner, data.banners.length]);
 
   const step = (delta: number) => {
-    setBanner((current) => (current + delta + NEWS.banners.length) % NEWS.banners.length);
+    if (data.banners.length === 0) return;
+    setBanner(
+      (current) => (current + delta + data.banners.length) % data.banners.length
+    );
   };
 
-  const tab = useMemo(
-    () => NEWS.tabs.find((item) => item.id === tabId) ?? NEWS.tabs[0],
-    [tabId]
-  );
+  const tab = data.tabs.find((item) => item.id === tabId) ?? data.tabs[0];
+
+  const open = (url: string) => {
+    void openExternal(url).catch((error: unknown) => {
+      console.error("[YAYL] cannot open news link", error);
+    });
+  };
 
   return (
     <section className="home-news">
-      <div className="banner-card">
-        {NEWS.banners.map((item, index) => (
-          <div key={item.id} className={"banner-slide" + (index === banner ? " is-active" : "")}>
-            <img src={asset(item.image)} alt="" />
-            <div className="banner-copy">
-              <div className="banner-kicker">{item.kicker[lang]}</div>
-              <div className="banner-title">{item.title[lang]}</div>
-            </div>
-          </div>
-        ))}
-        <button
-          className="banner-nav banner-nav-prev"
-          type="button"
-          aria-label={t("news.prev")}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m15 6-6 6 6 6" />
-          </svg>
-        </button>
-        <button
-          className="banner-nav banner-nav-next"
-          type="button"
-          aria-label={t("news.next")}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-        </button>
-        <div className="banner-dots">
-          {NEWS.banners.map((item, index) => (
-            <button
-              key={item.id}
-              className={"banner-dot" + (index === banner ? " is-active" : "")}
-              type="button"
-              aria-label={t("news.slide", { n: index + 1 })}
-              onClick={() => setBanner(index)}
-            />
-          ))}
+      {loading ? (
+        <div className="banner-card news-placeholder" aria-busy="true" />
+      ) : unavailable ? (
+        <div className="banner-card news-placeholder">
+          <span>{t("news.unavailable")}</span>
         </div>
-      </div>
+      ) : (
+        <div className="banner-card">
+          {data.banners.map((item, index) => (
+            <div
+              key={item.id}
+              className={"banner-slide" + (index === banner ? " is-active" : "")}
+              aria-hidden={index !== banner}
+            >
+              <img
+                src={item.image}
+                alt=""
+                onError={(event) => event.currentTarget.classList.add("is-missing")}
+              />
+              <div className="banner-copy">
+                <div className="banner-kicker">{item.kicker}</div>
+                <div className="banner-title">{item.title}</div>
+              </div>
+            </div>
+          ))}
+          {data.banners.length > 1 && (
+            <>
+              <button
+                className="banner-nav banner-nav-prev"
+                type="button"
+                aria-label={t("news.prev")}
+                onClick={() => step(-1)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m15 6-6 6 6 6" />
+                </svg>
+              </button>
+              <button
+                className="banner-nav banner-nav-next"
+                type="button"
+                aria-label={t("news.next")}
+                onClick={() => step(1)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m9 6 6 6-6 6" />
+                </svg>
+              </button>
+              <div className="banner-dots">
+                {data.banners.map((item, index) => (
+                  <button
+                    key={item.id}
+                    className={"banner-dot" + (index === banner ? " is-active" : "")}
+                    type="button"
+                    aria-label={t("news.slide", { n: index + 1 })}
+                    aria-current={index === banner}
+                    onClick={() => setBanner(index)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="news-panel">
-        <div className="news-tabs">
-          {NEWS.tabs.map((item) => (
+        <div className="news-tabs" role="tablist" aria-label={t("news.title")}>
+          {data.tabs.map((item) => (
             <button
               key={item.id}
               className={"news-tab" + (item.id === tabId ? " is-active" : "")}
               type="button"
+              role="tab"
+              aria-selected={item.id === tabId}
               onClick={() => setTabId(item.id)}
             >
-              {item.label[lang]}
+              {item.label}
             </button>
           ))}
         </div>
         <div className="news-list">
-          {tab.items.map((item) => (
-            <a key={item.link + item.date} className="news-item" href={item.link}>
-              <span className="news-title">{item.title[lang]}</span>
-              <span className="news-date">{item.date}</span>
-            </a>
-          ))}
+          {loading ? (
+            <div className="news-placeholder-row" aria-busy="true" />
+          ) : unavailable ? (
+            <div className="news-placeholder-row" />
+          ) : (
+            (tab?.items ?? []).map((item) => {
+              const body = (
+                <>
+                  <span className="news-title">{item.title}</span>
+                  <span className="news-date">{item.date}</span>
+                </>
+              );
+              if (!item.url) {
+                return (
+                  <span key={item.title + item.date} className="news-item">
+                    {body}
+                  </span>
+                );
+              }
+              return (
+                <a
+                  key={item.title + item.date}
+                  className="news-item"
+                  href={item.url}
+                  rel="noreferrer"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    open(item.url);
+                  }}
+                >
+                  {body}
+                </a>
+              );
+            })
+          )}
         </div>
       </div>
     </section>

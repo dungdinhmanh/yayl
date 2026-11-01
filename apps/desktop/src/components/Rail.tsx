@@ -8,6 +8,7 @@ interface Props {
   gameId: GameId;
   view: RailView;
   states: Record<GameId, GameState>;
+  progress: Record<GameId, number>;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onSelect: (id: GameId) => void;
   onNavigate: (view: RailView) => void;
@@ -18,7 +19,7 @@ const RAIL_PATH =
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
 
-export default function Rail({ gameId, view, states, t, onSelect, onNavigate }: Props) {
+export default function Rail({ gameId, view, states, progress, t, onSelect, onNavigate }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-scroll">
@@ -35,7 +36,8 @@ export default function Rail({ gameId, view, states, t, onSelect, onNavigate }: 
             // The progress ring belongs to a downloading game that is not selected.
             const showRing = downloadActive && !selected;
             // Selected rings are full: the ring doubles as the selection indicator.
-            const endOffset = selected ? 0 : showRing ? 100 - STATE_META[gameState].progress : 100;
+            const percent = progress[id] ?? STATE_META[gameState].progress;
+            const endOffset = selected ? 0 : showRing ? 100 - percent : 100;
 
             return (
               <button

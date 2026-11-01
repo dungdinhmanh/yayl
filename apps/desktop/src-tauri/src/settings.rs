@@ -44,6 +44,7 @@ pub struct SettingsView {
     pub reduced_motion: bool,
     pub background: BackgroundMode,
     pub onboarding_complete: bool,
+    pub close_to_tray: bool,
 }
 
 impl From<Settings> for SettingsView {
@@ -61,6 +62,7 @@ impl From<Settings> for SettingsView {
             reduced_motion: value.reduced_motion,
             background: value.background,
             onboarding_complete: value.onboarding_complete,
+            close_to_tray: value.close_to_tray,
         }
     }
 }

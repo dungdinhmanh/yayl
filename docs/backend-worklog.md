@@ -333,3 +333,22 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
   `bun run build` (329.98 KB JS / 101.73 KB gzip), `bun run design:check` pass.
+
+### 2026-11-01 - Real news, live rail progress, tray and close behavior
+
+- News now comes from the official API through the `fetch_news` command; the
+  widget keeps the static feed only in the web lab. Remote images are limited to
+  `http(s)` and links to `https`, and links open through `open_external` so the
+  webview never navigates away. Loading and unavailable states are explicit.
+- The rail progress ring reads live download progress instead of the static
+  state table.
+- Added a tray icon with a localized Open/Quit menu, left-click restore, and a
+  menu refresh when the language changes.
+- Added `Settings.close_to_tray` (default `true`, migrated for old files) and the
+  `save_window_behavior` command. `CloseRequested` hides the window when the
+  option is on, otherwise the app closes normally.
+- Settings exposes "When closing the window" as tray/exit; the fake autostart,
+  minimize-on-play, and start-minimized controls stay out of the UI.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
+  -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
+  `bun run build` (332.79 KB JS / 102.67 KB gzip), `bun run design:check` pass.

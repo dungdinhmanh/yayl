@@ -13,6 +13,7 @@ import {
   saveAppearance,
   saveInstallRoot,
   saveNetworkSettings,
+  saveWindowBehavior,
   setLanguage,
   type AppInfo,
   type BackgroundMode,
@@ -169,6 +170,10 @@ export default function Settings({
 
   const changeBackground = (value: BackgroundMode) => {
     void commit(() => saveAppearance(settings.reducedMotion, value));
+  };
+
+  const changeTray = (enabled: boolean) => {
+    void commit(() => saveWindowBehavior(enabled));
   };
 
   const saveNetwork = (overrides?: {
@@ -341,6 +346,24 @@ export default function Settings({
                     >
                       <option value="art">{t("settings.background.art")}</option>
                       <option value="solid">{t("settings.background.solid")}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="setting-row">
+                  <div className="setting-copy">
+                    <div className="setting-label">{t("settings.closeBehavior")}</div>
+                    <div className="setting-desc">{t("settings.closeBehavior.desc")}</div>
+                  </div>
+                  <div className="setting-control is-medium">
+                    <select
+                      className="select"
+                      aria-label={t("settings.closeBehavior")}
+                      value={settings.closeToTray ? "tray" : "exit"}
+                      onChange={(event) => changeTray(event.target.value === "tray")}
+                    >
+                      <option value="tray">{t("settings.closeTray")}</option>
+                      <option value="exit">{t("settings.closeExit")}</option>
                     </select>
                   </div>
                 </div>

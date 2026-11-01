@@ -3,7 +3,7 @@ import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
-import { fileUrl, type PlaytimeEntry } from "../lib/ipc";
+import { fileUrl, type NewsFeed, type PlaytimeEntry } from "../lib/ipc";
 import type { Lang } from "../App";
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
   progress?: number | null;
   errorCode?: string | null;
   playtime?: PlaytimeEntry | null;
+  news?: NewsFeed | null;
   onInstall: () => void;
   onLocate: () => void;
   onResume: () => void;
@@ -23,6 +24,7 @@ interface Props {
   onPlay: () => void;
   onVerify: () => void;
   onRepair: () => void;
+  onRetry: () => void;
   onSettings: () => void;
 }
 
@@ -45,13 +47,13 @@ function icon(name: string) {
 
 type SecondaryAction = {
   key: string;
-  action: "locate" | "pause" | "minimize" | "verify" | "none";
+  action: "locate" | "pause" | "minimize" | "verify" | "play" | "retry" | "none";
 };
 
 function secondaryAction(state: GameState): SecondaryAction | null {
-  if (state === "update") return { key: "home.action.playAnyway", action: "none" };
+  if (state === "update") return { key: "home.action.playAnyway", action: "play" };
   if (state === "install") return { key: "home.action.locateGame", action: "locate" };
-  if (state === "offline") return { key: "home.action.retry", action: "none" };
+  if (state === "offline") return { key: "home.action.retry", action: "retry" };
   if (state === "running") return { key: "home.action.minimize", action: "minimize" };
   if (state === "downloading") return { key: "home.action.pause", action: "pause" };
   if (state === "paused") return { key: "home.action.cancel", action: "pause" };
@@ -92,6 +94,7 @@ export default function Home({
   progress,
   errorCode,
   playtime,
+  news,
   onInstall,
   onLocate,
   onResume,
@@ -100,6 +103,7 @@ export default function Home({
   onPlay,
   onVerify,
   onRepair,
+  onRetry,
   onSettings,
 }: Props) {
   const game = GAMES[gameId];
@@ -145,7 +149,7 @@ export default function Home({
 
   return (
     <div className="page home-page">
-      <NewsWidget lang={lang} t={t} />
+      <NewsWidget lang={lang} t={t} news={news} />
 
       {state !== "install" && (
         <div className="hero-stats">
@@ -169,7 +173,7 @@ export default function Home({
             onClick={() => {
               if (state === "install" || state === "update") onInstall();
               else if (state === "paused") onResume();
-              else if (state === "ready") onPlay();
+              else if (state === "ready" || state === "offline") onPlay();
               else if (state === "error") onRepair();
             }}
           >
@@ -242,6 +246,8 @@ export default function Home({
               else if (secondary.action === "pause") onPause();
               else if (secondary.action === "minimize") onMinimize();
               else if (secondary.action === "verify") onVerify();
+              else if (secondary.action === "play") onPlay();
+              else if (secondary.action === "retry") onRetry();
             }}
           >
             {t(secondary.key, vars)}

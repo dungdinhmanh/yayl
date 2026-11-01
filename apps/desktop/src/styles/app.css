@@ -4512,6 +4512,21 @@ body[data-layout="rail"] .backdrop-scrim {
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
 }
 
+.news-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 13.8px;
+  text-align: center;
+}
+
+.news-placeholder-row {
+  min-height: 38px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .banner-slide {
   position: absolute;
   inset: 0;
