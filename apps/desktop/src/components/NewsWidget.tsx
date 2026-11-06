@@ -95,7 +95,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
       banners: news.banners.map((item, index) => ({
         id: `banner-${index}`,
         image: safeImage(item.image),
-        kicker: t("news.banner"),
+        kicker: "",
         title: item.remark,
         url: safeLink(item.url),
       })),
@@ -165,10 +165,12 @@ export default function NewsWidget({ lang, t, news }: Props) {
                 alt=""
                 onError={(event) => event.currentTarget.classList.add("is-missing")}
               />
-              <div className="banner-copy">
-                <div className="banner-kicker">{item.kicker}</div>
-                {item.title && <div className="banner-title">{item.title}</div>}
-              </div>
+              {(item.kicker || item.title) && (
+                <div className="banner-copy">
+                  {item.kicker && <div className="banner-kicker">{item.kicker}</div>}
+                  {item.title && <div className="banner-title">{item.title}</div>}
+                </div>
+              )}
             </div>
           ))}
           {data.banners.length > 1 && (
