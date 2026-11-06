@@ -52,10 +52,10 @@ The order is deliberate: validate the UI as static HTML, then port it to React, 
 - [ ] App shell, home states, download view, settings, first-run.
 - [ ] i18next vi/en, all strings localized.
 - [ ] Zustand stores and typed IPC wrappers.
-- [ ] Tray, window lifecycle, close-to-tray.
-- [ ] Playtime tracking and last-played.
-- [ ] Mock mode for UI development without backend.
-- [ ] Accessibility pass and 1100px/150% DPI checks.
+- [x] Tray, window lifecycle, close-to-tray.
+- [x] Playtime tracking and last-played.
+- [x] Mock mode for UI development without backend.
+- [x] Accessibility pass and 1100px/150% DPI checks.
 
 **Exit:** complete launcher UI backed by real commands, no placeholder data.
 
