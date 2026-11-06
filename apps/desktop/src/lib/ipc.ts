@@ -438,7 +438,23 @@ export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | nul
 }
 
 export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
-  if (!IS_TAURI) return null;
+  if (!IS_TAURI) {
+    /* Dev-only bridge from vite.config.ts. It signs the request with the same
+       public protocol envelope as the Rust client so the browser lab can be
+       reviewed against real news data. */
+    if (!import.meta.env.DEV) return null;
+    const response = await fetch(`/__dev/news?game=${encodeURIComponent(gameId)}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`dev news bridge returned HTTP ${response.status}`);
+    }
+    const feed = (await response.json()) as NewsFeed;
+    console.info(
+      `[YAYL] dev news ${gameId}: ${feed.banners.length} banners, ${feed.sections.length} sections`
+    );
+    return feed;
+  }
   return invoke<NewsFeed>("fetch_news", { game: gameId });
 }
 

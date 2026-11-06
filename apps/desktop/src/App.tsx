@@ -337,10 +337,11 @@ export default function App() {
     };
   }, []);
 
-  // News is fetched per game and cached for the session. The lab keeps the
-  // static feed so the widget can still be reviewed offline.
+  // News is fetched per game and cached for the session. In the browser lab the
+  // Vite dev bridge returns real API data; if it fails the widget falls back to
+  // the static feed.
   useEffect(() => {
-    if (!isTauri() || !booted || news[gameId] !== undefined) return;
+    if (!booted || news[gameId] !== undefined) return;
     let active = true;
     void fetchNews(gameId)
       .then((feed) => {

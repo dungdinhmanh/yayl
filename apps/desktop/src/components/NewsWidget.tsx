@@ -59,7 +59,9 @@ function mockTabs(lang: Lang): TabView[] {
 }
 
 export default function NewsWidget({ lang, t, news }: Props) {
-  const live = isTauri();
+  /* The browser lab shows a live feed when the dev bridge returns one and
+     falls back to the static feed when it does not. */
+  const live = isTauri() || Boolean(news);
   const loading = live && news === undefined;
   const unavailable =
     live &&

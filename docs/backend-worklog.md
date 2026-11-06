@@ -399,3 +399,15 @@ defects.
 - Removed the duplicated "Kiểm tra" secondary link from the Home ready state.
   The same action stays in the overflow menu, matching the design lab's
   `homeSecondaryText`, which returns null for ready.
+
+### 2026-11-06 - Preview live news in the browser lab
+
+- Added a serve-only Vite bridge (`/__dev/news`) that signs the official
+  operations request with the same envelope as `yayl_core::api` and normalizes
+  the feed like `OperationsResource::feed`.
+- The browser lab now renders real banners and sections; if the bridge fails it
+  keeps the static feed. Production builds never register the route.
+- Verified: Arknights returns 4 banners and LATEST/event/contest sections;
+  Stella Sora currently returns banners only because the API sends no
+  news/notice lists.
+- Gates: `bun run build`, `bun run design:check` pass.
