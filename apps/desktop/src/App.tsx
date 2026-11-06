@@ -146,7 +146,7 @@ function errorCode(error: unknown): string {
 
 function initialRoots(): Record<GameId, string> {
   const roots = {} as Record<GameId, string>;
-  for (const id of GAME_IDS) roots[id] = GAMES[id].path;
+  for (const id of GAME_IDS) roots[id] = isTauri() ? "" : GAMES[id].path;
   return roots;
 }
 
@@ -242,7 +242,8 @@ export default function App() {
             nextLive[id] = view;
             nextStates[id] = view.state;
           } catch (error) {
-            nextRoots[id] = GAMES[id].path;
+            // Do not invent a folder when the backend cannot resolve one.
+            nextRoots[id] = "";
             console.error(`[YAYL] cannot load ${id} status`, error);
           }
         })

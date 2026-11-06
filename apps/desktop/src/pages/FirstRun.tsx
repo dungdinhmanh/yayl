@@ -59,6 +59,7 @@ export default function FirstRun({
   const [base, setBase] = useState("");
   const [disk, setDisk] = useState<DiskSpace | null>(null);
   const [required, setRequired] = useState<number | null>(null);
+  const [sizes, setSizes] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
@@ -112,14 +113,18 @@ export default function FirstRun({
     setRequired(null);
     void Promise.all([
       fetchDiskSpace(base),
-      Promise.all(chosen.map((id) => fetchDownloadBytes(id as GameId))).then((sizes) =>
-        sizes.reduce((total, size) => total + size, 0)
+      Promise.all(
+        chosen.map(async (id) => {
+          const size = await fetchDownloadBytes(id as GameId);
+          return [id, size] as const;
+        })
       ),
     ])
-      .then(([space, bytes]) => {
+      .then(([space, entries]) => {
         if (!active) return;
         setDisk(space);
-        setRequired(bytes);
+        setSizes((current) => ({ ...current, ...Object.fromEntries(entries) }));
+        setRequired(entries.reduce((total, [, size]) => total + size, 0));
       })
       .catch((reason: unknown) => {
         console.error("[YAYL] cannot read disk space", reason);
@@ -305,8 +310,12 @@ export default function FirstRun({
                                 ? t("firstRun.detected")
                                 : t("firstRun.notDetected")}
                             </span>
-                            {" · "}
-                            {GAMES[id].required}
+                            {sizes[profile.id] !== undefined && (
+                              <>
+                                {" · "}
+                                {formatBytes(sizes[profile.id])}
+                              </>
+                            )}
                           </span>
                         </span>
                         <span className="check-box">

@@ -41,7 +41,7 @@ function percent(value: number) {
 }
 
 export default function InstallDialog({ gameId, game, initialPath, t, onClose, onConfirm }: Props) {
-  const [path, setPath] = useState<string>(initialPath || game.path);
+  const [path, setPath] = useState<string>(initialPath);
   const [downloadBytes, setDownloadBytes] = useState<number | null>(null);
   const [disk, setDisk] = useState<DiskSpace | null>(null);
   const [sizeLoading, setSizeLoading] = useState(true);
@@ -53,7 +53,7 @@ export default function InstallDialog({ gameId, game, initialPath, t, onClose, o
   const dialogRef = useRef<HTMLDivElement>(null);
   // Only the saved/default root is allowed by the backend. Once the user edits
   // the path it is a pending choice, not an install root yet.
-  const canLocate = path.trim() === initialPath.trim();
+  const canLocate = path.trim() !== "" && path.trim() === initialPath.trim();
 
   // Total size is fetched once. The disk query runs in parallel and only
   // re-runs when the path changes.

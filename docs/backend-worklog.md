@@ -369,3 +369,19 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
   `bun run build` (334.83 KB JS / 103.12 KB gzip), `bun run design:check` pass.
+
+### 2026-11-06 - Remove remaining mock fallbacks
+
+- First-run per-game sizes now come from `fetchDownloadBytes`, so the selected
+  games show their real download size instead of the static `GAMES[].required`
+  copy.
+- Tauri boot no longer invents a `GAMES[].path` when a root cannot be resolved;
+  roots start empty and failed status reads leave them empty. The lab keeps the
+  static paths.
+- The install dialog no longer falls back to the mock `game.path` and only shows
+  the locate action for a real path.
+- Removed the unused mock-only `settings.game.switch*` strings from the shipped
+  i18n bundle.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
+  -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
+  `bun run build`, `bun run design:check` pass.
