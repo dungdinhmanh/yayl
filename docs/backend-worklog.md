@@ -382,6 +382,15 @@ defects.
   the locate action for a real path.
 - Removed the unused mock-only `settings.game.switch*` strings from the shipped
   i18n bundle.
+- Onboarding no longer blocks when the size or disk probe fails: it keeps the
+  partial result, explains that the check will run again during install, and
+  only blocks when a known free-space value is actually short.
+- Added visible keyboard focus to the concurrency slider and the install path
+  field, and removed the remaining mock/outdated toast strings from the shipped
+  bundle.
+- Layout pass at 1100x650 and 1280x720, 100% and 150% zoom, vi/en: no horizontal
+  overflow; below 560 px the app scrolls vertically instead of clipping.
+  Lighthouse accessibility stays 1.0 on Home, Settings, and first-run.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
-  `bun run build`, `bun run design:check` pass.
+  `bun run build` (333.24 KB JS / 102.80 KB gzip), `bun run design:check` pass.

@@ -2337,6 +2337,11 @@ body[data-game="stella"] .backdrop-art {
   cursor: pointer;
 }
 
+.range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 .range-value {
   min-width: 28px;
   color: var(--text-soft);
@@ -5026,6 +5031,11 @@ body[data-layout="rail"] .backdrop-scrim {
 .install-path-input:focus {
   color: var(--text);
   outline: none;
+}
+
+.install-location:focus-within {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
 }
 
 .install-change {

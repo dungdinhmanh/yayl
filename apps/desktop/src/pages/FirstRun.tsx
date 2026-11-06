@@ -60,6 +60,7 @@ export default function FirstRun({
   const [disk, setDisk] = useState<DiskSpace | null>(null);
   const [required, setRequired] = useState<number | null>(null);
   const [sizes, setSizes] = useState<Record<string, number>>({});
+  const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
@@ -106,12 +107,14 @@ export default function FirstRun({
     if (!base.trim() || !absolutePath(base) || chosen.length === 0) {
       setDisk(null);
       setRequired(null);
+      setChecking(false);
       return;
     }
     let active = true;
     setDisk(null);
     setRequired(null);
-    void Promise.all([
+    setChecking(true);
+    void Promise.allSettled([
       fetchDiskSpace(base),
       Promise.all(
         chosen.map(async (id) => {
@@ -120,21 +123,34 @@ export default function FirstRun({
         })
       ),
     ])
-      .then(([space, entries]) => {
+      .then(([spaceResult, sizesResult]) => {
         if (!active) return;
-        setDisk(space);
-        setSizes((current) => ({ ...current, ...Object.fromEntries(entries) }));
-        setRequired(entries.reduce((total, [, size]) => total + size, 0));
+        if (spaceResult.status === "fulfilled") {
+          setDisk(spaceResult.value);
+        } else {
+          console.error("[YAYL] cannot read disk space", spaceResult.reason);
+        }
+        if (sizesResult.status === "fulfilled") {
+          const entries = sizesResult.value;
+          setSizes((current) => ({ ...current, ...Object.fromEntries(entries) }));
+          setRequired(entries.reduce((total, [, size]) => total + size, 0));
+        } else {
+          console.error("[YAYL] cannot read download size", sizesResult.reason);
+        }
       })
-      .catch((reason: unknown) => {
-        console.error("[YAYL] cannot read disk space", reason);
+      .finally(() => {
+        if (active) setChecking(false);
       });
     return () => {
       active = false;
     };
   }, [base, selectedKey]);
 
-  const enoughSpace = disk !== null && required !== null && disk.freeBytes >= required;
+  // Only block when both values are known and the disk is actually short.
+  // A failed API/disk probe should not trap the user in onboarding; the install
+  // dialog repeats the check with its own error state.
+  const enoughSpace =
+    disk === null || required === null ? true : disk.freeBytes >= required;
   const pathValid = absolutePath(base);
 
   const toggleGame = (id: string) => {
@@ -384,7 +400,9 @@ export default function FirstRun({
                         ? t("firstRun.path.requiredValue", {
                             size: formatBytes(required),
                           })
-                        : "—"}
+                        : checking
+                          ? "—"
+                          : t("firstRun.path.sizeUnknown")}
                     </span>
                     {disk && (
                       <>
@@ -398,6 +416,11 @@ export default function FirstRun({
                       </>
                     )}
                   </div>
+                  {!checking && (disk === null || required === null) && (
+                    <div className="onboarding-hint" role="status">
+                      {t("firstRun.path.checkFailed")}
+                    </div>
+                  )}
                   {disk && required !== null && !enoughSpace && (
                     <div className="onboarding-error" role="alert">
                       {t("firstRun.path.space")}
