@@ -95,8 +95,10 @@ export default function NewsWidget({ lang, t, news }: Props) {
       banners: news.banners.map((item, index) => ({
         id: `banner-${index}`,
         image: safeImage(item.image),
+        /* `remark` is internal CMS metadata, not localized copy: the EN API
+           still returns Chinese notes while the banner art is in English. */
         kicker: "",
-        title: item.remark,
+        title: "",
         url: safeLink(item.url),
       })),
       tabs: news.sections.map((section, index) => ({

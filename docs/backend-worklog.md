@@ -411,6 +411,7 @@ defects.
   Stella Sora currently returns banners only because the API sends no
   news/notice lists.
 - Section labels are mapped through i18n (`LATEST`/`event`/`contest`). Live
-  banners no longer render the redundant "NEWS" kicker; the copy block only
-  appears when the API sends a remark.
+  banners render art only: `remark` is internal CMS metadata, not localized
+  copy. The EN Stella endpoint still returns Chinese remarks while its banner
+  art is English, so the field is never shown.
 - Gates: `bun run build`, `bun run design:check` pass.
