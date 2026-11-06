@@ -47,7 +47,7 @@ function icon(name: string) {
 
 type SecondaryAction = {
   key: string;
-  action: "locate" | "pause" | "minimize" | "verify" | "play" | "retry" | "none";
+  action: "locate" | "pause" | "minimize" | "play" | "retry" | "none";
 };
 
 function secondaryAction(state: GameState): SecondaryAction | null {
@@ -57,7 +57,6 @@ function secondaryAction(state: GameState): SecondaryAction | null {
   if (state === "running") return { key: "home.action.minimize", action: "minimize" };
   if (state === "downloading") return { key: "home.action.pause", action: "pause" };
   if (state === "paused") return { key: "home.action.cancel", action: "pause" };
-  if (state === "ready") return { key: "home.action.verify", action: "verify" };
   return null;
 }
 
@@ -248,7 +247,6 @@ export default function Home({
               if (secondary.action === "locate") onLocate();
               else if (secondary.action === "pause") onPause();
               else if (secondary.action === "minimize") onMinimize();
-              else if (secondary.action === "verify") onVerify();
               else if (secondary.action === "play") onPlay();
               else if (secondary.action === "retry") onRetry();
             }}

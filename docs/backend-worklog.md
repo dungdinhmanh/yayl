@@ -396,3 +396,6 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
   `bun run build` (333.24 KB JS / 102.80 KB gzip), `bun run design:check` pass.
+- Removed the duplicated "Kiểm tra" secondary link from the Home ready state.
+  The same action stays in the overflow menu, matching the design lab's
+  `homeSecondaryText`, which returns null for ready.
