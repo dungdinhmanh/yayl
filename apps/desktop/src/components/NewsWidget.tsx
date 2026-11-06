@@ -36,6 +36,25 @@ function safeLink(url: string) {
   return /^https:\/\//i.test(url) ? url : "";
 }
 
+/* The API sends English section ids (`LATEST`, `event`, `contest`). Translate
+   the known ones and keep unknown labels untouched. */
+const SECTION_KEYS: Record<string, string> = {
+  latest: "news.section.latest",
+  news: "news.section.news",
+  event: "news.section.event",
+  events: "news.section.event",
+  contest: "news.section.contest",
+  notice: "news.section.notice",
+  notices: "news.section.notice",
+  update: "news.section.update",
+  updates: "news.section.update",
+};
+
+function sectionLabel(label: string, t: Props["t"]): string {
+  const key = SECTION_KEYS[label.trim().toLowerCase()];
+  return key ? t(key) : label;
+}
+
 function mockBanners(lang: Lang): BannerView[] {
   return NEWS.banners.map((item) => ({
     id: item.id,
@@ -77,12 +96,12 @@ export default function NewsWidget({ lang, t, news }: Props) {
         id: `banner-${index}`,
         image: safeImage(item.image),
         kicker: t("news.banner"),
-        title: item.remark || t("news.banner"),
+        title: item.remark,
         url: safeLink(item.url),
       })),
       tabs: news.sections.map((section, index) => ({
         id: `section-${index}`,
-        label: section.label || t("news.updates"),
+        label: section.label ? sectionLabel(section.label, t) : t("news.updates"),
         items: section.items.map((item) => ({
           title: item.title,
           date: item.date,
@@ -148,7 +167,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
               />
               <div className="banner-copy">
                 <div className="banner-kicker">{item.kicker}</div>
-                <div className="banner-title">{item.title}</div>
+                {item.title && <div className="banner-title">{item.title}</div>}
               </div>
             </div>
           ))}

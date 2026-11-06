@@ -410,4 +410,6 @@ defects.
 - Verified: Arknights returns 4 banners and LATEST/event/contest sections;
   Stella Sora currently returns banners only because the API sends no
   news/notice lists.
+- Section labels are mapped through i18n (`LATEST`/`event`/`contest`), and an
+  empty banner remark no longer renders a duplicate "NEWS" title.
 - Gates: `bun run build`, `bun run design:check` pass.
