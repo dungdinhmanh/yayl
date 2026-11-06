@@ -388,6 +388,8 @@ defects.
 - Added visible keyboard focus to the concurrency slider and the install path
   field, and removed the remaining mock/outdated toast strings from the shipped
   bundle.
+- First-run now says "Folder set" instead of "Install detected": a saved root is
+  not proof that the game files exist, and install detection/import is still M4.
 - Layout pass at 1100x650 and 1280x720, 100% and 150% zoom, vi/en: no horizontal
   overflow; below 560 px the app scrolls vertically instead of clipping.
   Lighthouse accessibility stays 1.0 on Home, Settings, and first-run.
