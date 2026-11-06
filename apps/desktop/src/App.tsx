@@ -4,6 +4,7 @@ import { I18N } from "./i18n";
 import Rail from "./components/Rail";
 import Home from "./pages/Home";
 import DevBar from "./components/DevBar";
+import ConfirmDialog from "./components/ConfirmDialog";
 import InstallDialog from "./components/InstallDialog";
 import {
   cancelDownload,
@@ -176,6 +177,7 @@ export default function App() {
   const [errors, setErrors] = useState<Partial<Record<GameId, string>>>({});
   const [lang, setLang] = useState<Lang>(queryLang);
   const [installOpen, setInstallOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [view, setView] = useState<View>("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [playtimes, setPlaytimes] = useState<Partial<Record<GameId, PlaytimeEntry>>>({});
@@ -488,25 +490,31 @@ export default function App() {
     }
   };
 
+  const discard = async () => {
+    setCancelOpen(false);
+    try {
+      await discardDownload(gameId, roots[gameId]);
+      setLive((current) => {
+        const next = { ...current };
+        delete next[gameId];
+        return next;
+      });
+      setErrors((current) => {
+        const next = { ...current };
+        delete next[gameId];
+        return next;
+      });
+      setState("install");
+    } catch (error) {
+      setState("error");
+      setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+    }
+  };
+
   const pause = async () => {
+    // Discarding resume state is destructive, so ask before doing it.
     if (state === "paused") {
-      try {
-        await discardDownload(gameId, roots[gameId]);
-        setLive((current) => {
-          const next = { ...current };
-          delete next[gameId];
-          return next;
-        });
-        setErrors((current) => {
-          const next = { ...current };
-          delete next[gameId];
-          return next;
-        });
-        setState("install");
-      } catch (error) {
-        setState("error");
-        setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
-      }
+      setCancelOpen(true);
       return;
     }
 
@@ -642,7 +650,6 @@ export default function App() {
                     settings={settings}
                     roots={roots}
                     states={states}
-                    version={GAMES[gameId].version}
                     t={t}
                     onSettings={applySettings}
                     onLang={setLang}
@@ -658,7 +665,7 @@ export default function App() {
                   installRoot={roots[gameId]}
                   progress={live[gameId]?.progress ?? null}
                   errorCode={errors[gameId] ?? null}
-                  playtime={playtimes[gameId] ?? null}
+                  playtime={playtimes[gameId]}
                   news={news[gameId]}
                   onInstall={() => setInstallOpen(true)}
                   onLocate={locate}
@@ -696,6 +703,19 @@ export default function App() {
           t={t}
           onClose={() => setInstallOpen(false)}
           onConfirm={(path) => void confirmInstall(path)}
+        />
+      )}
+
+      {cancelOpen && (
+        <ConfirmDialog
+          title={t("home.cancel.title")}
+          body={t("home.cancel.body")}
+          detail={roots[gameId]}
+          confirmLabel={t("home.cancel.confirm")}
+          cancelLabel={t("common.back")}
+          danger
+          onConfirm={() => void discard()}
+          onCancel={() => setCancelOpen(false)}
         />
       )}
     </div>

@@ -4916,6 +4916,22 @@ body[data-layout="rail"] .backdrop-scrim {
   outline: none;
 }
 
+.confirm-dialog {
+  width: min(440px, 100%);
+}
+
+.confirm-path {
+  overflow: hidden;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-size: 12.6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .install-head {
   display: flex;
   align-items: flex-start;

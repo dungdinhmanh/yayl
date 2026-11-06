@@ -3,7 +3,7 @@ import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
-import { fileUrl, type NewsFeed, type PlaytimeEntry } from "../lib/ipc";
+import { fileUrl, isTauri, type NewsFeed, type PlaytimeEntry } from "../lib/ipc";
 import type { Lang } from "../App";
 
 interface Props {
@@ -107,24 +107,27 @@ export default function Home({
   onSettings,
 }: Props) {
   const game = GAMES[gameId];
+  const live = isTauri();
   const meta = STATE_META[state];
   const secondary = secondaryAction(state);
   const percent = Math.round(progress ?? meta.progress ?? 0);
   const canCheck = CHECK_STATES.includes(state);
+  // The lab keeps the static sample history; the real app shows the stored
+  // playtime or an explicit "no data" label instead of inventing hours.
   const playtimeText = playtime
     ? formatPlaytime(playtime.seconds, t)
-    : game.playtime[lang];
+    : live
+      ? t("home.meta.noPlaytime")
+      : game.playtime[lang];
   const lastPlayedText =
     playtime?.lastPlayed != null
       ? formatLastPlayed(playtime.lastPlayed, lang)
-      : game.lastPlayed[lang];
+      : live
+        ? t("home.meta.noPlaytime")
+        : game.lastPlayed[lang];
   const vars = {
     game: game.name,
     percent,
-    size: game.updateSize,
-    required: game.required,
-    drive: game.drive,
-    free: game.free,
     code: errorCode ?? "",
   };
 

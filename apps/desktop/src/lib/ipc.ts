@@ -151,6 +151,12 @@ export interface NewsFeed {
   sections: NewsSection[];
 }
 
+export interface GameVersion {
+  local: string | null;
+  latest: string | null;
+  minimum: string | null;
+}
+
 export function defaultSettings(): Settings {
   return {
     installRoots: {},
@@ -434,6 +440,17 @@ export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | nul
 export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
   if (!IS_TAURI) return null;
   return invoke<NewsFeed>("fetch_news", { game: gameId });
+}
+
+export async function gameVersion(gameId: GameId): Promise<GameVersion> {
+  if (!IS_TAURI) {
+    return {
+      local: GAMES[gameId].version,
+      latest: GAMES[gameId].latest,
+      minimum: null,
+    };
+  }
+  return invoke<GameVersion>("game_version", { game: gameId });
 }
 
 /* Open an https link in the system browser instead of navigating the webview. */

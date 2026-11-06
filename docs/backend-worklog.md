@@ -352,3 +352,20 @@ defects.
 - Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
   -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
   `bun run build` (332.79 KB JS / 102.67 KB gzip), `bun run design:check` pass.
+
+
+### 2026-11-06 - Real game version and cancel confirmation
+
+- Added the `game_version` command: the installed version comes from
+  `manifest.json`, latest/minimum come from the official `game_config`. A failed
+  API call still returns the local version so the settings hero works offline.
+- Settings no longer uses the mock version; it shows the installed version, the
+  update target when one exists, or "Not installed".
+- Cancelling a paused download now opens a confirmation dialog with the affected
+  folder, focuses the safe action, and supports Escape/backdrop dismissal.
+- Home shows stored playtime or an explicit "no data" label in the real app; the
+  static sample history stays in the web lab. Removed unused mock size/drive
+  placeholders from the Home action variables.
+- Gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets
+  -- -D warnings`, `cargo test --workspace` (98 core + 13 desktop),
+  `bun run build` (334.83 KB JS / 103.12 KB gzip), `bun run design:check` pass.

@@ -109,6 +109,7 @@ pub fn run() {
             commands::launch_game,
             commands::fetch_news,
             commands::open_external,
+            commands::game_version,
             commands::choose_install_folder,
             commands::open_install_folder,
             commands::window_minimize,

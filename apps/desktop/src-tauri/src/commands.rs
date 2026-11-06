@@ -483,6 +483,59 @@ pub fn open_external(app: AppHandle, url: String) -> Result<(), CommandError> {
         .map_err(|error| CommandError::new("unknown", error.to_string()))
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameVersionView {
+    pub local: Option<String>,
+    pub latest: Option<String>,
+    pub minimum: Option<String>,
+}
+
+fn non_empty(value: String) -> Option<String> {
+    if value.trim().is_empty() {
+        None
+    } else {
+        Some(value)
+    }
+}
+
+/// Installed version from the game's `manifest.json` plus the server's
+/// latest/minimum versions. A failed API call still returns the local version
+/// so the settings hero works offline.
+#[tauri::command]
+pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionView, CommandError> {
+    let profile = profile(&game)?;
+    let root = settings::load(&app)?
+        .install_root(&game)
+        .map(Path::to_path_buf)
+        .unwrap_or(default_root(&app, &profile)?);
+    let local = tokio::task::spawn_blocking(move || {
+        yayl_core::local_manifest::LocalManifest::load(&yayl_core::local_manifest::manifest_path(
+            &root,
+        ))
+        .ok()
+        .and_then(|manifest| non_empty(manifest.version))
+    })
+    .await
+    .map_err(|error| CommandError::new("unknown", error.to_string()))?;
+
+    let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let (latest, minimum) = match api.game_config().await {
+        Ok(config) => (
+            non_empty(config.game_latest_version),
+            non_empty(config.game_lowest_version),
+        ),
+        Err(_) => (None, None),
+    };
+
+    Ok(GameVersionView {
+        local,
+        latest,
+        minimum,
+    })
+}
+
 #[tauri::command]
 pub fn open_install_folder(app: AppHandle, game: String, path: String) -> Result<(), CommandError> {
     let path = PathBuf::from(&path);

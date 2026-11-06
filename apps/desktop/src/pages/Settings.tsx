@@ -8,6 +8,7 @@ import {
   fetchDiskSpace,
   fetchDownloadBytes,
   formatBytes,
+  gameVersion,
   openInstallFolder,
   resetSettings,
   saveAppearance,
@@ -19,6 +20,7 @@ import {
   type BackgroundMode,
   type DiskSpace,
   type DownloadOrder,
+  type GameVersion,
   type ProxyMode,
   type Settings as SettingsData,
 } from "../lib/ipc";
@@ -31,7 +33,6 @@ interface Props {
   settings: SettingsData;
   roots: Record<GameId, string>;
   states: Record<GameId, GameState>;
-  version: string;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onSettings: (settings: SettingsData) => void;
   onLang: (lang: Lang) => void;
@@ -64,7 +65,6 @@ export default function Settings({
   settings,
   roots,
   states,
-  version,
   t,
   onSettings,
   onLang,
@@ -77,6 +77,7 @@ export default function Settings({
   const [resetArmed, setResetArmed] = useState(false);
   const [disk, setDisk] = useState<DiskSpace | null>(null);
   const [downloadBytes, setDownloadBytes] = useState<number | null>(null);
+  const [versionInfo, setVersionInfo] = useState<GameVersion | null>(null);
   const [info, setInfo] = useState<AppInfo | null>(null);
 
   const [proxyMode, setProxyMode] = useState<ProxyMode>(settings.proxy.mode);
@@ -146,6 +147,21 @@ export default function Settings({
       active = false;
     };
   }, [tab, info]);
+
+  useEffect(() => {
+    let active = true;
+    setVersionInfo(null);
+    void gameVersion(gameId)
+      .then((value) => {
+        if (active) setVersionInfo(value);
+      })
+      .catch((error: unknown) => {
+        console.error("[YAYL] cannot load game version", error);
+      });
+    return () => {
+      active = false;
+    };
+  }, [gameId, root]);
 
   const commit = async (action: () => Promise<SettingsData>) => {
     setSave("saving");
@@ -396,7 +412,16 @@ export default function Settings({
                 <div className="game-hero-info">
                   <div className="game-hero-name">{game.name}</div>
                   <div className="game-hero-meta">
-                    <span className="mono">v{version}</span>
+                    {versionInfo?.local ? (
+                      <span className="mono">
+                        v{versionInfo.local}
+                        {versionInfo.latest && versionInfo.latest !== versionInfo.local
+                          ? ` → v${versionInfo.latest}`
+                          : ""}
+                      </span>
+                    ) : (
+                      <span>{t("common.notInstalled")}</span>
+                    )}
                     <span>
                       {disk && downloadBytes !== null
                         ? t("settings.game.diskValue", {
