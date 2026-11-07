@@ -108,6 +108,8 @@ pub fn run() {
             commands::playtime,
             commands::launch_game,
             commands::fetch_news,
+            commands::fetch_social,
+            commands::fetch_background,
             commands::open_external,
             commands::game_version,
             commands::choose_install_folder,

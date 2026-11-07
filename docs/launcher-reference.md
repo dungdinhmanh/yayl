@@ -51,6 +51,8 @@ Requests carry a signed envelope:
 DE7108E9B2842FD460F4777702727869
 ```
 
+The salt is a public protocol constant, not a secret. YAYL stores it on each game profile (`crates/yayl-core/src/profile.rs`) because a JP/KR build may ship a different value; `LauncherApi` passes the profile salt into `auth_header`.
+
 `data` is the serialized request payload used for the signature. Keep the exact serialization order stable.
 
 Source: `A9_extracted/node_modules/@launcher/utils/src/crypto.ts:16-29`. The EN launchers sign `game_tag` as the store id (`Arknights_EN`, `StellaSora_EN`), not the short game name; see `A9_extracted/out/main/index.js:887-892` and `SS_extracted/out/main/index.js:890-892`.

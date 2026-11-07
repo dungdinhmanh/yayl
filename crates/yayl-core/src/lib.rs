@@ -4,6 +4,7 @@
 //! exercised by `yayl-cli` and unit tests without a window.
 
 pub mod api;
+pub mod background;
 pub mod checksum;
 pub mod crc64;
 pub mod disk;
@@ -26,8 +27,9 @@ pub mod verify;
 
 pub use api::{
     BaseConfig, CdnConfig, GameConfig, LauncherApi, NewsFeed, NewsItemView, NewsSectionView,
-    OperationsResource, auth_header, compare_versions,
+    OperationsResource, SocialLink, SocialResource, auth_header, compare_versions,
 };
+pub use background::{BackgroundImage, MAX_VERSIONS as MAX_BACKGROUND_VERSIONS};
 pub use checksum::Checksum;
 pub use download_plan::{
     DEFAULT_LAUNCHER_VERSION, DownloadPlan, LaunchSpec, PlanDocument, PlanFile, PlanGame, PlanJob,

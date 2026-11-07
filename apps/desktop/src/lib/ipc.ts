@@ -458,6 +458,46 @@ export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
   return invoke<NewsFeed>("fetch_news", { game: gameId });
 }
 
+export interface SocialLink {
+  channel: string;
+  url: string;
+  qr: string;
+}
+
+/* Official social channels. The Rust side validates every URL before it
+   reaches the webview. */
+export async function fetchSocial(gameId: GameId): Promise<SocialLink[]> {
+  if (!IS_TAURI) {
+    if (!import.meta.env.DEV) return [];
+    const response = await fetch(`/__dev/social?game=${encodeURIComponent(gameId)}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`dev social bridge returned HTTP ${response.status}`);
+    }
+    return (await response.json()) as SocialLink[];
+  }
+  return invoke<SocialLink[]>("fetch_social", { game: gameId });
+}
+
+/* Local cached background art. In the Tauri build the backend verifies the
+   image and returns a path served by the asset protocol. */
+export async function fetchBackground(gameId: GameId): Promise<string | null> {
+  if (!IS_TAURI) {
+    if (!import.meta.env.DEV) return null;
+    const response = await fetch(`/__dev/background?game=${encodeURIComponent(gameId)}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const data = (await response.json()) as { url?: string };
+    return typeof data.url === "string" && data.url ? data.url : null;
+  }
+  const path = await invoke<string | null>("fetch_background", { game: gameId });
+  if (!path) return null;
+  const { convertFileSrc } = await import("@tauri-apps/api/core");
+  return convertFileSrc(path);
+}
+
 export async function gameVersion(gameId: GameId): Promise<GameVersion> {
   if (!IS_TAURI) {
     return {

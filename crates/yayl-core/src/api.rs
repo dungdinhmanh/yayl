@@ -18,8 +18,8 @@ use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Salt observed in the official EN launchers. It is a protocol constant, not
-/// a user secret.
-pub const AUTH_SALT: &str = "DE7108E9B2842FD460F4777702727869";
+/// a user secret. Game profiles carry it because JP/KR builds may differ.
+pub use crate::profile::EN_AUTH_SALT;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthHead {
@@ -37,11 +37,13 @@ pub struct AuthEnvelope {
 /// Build the `Authorization` header value for a request.
 ///
 /// `data` must be the exact request body used for the signature. GET requests
-/// use an empty string, matching the official client.
+/// use an empty string, matching the official client. `salt` comes from the
+/// game profile, because it is region protocol data.
 pub fn auth_header(
     game_tag: &str,
     launcher_version: &str,
     data: &str,
+    salt: &str,
     unix_time: u64,
 ) -> Result<String> {
     let head = AuthHead {
@@ -53,7 +55,7 @@ pub fn auth_header(
     let mut hasher = Md5::new();
     hasher.update(head_json.as_bytes());
     hasher.update(data.as_bytes());
-    hasher.update(AUTH_SALT.as_bytes());
+    hasher.update(salt.as_bytes());
     let sign = format!("{:x}", hasher.finalize());
     serde_json::to_string(&AuthEnvelope { head, sign }).map_err(Into::into)
 }
@@ -152,6 +154,64 @@ pub struct CdnConfig {
     pub primary_cdn: String,
     #[serde(default)]
     pub back_up_cdn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SocialResource {
+    #[serde(default)]
+    pub social_media_resource_open: bool,
+    #[serde(default)]
+    pub social_media_resource_list: Vec<SocialChannel>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SocialChannel {
+    #[serde(default)]
+    pub social_media_channel: String,
+    #[serde(default)]
+    pub jump_url: String,
+    #[serde(default)]
+    pub qr_img: String,
+}
+
+/// A social channel that is safe to show and open.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct SocialLink {
+    pub channel: String,
+    pub url: String,
+    pub qr: String,
+}
+
+impl SocialResource {
+    /// Normalize the official channel list. The response is untrusted, so a
+    /// channel with a missing or non-HTTPS URL is dropped instead of rendered
+    /// as a dead or unsafe button. QR images follow the same rule.
+    pub fn links(&self) -> Vec<SocialLink> {
+        if !self.social_media_resource_open {
+            return Vec::new();
+        }
+        self.social_media_resource_list
+            .iter()
+            .filter_map(|item| {
+                let url = item.jump_url.trim();
+                if url.is_empty() || crate::url::validate_remote_url(url).is_err() {
+                    return None;
+                }
+                let channel = item.social_media_channel.trim().to_owned();
+                let qr = item.qr_img.trim();
+                let qr = if !qr.is_empty() && crate::url::validate_remote_url(qr).is_ok() {
+                    qr.to_owned()
+                } else {
+                    String::new()
+                };
+                Some(SocialLink {
+                    channel,
+                    url: url.to_owned(),
+                    qr,
+                })
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -355,6 +415,7 @@ pub struct LauncherApi {
     client: reqwest::Client,
     base_url: String,
     game_tag: String,
+    auth_salt: String,
     launcher_version: String,
 }
 
@@ -379,6 +440,7 @@ impl LauncherApi {
             client,
             base_url: profile.api_base.trim_end_matches('/').to_owned(),
             game_tag: profile.game_tag.to_owned(),
+            auth_salt: profile.auth_salt.to_owned(),
             launcher_version: launcher_version.into(),
         })
     }
@@ -405,7 +467,13 @@ impl LauncherApi {
     }
 
     async fn get_data<T: for<'de> Deserialize<'de>>(&self, url: reqwest::Url) -> Result<T> {
-        let auth = auth_header(&self.game_tag, &self.launcher_version, "", now_unix())?;
+        let auth = auth_header(
+            &self.game_tag,
+            &self.launcher_version,
+            "",
+            &self.auth_salt,
+            now_unix(),
+        )?;
         let response = self
             .client
             .get(url.clone())
@@ -445,6 +513,13 @@ impl LauncherApi {
             .await
     }
 
+    pub async fn social(&self) -> Result<Vec<SocialLink>> {
+        let resource: SocialResource = self
+            .get_data(self.endpoint("/api/launcher/social/media/resource")?)
+            .await?;
+        Ok(resource.links())
+    }
+
     pub async fn news(&self) -> Result<NewsFeed> {
         Ok(self.operations().await?.feed())
     }
@@ -452,6 +527,50 @@ impl LauncherApi {
     pub async fn cdn(&self) -> Result<CdnConfig> {
         self.get_data(self.endpoint("/api/launcher/advanced/game/download/cdn")?)
             .await
+    }
+
+    /// Download the launcher background image announced by `base/config`.
+    ///
+    /// The image is public CDN content and does not need the signed header.
+    /// The response is capped so a misbehaving host cannot make the launcher
+    /// allocate an unbounded buffer.
+    pub async fn background_image(&self, config: &BaseConfig) -> Result<Vec<u8>> {
+        const MAX_BACKGROUND_BYTES: usize = 32 * 1024 * 1024;
+        let url = config.launcher_background_img.trim();
+        if url.is_empty() {
+            return Err(Error::new(
+                ErrorCode::InvalidInput,
+                "base config has no background image",
+            ));
+        }
+        crate::url::validate_remote_url(url)?;
+        let response = self
+            .client
+            .get(url)
+            .header(reqwest::header::CACHE_CONTROL, "no-cache")
+            .send()
+            .await?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(Error::new(
+                ErrorCode::Http,
+                format!("background image returned HTTP {status}"),
+            ));
+        }
+        if response
+            .content_length()
+            .is_some_and(|length| length > MAX_BACKGROUND_BYTES as u64)
+        {
+            return Err(Error::new(ErrorCode::Http, "background image is too large"));
+        }
+        let bytes = response.bytes().await?;
+        if bytes.is_empty() {
+            return Err(Error::new(ErrorCode::Http, "background image is empty"));
+        }
+        if bytes.len() > MAX_BACKGROUND_BYTES {
+            return Err(Error::new(ErrorCode::Http, "background image is too large"));
+        }
+        Ok(bytes.to_vec())
     }
 
     /// Ask the API for the manifest URL of a specific game version/basis.
@@ -546,7 +665,7 @@ mod tests {
     #[test]
     fn auth_matches_the_official_algorithm() {
         // Generated from the same JSON serialization used by the A9 launcher.
-        let header = auth_header("Arknights_EN", "0.1.0", "", 1_710_000_000).unwrap();
+        let header = auth_header("Arknights_EN", "0.1.0", "", EN_AUTH_SALT, 1_710_000_000).unwrap();
         assert_eq!(
             header,
             r#"{"head":{"game_tag":"Arknights_EN","time":1710000000,"version":"0.1.0"},"sign":"49bf8d0127ebccc9018a3c1e0d64c2c0"}"#
@@ -555,8 +674,8 @@ mod tests {
 
     #[test]
     fn auth_changes_with_data() {
-        let a = auth_header("Arknights_EN", "0.1.0", "", 1_710_000_000).unwrap();
-        let b = auth_header("Arknights_EN", "0.1.0", "{}", 1_710_000_000).unwrap();
+        let a = auth_header("Arknights_EN", "0.1.0", "", EN_AUTH_SALT, 1_710_000_000).unwrap();
+        let b = auth_header("Arknights_EN", "0.1.0", "{}", EN_AUTH_SALT, 1_710_000_000).unwrap();
         assert_ne!(a, b);
     }
 
@@ -601,5 +720,41 @@ mod tests {
     fn formats_dates() {
         assert_eq!(format_timestamp_ms(0), "");
         assert_eq!(format_timestamp_ms(1_710_000_000_000), "2024-03-09");
+    }
+
+    #[test]
+    fn normalizes_social_channels_and_drops_unsafe_urls() {
+        let resource: SocialResource = serde_json::from_str(
+            r#"{
+              "social_media_resource_open": true,
+              "social_media_resource_list": [
+                {"social_media_channel":"官网","jump_url":"https://stellasora.global/","qr_img":""},
+                {"social_media_channel":"X","jump_url":"https://x.com/StellaSoraEN","qr_img":"https://cdn.example.com/qr.png"},
+                {"social_media_channel":"Bad","jump_url":"javascript:alert(1)","qr_img":""},
+                {"social_media_channel":"Insecure","jump_url":"http://example.com/","qr_img":""},
+                {"social_media_channel":"Empty","jump_url":"","qr_img":""}
+              ]
+            }"#,
+        )
+        .unwrap();
+        let links = resource.links();
+        assert_eq!(links.len(), 2);
+        assert_eq!(links[0].channel, "官网");
+        assert_eq!(links[0].url, "https://stellasora.global/");
+        assert_eq!(links[1].qr, "https://cdn.example.com/qr.png");
+    }
+
+    #[test]
+    fn hides_social_channels_when_the_api_toggle_is_off() {
+        let resource: SocialResource = serde_json::from_str(
+            r#"{
+              "social_media_resource_open": false,
+              "social_media_resource_list": [
+                {"social_media_channel":"X","jump_url":"https://x.com/StellaSoraEN","qr_img":""}
+              ]
+            }"#,
+        )
+        .unwrap();
+        assert!(resource.links().is_empty());
     }
 }

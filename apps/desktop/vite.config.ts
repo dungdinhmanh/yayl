@@ -12,7 +12,7 @@ import react from "@vitejs/plugin-react";
  * never exists in a production build.
  */
 const API_BASE = "https://api-launcher-en.yo-star.com";
-/* Keep in sync with AUTH_SALT in crates/yayl-core/src/api.rs. */
+/* Keep in sync with EN_AUTH_SALT in crates/yayl-core/src/profile.rs. */
 const AUTH_SALT = "DE7108E9B2842FD460F4777702727869";
 const LAUNCHER_VERSION = "0.1.0";
 const CACHE_MS = 60_000;
@@ -186,8 +186,109 @@ function devNewsPlugin(): Plugin {
   };
 }
 
+interface SocialLink {
+  channel: string;
+  url: string;
+  qr: string;
+}
+
+/* Mirrors `SocialResource::links`: only HTTPS links and QR images survive. */
+function normalizeSocial(payload: JsonObject): SocialLink[] {
+  const data =
+    typeof payload.data === "object" && payload.data !== null
+      ? (payload.data as JsonObject)
+      : {};
+  if (data.social_media_resource_open !== true) return [];
+
+  return objects(data.social_media_resource_list).flatMap((item) => {
+    const url = text(item.jump_url).trim();
+    if (!url.startsWith("https://")) return [];
+    const channel = text(item.social_media_channel).trim() || "Website";
+    const qr = text(item.qr_img).trim();
+    return [{ channel, url, qr: qr.startsWith("https://") ? qr : "" }];
+  });
+}
+
+/*
+ * Dev-only social and background bridge. The browser lab cannot call the
+ * signed API, so this mirrors the same requests the Rust commands make. It is
+ * serve-only and never part of a production build.
+ */
+function devLauncherPlugin(): Plugin {
+  return {
+    name: "yayl-dev-launcher",
+    apply: "serve",
+    configureServer(server) {
+      const send = (res: import("node:http").ServerResponse, status: number, body: unknown) => {
+        res.statusCode = status;
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.setHeader("Cache-Control", "no-store");
+        res.end(JSON.stringify(body));
+      };
+
+      const request = async (
+        req: import("node:http").IncomingMessage,
+        res: import("node:http").ServerResponse,
+        endpoint: string,
+        handle: (body: JsonObject) => unknown,
+      ) => {
+        const url = new URL(req.url ?? "/", "http://localhost");
+        const game = url.searchParams.get("game") ?? "";
+        const tag = GAME_TAGS[game];
+        if (!tag) {
+          send(res, 400, { error: `unknown game: ${game}` });
+          return;
+        }
+        try {
+          const response = await fetch(`${API_BASE}${endpoint}`, {
+            headers: {
+              Authorization: authHeader(tag),
+              Accept: "application/json",
+            },
+            signal: AbortSignal.timeout(15_000),
+          });
+          const body = (await response.json()) as JsonObject;
+          if (!response.ok) {
+            send(res, 502, { error: `API returned HTTP ${response.status}` });
+            return;
+          }
+          const code = number(body.code);
+          if (code !== 0 && code !== 200) {
+            send(res, 502, { error: `API returned code ${code}` });
+            return;
+          }
+          send(res, 200, handle(body));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "request failed";
+          server.config.logger.error(`[yayl-dev-launcher] ${endpoint}: ${message}`);
+          send(res, 502, { error: message });
+        }
+      };
+
+      server.middlewares.use("/__dev/social", (req, res) => {
+        void request(req, res, "/api/launcher/social/media/resource", normalizeSocial);
+      });
+
+      server.middlewares.use("/__dev/background", (req, res) => {
+        void request(req, res, "/api/launcher/base/config", (body) => {
+          const data =
+            typeof body.data === "object" && body.data !== null
+              ? (body.data as JsonObject)
+              : {};
+          const image = text(data.launcher_background_img).trim();
+          const checksum = text(data.launcher_background_img_crc64).trim();
+          if (!image.startsWith("https://") || !/^\d+$/.test(checksum)) {
+            return { url: "" };
+          }
+          return { url: image };
+        });
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), devNewsPlugin()],
+  plugins: [react(), devNewsPlugin(), devLauncherPlugin()],
   clearScreen: false,
   server: {
     port: 5173,

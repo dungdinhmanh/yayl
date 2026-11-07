@@ -493,6 +493,104 @@ pub async fn fetch_news(
     Ok(api.news().await?)
 }
 
+/// Official social channels for the home screen. URLs are validated in the core
+/// so the webview only receives links that are safe to open.
+#[tauri::command]
+pub async fn fetch_social(
+    app: AppHandle,
+    game: String,
+) -> Result<Vec<yayl_core::api::SocialLink>, CommandError> {
+    let profile = profile(&game)?;
+    let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    Ok(api.social().await?)
+}
+
+fn background_dir(app: &AppHandle, game: &str) -> Result<PathBuf, CommandError> {
+    let data = app
+        .path()
+        .data_dir()
+        .map_err(|error| CommandError::new("io", error.to_string()))?;
+    Ok(data
+        .join("yayl")
+        .join("cache")
+        .join("backgrounds")
+        .join(game))
+}
+
+/// Fetch, verify, and cache the official launcher background art. Returns the
+/// local file path so the UI can load it through the asset protocol.
+///
+/// The cache keeps at most three versions per game. If the API or CDN is
+/// unreachable, the newest verified file is reused; without a cache the UI
+/// falls back to the bundled per-game art.
+#[tauri::command]
+pub async fn fetch_background(
+    app: AppHandle,
+    game: String,
+) -> Result<Option<String>, CommandError> {
+    let profile = profile(&game)?;
+    let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let dir = background_dir(&app, profile.id)?;
+
+    let fetched = async {
+        let config = api.base_config().await?;
+        let Some(image) = yayl_core::background::image_from_config(
+            &config.launcher_background_img,
+            &config.launcher_background_img_crc64,
+        ) else {
+            return Ok::<Option<PathBuf>, yayl_core::Error>(None);
+        };
+
+        let path = yayl_core::background::cached_path(&dir, &image);
+        if path.is_file() {
+            let expected = image.crc64.parse::<u64>().map_err(|_| {
+                yayl_core::Error::new(
+                    yayl_core::ErrorCode::InvalidInput,
+                    "background checksum is not a decimal CRC-64",
+                )
+            })?;
+            let check = path.clone();
+            let actual =
+                tokio::task::spawn_blocking(move || yayl_core::crc64::crc64_file_blocking(&check))
+                    .await
+                    .map_err(|error| {
+                        yayl_core::Error::new(yayl_core::ErrorCode::Unknown, error.to_string())
+                    })??;
+            if actual == expected {
+                return Ok(Some(path));
+            }
+            // A corrupted cache entry is replaced, not shown.
+            let _ = std::fs::remove_file(&path);
+        }
+
+        let bytes = api.background_image(&config).await?;
+        let store_dir = dir.clone();
+        let store_image = image.clone();
+        let path = tokio::task::spawn_blocking(move || {
+            yayl_core::background::store(&store_dir, &store_image, &bytes)
+        })
+        .await
+        .map_err(|error| {
+            yayl_core::Error::new(yayl_core::ErrorCode::Unknown, error.to_string())
+        })??;
+        Ok(Some(path))
+    }
+    .await;
+
+    match fetched {
+        Ok(Some(path)) => Ok(Some(path.to_string_lossy().into_owned())),
+        Ok(None) => Ok(None),
+        Err(error) => {
+            if let Some(path) = yayl_core::background::newest(&dir) {
+                return Ok(Some(path.to_string_lossy().into_owned()));
+            }
+            Err(error.into())
+        }
+    }
+}
+
 /// Open an https link in the user's browser. The webview must never navigate
 /// away from the launcher, so every external link goes through this command.
 #[tauri::command]

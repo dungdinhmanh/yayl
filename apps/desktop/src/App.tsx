@@ -6,14 +6,17 @@ import Home from "./pages/Home";
 import DevBar from "./components/DevBar";
 import ConfirmDialog from "./components/ConfirmDialog";
 import InstallDialog from "./components/InstallDialog";
+import SocialLinks from "./components/SocialLinks";
 import {
   cancelDownload,
   defaultInstallRoot,
   defaultSettings,
   discardDownload,
   downloadStatus,
+  fetchBackground,
   fetchNews,
   fetchPlaytime,
+  fetchSocial,
   isTauri,
   launchGame,
   loadSettings,
@@ -32,6 +35,7 @@ import {
   type NewsFeed,
   type PlaytimeEntry,
   type Settings,
+  type SocialLink,
 } from "./lib/ipc";
 
 const SettingsPage = lazy(() => import("./pages/Settings"));
@@ -182,6 +186,8 @@ export default function App() {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [playtimes, setPlaytimes] = useState<Partial<Record<GameId, PlaytimeEntry>>>({});
   const [news, setNews] = useState<Partial<Record<GameId, NewsFeed | null>>>({});
+  const [social, setSocial] = useState<Partial<Record<GameId, SocialLink[]>>>({});
+  const [backgrounds, setBackgrounds] = useState<Partial<Record<GameId, string | null>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
   const [onboarding, setOnboarding] = useState(
     () => !isTauri() && QUERY.get("onboarding") === "1"
@@ -355,6 +361,42 @@ export default function App() {
       active = false;
     };
   }, [gameId, booted, news]);
+
+  // Official social channels, cached for the session. A failed request hides
+  // the cluster instead of showing placeholder buttons.
+  useEffect(() => {
+    if (!booted || social[gameId] !== undefined) return;
+    let active = true;
+    void fetchSocial(gameId)
+      .then((links) => {
+        if (active) setSocial((current) => ({ ...current, [gameId]: links }));
+      })
+      .catch((error: unknown) => {
+        console.error(`[YAYL] cannot load ${gameId} social links`, error);
+        if (active) setSocial((current) => ({ ...current, [gameId]: [] }));
+      });
+    return () => {
+      active = false;
+    };
+  }, [gameId, booted, social]);
+
+  // The backend verifies and caches the official background art. `null` means
+  // "no cached art", so the bundled per-game image stays visible.
+  useEffect(() => {
+    if (!booted || backgrounds[gameId] !== undefined) return;
+    let active = true;
+    void fetchBackground(gameId)
+      .then((source) => {
+        if (active) setBackgrounds((current) => ({ ...current, [gameId]: source }));
+      })
+      .catch((error: unknown) => {
+        console.error(`[YAYL] cannot load ${gameId} background`, error);
+        if (active) setBackgrounds((current) => ({ ...current, [gameId]: null }));
+      });
+    return () => {
+      active = false;
+    };
+  }, [gameId, booted, backgrounds]);
 
   // Layout effect so the root attributes are in place before paint.
   useLayoutEffect(() => {
@@ -545,9 +587,17 @@ export default function App() {
         <img
           className="backdrop-art"
           data-active-art
-          src={`/art/${gameId}.png`}
+          key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
+          src={backgrounds[gameId] || `/art/${gameId}.png`}
           alt=""
-          onError={(event) => event.currentTarget.classList.add("is-missing")}
+          onError={(event) => {
+            if (backgrounds[gameId]) {
+              // A verified cache file can still disappear; fall back once.
+              setBackgrounds((current) => ({ ...current, [gameId]: null }));
+              return;
+            }
+            event.currentTarget.classList.add("is-missing");
+          }}
         />
         <div className="backdrop-scrim" />
         <div className="backdrop-grain" />
@@ -594,6 +644,10 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {view === "home" && !onboarding && (
+        <SocialLinks links={social[gameId] ?? []} t={t} />
+      )}
 
       {!booted ? (
         <div className="boot-screen" aria-busy="true">
