@@ -2,15 +2,8 @@ import { createHash } from "node:crypto";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
-/*
- * Dev-only news bridge.
- *
- * The browser lab has no Rust side, so it cannot call the signed launcher API.
- * This middleware performs the same GET + Authorization envelope as
- * `yayl_core::api` and normalizes the response exactly like
- * `OperationsResource::feed`. It is registered with `apply: "serve"`, so it
- * never exists in a production build.
- */
+/* Dev-only news bridge. The browser lab cannot call the signed API, so this
+   mirrors `yayl_core::api` and never exists in a production build. */
 const API_BASE = "https://api-launcher-en.yo-star.com";
 /* Keep in sync with EN_AUTH_SALT in crates/yayl-core/src/profile.rs. */
 const AUTH_SALT = "DE7108E9B2842FD460F4777702727869";
@@ -203,17 +196,13 @@ function normalizeSocial(payload: JsonObject): SocialLink[] {
   return objects(data.social_media_resource_list).flatMap((item) => {
     const url = text(item.jump_url).trim();
     if (!url.startsWith("https://")) return [];
-    const channel = text(item.social_media_channel).trim() || "Website";
+    const channel = text(item.social_media_channel).trim();
     const qr = text(item.qr_img).trim();
     return [{ channel, url, qr: qr.startsWith("https://") ? qr : "" }];
   });
 }
 
-/*
- * Dev-only social and background bridge. The browser lab cannot call the
- * signed API, so this mirrors the same requests the Rust commands make. It is
- * serve-only and never part of a production build.
- */
+/* Dev-only social and background bridge; serve-only, never in a production build. */
 function devLauncherPlugin(): Plugin {
   return {
     name: "yayl-dev-launcher",

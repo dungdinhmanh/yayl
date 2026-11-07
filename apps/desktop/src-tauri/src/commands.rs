@@ -518,12 +518,8 @@ fn background_dir(app: &AppHandle, game: &str) -> Result<PathBuf, CommandError> 
         .join(game))
 }
 
-/// Fetch, verify, and cache the official launcher background art. Returns the
-/// local file path so the UI can load it through the asset protocol.
-///
-/// The cache keeps at most three versions per game. If the API or CDN is
-/// unreachable, the newest verified file is reused; without a cache the UI
-/// falls back to the bundled per-game art.
+/// Fetch, verify, and cache the official launcher background art, returning the
+/// local file path for the asset protocol.
 #[tauri::command]
 pub async fn fetch_background(
     app: AppHandle,

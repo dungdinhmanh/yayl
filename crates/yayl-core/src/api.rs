@@ -17,10 +17,6 @@ use md5::{Digest, Md5};
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Salt observed in the official EN launchers. It is a protocol constant, not
-/// a user secret. Game profiles carry it because JP/KR builds may differ.
-pub use crate::profile::EN_AUTH_SALT;
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthHead {
     pub game_tag: String,
@@ -36,9 +32,7 @@ pub struct AuthEnvelope {
 
 /// Build the `Authorization` header value for a request.
 ///
-/// `data` must be the exact request body used for the signature. GET requests
-/// use an empty string, matching the official client. `salt` comes from the
-/// game profile, because it is region protocol data.
+/// `data` must be the exact request body; GET requests use an empty string.
 pub fn auth_header(
     game_tag: &str,
     launcher_version: &str,
@@ -661,6 +655,7 @@ fn civil_from_days(days: i64) -> (i64, u32, u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::profile::EN_AUTH_SALT;
 
     #[test]
     fn auth_matches_the_official_algorithm() {

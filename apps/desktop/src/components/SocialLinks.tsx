@@ -3,9 +3,8 @@ import { openExternal, type SocialLink } from "../lib/ipc";
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
-/* The API returns channel names such as "官网", "X", or "YouTube". Map the
-   known channels to a stable icon and localized label; anything else falls
-   back to a globe and the API label. */
+/* Map known API channel names to icons and localized labels; unknown channels
+   get a globe and the API label. */
 function iconKey(channel: string): string {
   const value = channel.trim().toLowerCase();
   if (value === "官网" || value === "website" || value === "home") return "website";
@@ -13,8 +12,6 @@ function iconKey(channel: string): string {
   if (value === "facebook" || value === "fb") return "facebook";
   if (value === "discord") return "discord";
   if (value === "youtube") return "youtube";
-  if (value === "reddit") return "reddit";
-  if (value === "twitch") return "twitch";
   return "unknown";
 }
 

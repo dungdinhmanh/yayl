@@ -10,19 +10,15 @@ pub struct GameProfile {
     pub game_tag: &'static str,
     /// API host for this region.
     pub api_base: &'static str,
-    /// MD5 salt bundled with the official launcher for this region. It is a
-    /// public protocol constant, not a user secret; it lives here because it is
-    /// per-region data, not a global implementation detail.
+    /// MD5 salt from the official launcher; public protocol data, not a secret.
     pub auth_salt: &'static str,
     /// Default folder name under the user's install base.
     pub install_dir: &'static str,
     /// Relative executable path inside the install root.
     pub executable: &'static str,
-    /// CDN host observed for this game.
-    pub cdn_host: &'static str,
 }
 
-/// Salt observed in both extracted EN launchers.
+/// Salt shipped by both extracted EN launchers.
 pub const EN_AUTH_SALT: &str = "DE7108E9B2842FD460F4777702727869";
 
 pub const ARKNIGHTS_EN: GameProfile = GameProfile {
@@ -33,7 +29,6 @@ pub const ARKNIGHTS_EN: GameProfile = GameProfile {
     auth_salt: EN_AUTH_SALT,
     install_dir: "Arknights_EN",
     executable: "Arknights.exe",
-    cdn_host: "launcher-pkg-ark-en.yo-star.com",
 };
 
 pub const STELLA_SORA_EN: GameProfile = GameProfile {
@@ -43,7 +38,6 @@ pub const STELLA_SORA_EN: GameProfile = GameProfile {
     auth_salt: EN_AUTH_SALT,
     install_dir: "StellaSora_EN",
     executable: "StellaSora.exe",
-    cdn_host: "launcher-pkg-ss-en.yo-star.com",
 };
 
 pub const PROFILES: [&GameProfile; 2] = [&ARKNIGHTS_EN, &STELLA_SORA_EN];

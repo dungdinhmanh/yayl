@@ -1,10 +1,7 @@
 //! Bounded local cache for the official launcher background art.
 //!
-//! `base/config` points at a content-hashed image and publishes its CRC-64.
-//! YAYL verifies the download and keeps at most three versions per game, so the
-//! cache cannot grow without bound. Files are only ever served after their
-//! checksum matched, and the newest verified file is reused when the API or
-//! CDN is unavailable.
+//! `base/config` points at a content-hashed image and publishes its CRC-64;
+//! files are stored only after that checksum matches.
 
 use crate::crc64;
 use crate::error::{Error, ErrorCode, Result};
