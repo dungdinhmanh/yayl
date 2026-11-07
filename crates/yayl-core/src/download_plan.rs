@@ -619,10 +619,13 @@ impl DownloadPlan {
         crate::path::reject_symlink_components(&self.root, &manifest_path(&self.root))?;
         local.save(&manifest_path(&self.root))?;
 
+        // The official launcher stores a base name and appends `.exe` itself.
+        // Keep the profile fallback (`StellaSora.exe`) from becoming
+        // `StellaSora.exe.exe` when the official launcher reads the file.
         let name = if game.launch.executable.trim().is_empty() {
             game.tag.clone()
         } else {
-            game.launch.executable.clone()
+            config_executable_name(&game.launch.executable)
         };
         let config = GameConfigFile::new(
             game.tag.clone(),
@@ -883,6 +886,16 @@ fn validate_http_url(url: &str) -> Result<()> {
     crate::url::validate_remote_url(url)
 }
 
+/// `game-launcher-config.json` stores the executable without its extension.
+fn config_executable_name(value: &str) -> String {
+    let value = value.trim();
+    if value.len() > 4 && value.to_ascii_lowercase().ends_with(".exe") {
+        value[..value.len() - 4].to_owned()
+    } else {
+        value.to_owned()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1083,6 +1096,14 @@ mod tests {
         let text = std::fs::read_to_string(game_config_path(dir.path())).unwrap();
         assert!(text.contains("\"gameUninstallScript\""));
         assert!(!text.contains("\"game_uninstall_script\""));
+    }
+
+    #[test]
+    fn config_name_drops_the_exe_extension() {
+        assert_eq!(config_executable_name("StellaSora.exe"), "StellaSora");
+        assert_eq!(config_executable_name("StellaSora.EXE"), "StellaSora");
+        assert_eq!(config_executable_name(" StellaSora "), "StellaSora");
+        assert_eq!(config_executable_name("StellaSora"), "StellaSora");
     }
 
     #[test]

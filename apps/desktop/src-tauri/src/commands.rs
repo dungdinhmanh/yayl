@@ -387,8 +387,13 @@ pub fn playtime(app: AppHandle, game: String) -> Result<PlaytimeView, CommandErr
 }
 
 /// Start the game and record the session when it exits.
+///
+/// Before spawning, the installed file sizes are compared with the local
+/// `manifest.json`, matching the official launcher's pre-launch `checkStat`
+/// step. A damaged install returns `game_damaged` so the UI can offer repair
+/// instead of starting a half-updated game.
 #[tauri::command]
-pub fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandError> {
+pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandError> {
     let profile = profile(&game)?;
     let settings = settings::load(&app)?;
     let root = match settings.install_roots.get(&game) {
@@ -396,9 +401,24 @@ pub fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandError> {
         None => default_root(&app, &profile)?,
     };
 
-    let mut child = yayl_core::process::launch(&root, &profile)?;
+    let (mut child, started) = tokio::task::spawn_blocking(move || {
+        let damaged = yayl_core::process::damaged_files(&root).map_err(CommandError::from)?;
+        if !damaged.is_empty() {
+            return Err(CommandError::new(
+                "game_damaged",
+                format!(
+                    "{} installed files are missing or the wrong size",
+                    damaged.len()
+                ),
+            ));
+        }
+        let child = yayl_core::process::launch(&root, &profile).map_err(CommandError::from)?;
+        Ok::<_, CommandError>((child, now_unix()))
+    })
+    .await
+    .map_err(|error| CommandError::new("unknown", error.to_string()))??;
+
     let pid = child.id();
-    let started = now_unix();
 
     let handle = app.clone();
     let id = game.clone();

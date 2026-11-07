@@ -178,18 +178,35 @@ impl GameConfigFile {
 
     pub fn load(path: &Path) -> Result<Self> {
         let body = std::fs::read_to_string(path)?;
-        let config: Self = serde_json::from_str(&body)?;
-        let expected = game_config_hash(
-            &config.tag,
-            &config.name,
-            &config.params,
-            &config.version,
-            &config.game_uninstall_script,
-        );
-        if config.vc != expected {
+        let value: serde_json::Value = serde_json::from_str(&body)?;
+        let config: Self = serde_json::from_value(value.clone())?;
+        // The hash covers the values that are actually in the file. Require the
+        // matching shape instead of accepting either hash, so adding `params`
+        // to a compact config invalidates it.
+        let extended = value.get("params").is_some() || value.get("gameUninstallScript").is_some();
+        if !config.has_valid_hash(extended) {
             return Err(Error::manifest("game config hash mismatch"));
         }
         Ok(config)
+    }
+
+    /// The 1.6 launcher writes only `tag`, `name`, and `version`, while older
+    /// launchers and YAYL also record `params` and `gameUninstallScript`.
+    /// Accept both shapes so an install written by either launcher stays
+    /// readable.
+    fn has_valid_hash(&self, extended: bool) -> bool {
+        if extended {
+            self.vc
+                == game_config_hash(
+                    &self.tag,
+                    &self.name,
+                    &self.params,
+                    &self.version,
+                    &self.game_uninstall_script,
+                )
+        } else {
+            self.vc == object_hash(&[self.tag.clone(), self.name.clone(), self.version.clone()])
+        }
     }
 }
 
@@ -296,5 +313,51 @@ mod tests {
         config.save(&path).unwrap();
         let loaded = GameConfigFile::load(&path).unwrap();
         assert_eq!(loaded, config);
+    }
+
+    #[test]
+    fn reads_the_compact_config_written_by_the_1_6_launcher() {
+        // Observed shape: the 1.6 launcher writes only tag/name/version.
+        let tag = "StellaSora_EN";
+        let name = "StellaSora";
+        let version = "2.0.0";
+        let vc = object_hash(&[tag.to_owned(), name.to_owned(), version.to_owned()]);
+        let body =
+            format!(r#"{{"tag":"{tag}","name":"{name}","version":"{version}","vc":"{vc}"}}"#);
+        let dir = tempfile::tempdir().unwrap();
+        let path = game_config_path(dir.path());
+        std::fs::write(&path, body).unwrap();
+        let loaded = GameConfigFile::load(&path).unwrap();
+        assert_eq!(loaded.name, name);
+        assert_eq!(loaded.version, version);
+        assert!(loaded.params.is_empty());
+    }
+
+    #[test]
+    fn rejects_extra_fields_in_a_compact_config() {
+        let tag = "StellaSora_EN";
+        let name = "StellaSora";
+        let version = "2.0.0";
+        let vc = object_hash(&[tag.to_owned(), name.to_owned(), version.to_owned()]);
+        let body = format!(
+            r#"{{"tag":"{tag}","name":"{name}","params":["--evil"],"version":"{version}","vc":"{vc}"}}"#
+        );
+        let dir = tempfile::tempdir().unwrap();
+        let path = game_config_path(dir.path());
+        std::fs::write(&path, body).unwrap();
+        assert!(GameConfigFile::load(&path).is_err());
+    }
+
+    #[test]
+    fn rejects_a_tampered_game_config() {
+        let config = GameConfigFile::new("Arknights_EN", "Arknights", Vec::new(), "042.0.0", "");
+        let dir = tempfile::tempdir().unwrap();
+        let path = game_config_path(dir.path());
+        config.save(&path).unwrap();
+        let mut value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        value["name"] = serde_json::Value::String("Other".to_owned());
+        std::fs::write(&path, value.to_string()).unwrap();
+        assert!(GameConfigFile::load(&path).is_err());
     }
 }

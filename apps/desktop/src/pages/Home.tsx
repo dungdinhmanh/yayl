@@ -256,7 +256,11 @@ export default function Home({
         )}
         {state === "ready" && errorCode && (
           <div className="home-error" role="alert">
-            {t("home.launch.error")}
+            {t(
+              errorCode === "game_damaged"
+                ? "home.launch.damaged"
+                : "home.launch.error",
+            )}
           </div>
         )}
       </div>

@@ -65,7 +65,8 @@ Source: `A9_extracted/node_modules/@launcher/utils/src/crypto.ts:16-29`. The EN 
 | `/api/launcher/social/media/resource` | Social media resource |
 | `/api/launcher/advanced/game/download/cdn` | CDN selection |
 | `/api/launcher/game/config/json` | JSON game config |
-| `/api/launcher/advanced/config` | Advanced config |
+| `/api/launcher/installation/config` | Installer background and protocol text |
+| `/api/launcher/advanced/config` | Advanced config (`log_upload`) |
 | `/api/open/api/config` | Open API config |
 
 The live contract was probed successfully. Arknights EN and Stella Sora EN responded with the expected shapes.
@@ -121,6 +122,26 @@ Observed in `A9_extracted/out/main/index-8b10f6cc.js:18902-18918`:
 ```
 
 `basis` is the API's `game_latest_file_path`, not the manifest `source`. The `vc` field order is part of the format; do not reorder fields.
+
+The Stella Sora EN 1.6.0 launcher writes a compact config with only `tag`, `name`, and `version` (`out/main/index-5140da1c.js:18874-18883`). Older launchers and YAYL also write `params` and `gameUninstallScript`. Both shapes are self-consistent because `vc` hashes every value in the file, so readers must accept either set of fields. YAYL's reader picks the hash that matches the fields present, so adding `params` to a compact config invalidates it.
+
+## Launch behavior (Stella Sora EN 1.6.0)
+
+Observed in `out/main/index.js:19616-19681`:
+
+- Before spawning, `LocalGameStartCheck` compares every manifest file size against disk (`checkStat`, line 19505). If any file is missing or has the wrong size, the launcher emits `start-game-damage` and refuses to start. The renderer then offers repair.
+- The executable base name comes from the local `game-launcher-config.json` (`handle-check-game`, line 19682), not directly from `game/config`. The launcher appends `.exe` and calls `shell.openPath("<root>/<name>.exe")`.
+- `game_start_params` is not passed by the 1.6 launcher: `handle-game-start` only receives `{ path, name }`. Current API responses return an empty array for both games.
+- The launcher minimizes itself after a successful spawn and does not track the game PID.
+- `clickCode` is installer attribution. At startup the launcher reads a `clickCode` file next to its own executable, extracts the installer code, and stores it in Electron `userData`. Opening the game folder copies that code into `<root>/clickCode` (`out/main/index.js:340-407`). It is optional and does not affect whether the game starts.
+- `AntiCheatExpert` (ACE) ships as ordinary manifest files. The launcher does not install, elevate, or start it; the game handles ACE itself.
+
+YAYL mapping:
+
+- `process::resolve` reads `name` and `params` from `game-launcher-config.json`, appends `.exe` when needed, and falls back to the profile executable.
+- `process::damaged_files` performs the size-only pre-launch check against the local manifest. A missing manifest skips the check so an imported install can launch; a corrupt manifest is rejected.
+- YAYL spawns and tracks the game PID to record playtime; the official launcher does not.
+- YAYL does not write `clickCode`, does not upload logs (`advanced/config` `log_upload`), and does not use the installer background endpoint.
 
 ## Download behavior
 
@@ -195,7 +216,7 @@ YAYL mapping:
 | Arknights EN | `Arknights_EN` | `Arknights_EN` | `Arknights.exe` |
 | Stella Sora EN | `StellaSora_EN` | `StellaSora_EN` | `StellaSora.exe` |
 
-The executable path is resolved per game profile. `game_tag` is the value used in the signed API header.
+The executable path is resolved from the local `game-launcher-config.json` when present, with the profile value as the fallback. `game_tag` is the value used in the signed API header.
 
 ## Uninstall differences
 
