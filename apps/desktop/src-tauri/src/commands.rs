@@ -386,6 +386,7 @@ pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandErr
         Some(root) => root.clone(),
         None => default_root(&app, &profile)?,
     };
+    ensure_allowed_root(&app, &game, &root)?;
 
     let (mut child, started) = tokio::task::spawn_blocking(move || {
         let damaged = yayl_core::process::damaged_files(&root).map_err(CommandError::from)?;
@@ -604,6 +605,7 @@ pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionVie
         .install_root(&game)
         .map(Path::to_path_buf)
         .unwrap_or(default_root(&app, &profile)?);
+    ensure_allowed_root(&app, &game, &root)?;
     let local = tokio::task::spawn_blocking(move || {
         yayl_core::local_manifest::LocalManifest::load(&yayl_core::local_manifest::manifest_path(
             &root,

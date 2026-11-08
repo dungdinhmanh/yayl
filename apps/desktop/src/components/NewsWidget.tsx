@@ -27,14 +27,18 @@ function asset(path: string) {
   return "/news/" + path.split("/").pop();
 }
 
-/* The feed is untrusted input: only remote images and https links are used. */
-function safeImage(url: string) {
-  return /^https?:\/\//i.test(url) ? url : "";
+/* The feed is untrusted input: only parsed https URLs are used. */
+function safeHttps(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? parsed.href : "";
+  } catch {
+    return "";
+  }
 }
 
-function safeLink(url: string) {
-  return /^https:\/\//i.test(url) ? url : "";
-}
+const safeImage = safeHttps;
+const safeLink = safeHttps;
 
 /* The API sends English section ids (`LATEST`, `event`, `contest`). Translate
    the known ones and keep unknown labels untouched. */

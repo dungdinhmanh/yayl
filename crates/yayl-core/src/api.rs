@@ -307,17 +307,32 @@ pub struct NewsItemView {
     pub image: String,
 }
 
+/// Keep HTTPS URLs only; unsafe values become empty so the UI drops them.
+fn safe_url(raw: &str) -> String {
+    let url = raw.trim();
+    if crate::url::validate_https_url(url).is_ok() {
+        url.to_owned()
+    } else {
+        String::new()
+    }
+}
+
 impl OperationsResource {
     /// Normalize the Arknights `rows[]` and Stella `notice_detail_list[]` shapes.
     pub fn feed(&self) -> NewsFeed {
         let banners = self
             .operations_banner_list
             .iter()
-            .filter(|item| !item.banner_img.is_empty())
-            .map(|item| NewsBanner {
-                image: item.banner_img.clone(),
-                url: item.jump_url.clone(),
-                remark: item.remark.clone(),
+            .filter_map(|item| {
+                let image = safe_url(&item.banner_img);
+                if image.is_empty() {
+                    return None;
+                }
+                Some(NewsBanner {
+                    image,
+                    url: safe_url(&item.jump_url),
+                    remark: item.remark.clone(),
+                })
             })
             .collect();
 
@@ -335,9 +350,9 @@ impl OperationsResource {
                             .iter()
                             .map(|row| NewsItemView {
                                 title: row.title.clone(),
-                                url: row.link.clone(),
+                                url: safe_url(&row.link),
                                 date: format_timestamp_ms(row.publish_time),
-                                image: row.thumbnail.clone(),
+                                image: safe_url(&row.thumbnail),
                             })
                             .collect(),
                     });
@@ -358,7 +373,7 @@ impl OperationsResource {
                             .iter()
                             .map(|item| NewsItemView {
                                 title: item.notice_title.clone(),
-                                url: item.jump_url.clone(),
+                                url: safe_url(&item.jump_url),
                                 date: item.notice_time.clone(),
                                 image: String::new(),
                             })
@@ -662,17 +677,19 @@ mod tests {
     fn normalizes_both_news_shapes() {
         let arknights: OperationsResource = serde_json::from_str(
             r#"{
-              "operations_banner_list": [{"banner_img":"a.png","jump_url":"https://a","remark":"r"}],
+              "operations_banner_list": [{"banner_img":"https://cdn/a.png","jump_url":"https://a","remark":"r"}],
               "news_list": {"data": {"news": [{"typeLabel":"LATEST","rows":[
-                {"link":"https://n","publishTime":1710000000000,"thumbnail":"t.png","title":"Title"}
+                {"link":"https://n","publishTime":1710000000000,"thumbnail":"https://cdn/t.png","title":"Title"}
               ]}]}}
             }"#,
         )
         .unwrap();
         let feed = arknights.feed();
         assert_eq!(feed.banners.len(), 1);
+        assert_eq!(feed.banners[0].image, "https://cdn/a.png");
         assert_eq!(feed.sections[0].label, "LATEST");
         assert_eq!(feed.sections[0].items[0].date, "2024-03-09");
+        assert_eq!(feed.sections[0].items[0].image, "https://cdn/t.png");
 
         let stella: OperationsResource = serde_json::from_str(
             r#"{
@@ -685,6 +702,26 @@ mod tests {
         let feed = stella.feed();
         assert_eq!(feed.sections[0].label, "News");
         assert_eq!(feed.sections[0].items[0].date, "2026/10/20");
+    }
+
+    #[test]
+    fn drops_unsafe_news_urls() {
+        let resource: OperationsResource = serde_json::from_str(
+            r#"{
+              "operations_banner_list": [
+                {"banner_img":"http://cdn/a.png","jump_url":"https://a"},
+                {"banner_img":"javascript:alert(1)","jump_url":"https://a"}
+              ],
+              "news_list": {"data": {"news": [{"typeLabel":"LATEST","rows":[
+                {"link":"javascript:alert(1)","publishTime":1710000000000,"thumbnail":"http://cdn/t.png","title":"Title"}
+              ]}]}}
+            }"#,
+        )
+        .unwrap();
+        let feed = resource.feed();
+        assert!(feed.banners.is_empty());
+        assert_eq!(feed.sections[0].items[0].url, "");
+        assert_eq!(feed.sections[0].items[0].image, "");
     }
 
     #[test]

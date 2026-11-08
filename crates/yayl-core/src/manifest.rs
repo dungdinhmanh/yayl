@@ -63,6 +63,7 @@ impl Manifest {
 
         let mut files = Vec::with_capacity(raw.file.len());
         let mut seen = HashSet::with_capacity(raw.file.len());
+        let mut total = 0u64;
 
         for (index, item) in raw.file.into_iter().enumerate() {
             let relative = normalize_manifest_path(&item.path).map_err(|error| {
@@ -79,6 +80,9 @@ impl Manifest {
             })?;
             let crc64 = item.hash.trim().parse::<u64>().map_err(|_| {
                 Error::manifest(format!("file #{index} has an invalid hash: {}", item.hash))
+            })?;
+            total = total.checked_add(size).ok_or_else(|| {
+                Error::manifest(format!("manifest total size overflows at file #{index}"))
             })?;
 
             files.push(ManifestEntry {
@@ -103,7 +107,9 @@ impl Manifest {
     }
 
     pub fn total_bytes(&self) -> u64 {
-        self.files.iter().map(|file| file.size).sum()
+        self.files
+            .iter()
+            .fold(0u64, |total, file| total.saturating_add(file.size))
     }
 
     /// Build a download URL. `base` is the CDN root; path segments are encoded.
@@ -197,6 +203,15 @@ mod tests {
         assert_eq!(manifest.files.len(), 2);
         assert_eq!(manifest.total_bytes(), 37 + 31_006_120);
         assert_eq!(manifest.files[0].crc64, 15_720_943_726_513_824_584);
+    }
+
+    #[test]
+    fn rejects_total_size_overflow() {
+        let overflow = r#"{"source":"","file":[
+          {"path":"/a","hash":"1","size":"18446744073709551615"},
+          {"path":"/b","hash":"2","size":"1"}
+        ]}"#;
+        assert!(Manifest::parse(overflow).is_err());
     }
 
     #[test]

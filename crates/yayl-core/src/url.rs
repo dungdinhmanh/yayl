@@ -9,6 +9,31 @@ use reqwest::Url;
 
 /// Require an `https` URL, or `http` on a loopback host for tests.
 pub fn validate_remote_url(raw: &str) -> Result<()> {
+    let parsed = parse_without_credentials(raw)?;
+    match parsed.scheme() {
+        "https" => Ok(()),
+        "http" if is_loopback(&parsed) => Ok(()),
+        scheme => Err(Error::new(
+            ErrorCode::InvalidInput,
+            format!("remote URL must use https (got {scheme}): {raw}"),
+        )),
+    }
+}
+
+/// Require `https` with no embedded credentials, including loopback hosts.
+pub fn validate_https_url(raw: &str) -> Result<()> {
+    let parsed = parse_without_credentials(raw)?;
+    if parsed.scheme() == "https" {
+        Ok(())
+    } else {
+        Err(Error::new(
+            ErrorCode::InvalidInput,
+            format!("remote URL must use https: {raw}"),
+        ))
+    }
+}
+
+fn parse_without_credentials(raw: &str) -> Result<Url> {
     let parsed = Url::parse(raw).map_err(|error| {
         Error::new(
             ErrorCode::InvalidInput,
@@ -21,14 +46,7 @@ pub fn validate_remote_url(raw: &str) -> Result<()> {
             format!("remote URL must not embed credentials: {raw}"),
         ));
     }
-    match parsed.scheme() {
-        "https" => Ok(()),
-        "http" if is_loopback(&parsed) => Ok(()),
-        scheme => Err(Error::new(
-            ErrorCode::InvalidInput,
-            format!("remote URL must use https (got {scheme}): {raw}"),
-        )),
-    }
+    Ok(parsed)
 }
 
 fn is_loopback(url: &Url) -> bool {
@@ -63,6 +81,14 @@ mod tests {
         validate_remote_url("http://127.0.0.1:8080/manifest.json").unwrap();
         validate_remote_url("http://localhost:8080/manifest.json").unwrap();
         validate_remote_url("http://[::1]:8080/manifest.json").unwrap();
+    }
+
+    #[test]
+    fn https_only_rejects_loopback_http() {
+        validate_https_url("https://cdn.example.com/a.png").unwrap();
+        assert!(validate_https_url("http://127.0.0.1:8080/a.png").is_err());
+        assert!(validate_https_url("http://localhost:8080/a.png").is_err());
+        assert!(validate_https_url("https://user@cdn.example.com/a.png").is_err());
     }
 
     #[test]
