@@ -1,8 +1,4 @@
 //! YAYL's private state directory inside an install root.
-//!
-//! `plan.json` is the immutable desired state, `task.json` the mutable
-//! execution state, and `manifest.json` the raw server manifest. The last one
-//! is distinct from the generated `<install root>/manifest.json`.
 
 use crate::error::{Error, ErrorCode, Result};
 use std::io::Write;
@@ -89,8 +85,7 @@ pub fn write_atomic_with(path: &Path, bytes: &[u8], durability: Durability) -> R
         std::fs::create_dir_all(parent)?;
     }
     let tmp = path.with_extension("tmp");
-    // A planted symlink at the temp path must not redirect this write. Remove
-    // the link itself (remove_file never follows it) and create the file fresh.
+    // Remove a planted link and create the file fresh.
     match std::fs::remove_file(&tmp) {
         Ok(()) => {}
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}

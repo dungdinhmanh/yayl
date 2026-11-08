@@ -1,13 +1,5 @@
 //! Game process launch.
-//!
-//! The launcher only starts an executable that belongs to the game profile and
-//! lives inside the install root. It never runs downloaded files that are not
-//! part of the installed game.
-//!
-//! The 1.6 launcher reads the executable base name and arguments from
-//! `game-launcher-config.json` and appends `.exe` at launch time. YAYL follows
-//! the same metadata so an executable rename in `game/config` does not require
-//! a code change, and falls back to the profile when the file is missing.
+//! The 1.6 launcher reads the exe base name from `game-launcher-config.json` and appends `.exe`.
 
 use crate::error::{Error, ErrorCode, Result};
 use crate::local_manifest::{GameConfigFile, LocalManifest, game_config_path, manifest_path};
@@ -25,11 +17,7 @@ pub struct LaunchCommand {
     pub args: Vec<String>,
 }
 
-/// Resolve the game executable and arguments inside `root`.
-///
-/// The local `game-launcher-config.json` is the source of truth when present,
-/// because the official launcher writes the executable name there after a
-/// verified download. A missing or invalid config falls back to the profile.
+/// Resolve the executable and arguments; the local config wins over the profile.
 pub fn resolve(root: &Path, profile: &GameProfile) -> Result<LaunchCommand> {
     validate_install_root(root)?;
 
@@ -56,8 +44,7 @@ pub fn resolve(root: &Path, profile: &GameProfile) -> Result<LaunchCommand> {
     })
 }
 
-/// The official launcher stores `StellaSora` and appends `.exe`; keep accepting
-/// a value that already has the extension.
+/// Accept a name that already has the `.exe` extension.
 fn executable_name(name: &str) -> String {
     let name = name.trim();
     if name.to_ascii_lowercase().ends_with(".exe") {
@@ -82,13 +69,7 @@ pub fn launch(root: &Path, profile: &GameProfile) -> Result<Child> {
         .map_err(|error| Error::new(ErrorCode::Io, format!("cannot launch game: {error}")))
 }
 
-/// Compare installed file sizes with the local `manifest.json`, matching the
-/// official launcher's pre-launch `checkStat` step. Returns the manifest paths
-/// that are missing or the wrong size.
-///
-/// A missing manifest returns an empty list so an imported or manually
-/// assembled install can still launch; a corrupt manifest is an error because
-/// the file set cannot be trusted.
+/// Compare installed sizes with `manifest.json`; a corrupt manifest is an error.
 pub fn damaged_files(root: &Path) -> Result<Vec<String>> {
     validate_install_root(root)?;
     let path = manifest_path(root);

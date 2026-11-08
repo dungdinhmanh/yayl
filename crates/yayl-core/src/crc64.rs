@@ -1,8 +1,4 @@
 //! CRC-64/XZ, the checksum used by Yostar manifests.
-//!
-//! Parameters: poly 0x42F0E1EBA9EA3693 (reflected 0xC96C5795D7870F42),
-//! init !0, refin/refout true, xorout !0. Check value for "123456789" is
-//! 0x995DC9BBDF1939FA.
 
 use crate::error::{Error, Result};
 use std::io::Read;
@@ -12,9 +8,7 @@ const POLY: u64 = 0xC96C_5795_D787_0F42;
 
 const TABLE: [u64; 256] = build_table();
 
-/// Slicing-by-8 tables. `TABLES[0]` is the classic byte table; each following
-/// table shifts the previous one by one byte. Processing eight bytes at a time
-/// keeps CRC verification well ahead of a typical game download.
+/// Slicing-by-8 tables for speed.
 const TABLES: [[u64; 256]; 8] = build_tables();
 
 const fn build_table() -> [u64; 256] {

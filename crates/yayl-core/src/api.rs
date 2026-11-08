@@ -1,14 +1,5 @@
 //! Signed client for the official Yostar launcher API.
-//!
-//! The API uses a small JSON envelope:
-//!
-//! ```text
-//! Authorization: {"head":{"game_tag","time","version"},"sign":"<md5>"}
-//! sign = MD5(JSON.stringify(head) + data + salt)
-//! ```
-//!
-//! Only public launcher metadata is fetched here. Auth headers and signatures
-//! are never logged.
+//! Auth headers and signatures are never logged.
 
 use crate::error::{Error, ErrorCode, Result};
 use crate::manifest::Manifest;
@@ -30,9 +21,7 @@ pub struct AuthEnvelope {
     pub sign: String,
 }
 
-/// Build the `Authorization` header value for a request.
-///
-/// `data` must be the exact request body; GET requests use an empty string.
+/// Build the `Authorization` header value. `data` must be the exact body.
 pub fn auth_header(
     game_tag: &str,
     launcher_version: &str,
@@ -109,12 +98,10 @@ pub struct GameConfig {
 }
 
 impl GameConfig {
-    /// `true` when the local version is older than the latest version.
     pub fn needs_update(&self, local_version: &str) -> bool {
         compare_versions(local_version, &self.game_latest_version).is_lt()
     }
 
-    /// `true` when the local version is below the server's minimum.
     pub fn is_below_minimum(&self, local_version: &str) -> bool {
         compare_versions(local_version, &self.game_lowest_version).is_lt()
     }
@@ -168,7 +155,6 @@ pub struct SocialChannel {
     pub qr_img: String,
 }
 
-/// A social channel that is safe to show and open.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct SocialLink {
     pub channel: String,
@@ -177,9 +163,7 @@ pub struct SocialLink {
 }
 
 impl SocialResource {
-    /// Normalize the official channel list. The response is untrusted, so a
-    /// channel with a missing or non-HTTPS URL is dropped instead of rendered
-    /// as a dead or unsafe button. QR images follow the same rule.
+    /// Drop channels without a safe HTTPS URL.
     pub fn links(&self) -> Vec<SocialLink> {
         if !self.social_media_resource_open {
             return Vec::new();
@@ -324,9 +308,7 @@ pub struct NewsItemView {
 }
 
 impl OperationsResource {
-    /// Normalize the two shapes returned by EN games:
-    /// - Arknights: `news_list.data.news[]` with `rows[]`
-    /// - Stella Sora: `notice_list[]` with `notice_detail_list[]`
+    /// Normalize the Arknights `rows[]` and Stella `notice_detail_list[]` shapes.
     pub fn feed(&self) -> NewsFeed {
         let banners = self
             .operations_banner_list
@@ -523,11 +505,7 @@ impl LauncherApi {
             .await
     }
 
-    /// Download the launcher background image announced by `base/config`.
-    ///
-    /// The image is public CDN content and does not need the signed header.
-    /// The response is capped so a misbehaving host cannot make the launcher
-    /// allocate an unbounded buffer.
+    /// Download the background image announced by `base/config`.
     pub async fn background_image(&self, config: &BaseConfig) -> Result<Vec<u8>> {
         const MAX_BACKGROUND_BYTES: usize = 32 * 1024 * 1024;
         let url = config.launcher_background_img.trim();
@@ -583,8 +561,7 @@ impl LauncherApi {
         Ok(data.url)
     }
 
-    /// Fetch the remote manifest. The manifest lives on the CDN and does not
-    /// need the signed launcher header.
+    /// Fetch the remote manifest from the CDN.
     pub async fn fetch_manifest(&self, game_version: &str, basis: &str) -> Result<FetchedManifest> {
         let url = self.manifest_url(game_version, basis).await?;
         crate::url::validate_remote_url(&url)?;
@@ -607,8 +584,7 @@ impl LauncherApi {
     }
 }
 
-/// Compare dotted numeric versions (`042.0.0`, `2.0.0`). Non-numeric parts are
-/// treated as zero, matching the official launcher.
+/// Compare dotted numeric versions; non-numeric parts count as zero.
 pub fn compare_versions(left: &str, right: &str) -> std::cmp::Ordering {
     let mut left = left.split('.');
     let mut right = right.split('.');

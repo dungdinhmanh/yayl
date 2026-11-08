@@ -1,7 +1,4 @@
 //! Tauri commands used by `src/lib/ipc.ts`.
-//!
-//! Commands validate untrusted paths and return stable error codes. The
-//! webview only renders localized copy mapped from those codes.
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -88,8 +85,7 @@ fn default_root(app: &AppHandle, profile: &GameProfile) -> Result<PathBuf, Comma
     Ok(default_base(app)?.join(profile.install_dir))
 }
 
-/// Commands that read or mutate an install root only accept the root saved for
-/// this game, or the default root before the first save.
+/// Only accept the saved root for this game, or the default root.
 pub(crate) fn ensure_allowed_root(
     app: &AppHandle,
     game: &str,
@@ -241,9 +237,7 @@ pub struct FirstRunInput {
     pub roots: BTreeMap<String, String>,
 }
 
-/// Persist the first-run choices before the summary step. Onboarding stays
-/// incomplete until the user confirms the summary, so quitting early replays
-/// the flow with the saved roots already filled in.
+/// Persist first-run choices before the summary step.
 #[tauri::command]
 pub fn save_first_run(app: AppHandle, input: FirstRunInput) -> Result<SettingsView, CommandError> {
     validate_language(&input.language)?;
@@ -279,8 +273,7 @@ pub fn complete_onboarding(app: AppHandle) -> Result<SettingsView, CommandError>
     Ok(settings.into())
 }
 
-/// Reset preferences but keep install folders and onboarding state. Game files
-/// are never touched.
+/// Reset preferences; install folders and game files are untouched.
 #[tauri::command]
 pub fn reset_settings(app: AppHandle) -> Result<SettingsView, CommandError> {
     let current = settings::load(&app)?;
@@ -346,8 +339,7 @@ pub fn app_info(app: AppHandle) -> AppInfoView {
 
 const GAME_EXIT_EVENT: &str = "game-exit";
 
-/// Serializes the read-modify-write of the playtime file when two games are
-/// running at the same time.
+/// Serialize playtime writes when two games run at once.
 static PLAYTIME_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Debug, Clone, Copy, Serialize)]
@@ -361,8 +353,7 @@ pub struct PlaytimeView {
 #[serde(rename_all = "camelCase")]
 struct GameExitEvent {
     game: String,
-    /// Total seconds across every session, so the UI can update without a
-    /// second round trip.
+    /// Total seconds across every session.
     total_seconds: u64,
     last_played: u64,
 }
@@ -386,12 +377,7 @@ pub fn playtime(app: AppHandle, game: String) -> Result<PlaytimeView, CommandErr
     })
 }
 
-/// Start the game and record the session when it exits.
-///
-/// Before spawning, the installed file sizes are compared with the local
-/// `manifest.json`, matching the official launcher's pre-launch `checkStat`
-/// step. A damaged install returns `game_damaged` so the UI can offer repair
-/// instead of starting a half-updated game.
+/// Start the game and record the session; a damaged install returns `game_damaged`.
 #[tauri::command]
 pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandError> {
     let profile = profile(&game)?;
@@ -493,8 +479,7 @@ pub async fn fetch_news(
     Ok(api.news().await?)
 }
 
-/// Official social channels for the home screen. URLs are validated in the core
-/// so the webview only receives links that are safe to open.
+/// Official social channels; URLs are validated in the core.
 #[tauri::command]
 pub async fn fetch_social(
     app: AppHandle,
@@ -518,8 +503,7 @@ fn background_dir(app: &AppHandle, game: &str) -> Result<PathBuf, CommandError> 
         .join(game))
 }
 
-/// Fetch, verify, and cache the official launcher background art, returning the
-/// local file path for the asset protocol.
+/// Fetch, verify, and cache the official background art.
 #[tauri::command]
 pub async fn fetch_background(
     app: AppHandle,
@@ -587,8 +571,7 @@ pub async fn fetch_background(
     }
 }
 
-/// Open an https link in the user's browser. The webview must never navigate
-/// away from the launcher, so every external link goes through this command.
+/// Open an https link in the system browser.
 #[tauri::command]
 pub fn open_external(app: AppHandle, url: String) -> Result<(), CommandError> {
     yayl_core::url::validate_remote_url(&url)?;
@@ -613,9 +596,7 @@ fn non_empty(value: String) -> Option<String> {
     }
 }
 
-/// Installed version from the game's `manifest.json` plus the server's
-/// latest/minimum versions. A failed API call still returns the local version
-/// so the settings hero works offline.
+/// Installed and latest/minimum versions; the local version works offline.
 #[tauri::command]
 pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionView, CommandError> {
     let profile = profile(&game)?;
@@ -654,8 +635,7 @@ pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionVie
 pub fn open_install_folder(app: AppHandle, game: String, path: String) -> Result<(), CommandError> {
     let path = PathBuf::from(&path);
     ensure_allowed_root(&app, &game, &path)?;
-    // The install folder may not exist yet (before the first download), so open
-    // the nearest existing ancestor instead of failing.
+    // Open the nearest existing ancestor; the folder may not exist yet.
     let folder = nearest_existing(&path)?;
     app.opener()
         .open_path(folder.to_string_lossy().into_owned(), None::<&str>)

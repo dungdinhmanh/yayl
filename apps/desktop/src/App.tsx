@@ -199,8 +199,7 @@ export default function App() {
     setStates((current) => ({ ...current, [gameId]: next }));
   };
 
-  // Settings load first: language and onboarding must be correct before the
-  // first paint. Download state can arrive afterwards.
+  // Load settings before the first paint; download state can arrive later.
   useEffect(() => {
     let active = true;
 
@@ -287,8 +286,7 @@ export default function App() {
     };
   }, []);
 
-  // Progress events are the only source of live download state. The backend
-  // throttles them to 4 Hz.
+  // Progress events are the only live download state; the backend caps them at 4 Hz.
   useEffect(() => {
     let active = true;
     let unlisten: (() => void) | undefined;
@@ -343,9 +341,7 @@ export default function App() {
     };
   }, []);
 
-  // News is fetched per game and cached for the session. In the browser lab the
-  // Vite dev bridge returns real API data; if it fails the widget falls back to
-  // the static feed.
+  // News is fetched per game and cached; the lab uses the Vite bridge.
   useEffect(() => {
     if (!booted || news[gameId] !== undefined) return;
     let active = true;
@@ -362,8 +358,7 @@ export default function App() {
     };
   }, [gameId, booted, news]);
 
-  // Official social channels, cached for the session. A failed request hides
-  // the cluster instead of showing placeholder buttons.
+  // Social channels are cached; a failure hides the cluster.
   useEffect(() => {
     if (!booted || social[gameId] !== undefined) return;
     let active = true;
@@ -380,8 +375,7 @@ export default function App() {
     };
   }, [gameId, booted, social]);
 
-  // The backend verifies and caches the official background art. `null` means
-  // "no cached art", so the bundled per-game image stays visible.
+  // Background art is verified and cached; `null` keeps the bundled image.
   useEffect(() => {
     if (!booted || backgrounds[gameId] !== undefined) return;
     let active = true;
@@ -509,8 +503,7 @@ export default function App() {
   };
 
   const retry = () => {
-    // Offline is a network failure, so re-checking is the honest retry. An
-    // update with "play anyway" just launches the installed build.
+    // Offline retries the network; "play anyway" launches the installed build.
     if (state === "offline") check(false);
     else play();
   };

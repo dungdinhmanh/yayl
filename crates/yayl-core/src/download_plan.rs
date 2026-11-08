@@ -1,13 +1,4 @@
 //! Download orchestration and persistent plans.
-//!
-//! The Yostar adapter (`RemoteGame`) turns the signed API and remote manifest
-//! into a provider-neutral [`PlanDocument`]. The downloader itself only sees
-//! URLs, sizes, and checksums, so another game can build the same document
-//! without changing the download engine.
-//!
-//! State lives under `<root>/.yayl`: `plan.json` (immutable), `task.json`
-//! (mutable), and `manifest.json` (raw server bytes). Official `manifest.json`
-//! and `game-launcher-config.json` are written only after full verification.
 
 use crate::api::{CdnConfig, GameConfig, LauncherApi};
 use crate::checksum::Checksum;
@@ -29,8 +20,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
-/// Launcher version used in the signed API envelope. The server accepts any
-/// recent version; this is not the game version.
+/// Version sent in the signed envelope; not the game version.
 pub const DEFAULT_LAUNCHER_VERSION: &str = "0.1.0";
 pub const PLAN_SCHEMA_VERSION: u32 = 1;
 pub const YOSTAR_PROVIDER: &str = "yostar";
@@ -357,8 +347,7 @@ impl PlanDocument {
         Ok(())
     }
 
-    /// Reconstruct the official remote manifest shape. This is only possible
-    /// for CRC-64 plans, which is what Yostar uses.
+    /// Reconstruct the official remote manifest shape.
     pub fn to_raw_manifest_json(&self) -> Result<String> {
         let mut files = Vec::with_capacity(self.manifest.files.len());
         for file in &self.manifest.files {
@@ -398,14 +387,12 @@ impl PlanDocument {
 pub struct DownloadPlan {
     pub document: PlanDocument,
     pub root: PathBuf,
-    /// Exact manifest bytes when fetched live. May be empty after loading a
-    /// plan from disk; `manifest()` reconstructs the official shape.
+    /// Exact manifest bytes when fetched live; empty after loading from disk.
     pub raw_manifest: String,
 }
 
 impl DownloadPlan {
-    /// Fetch all remote metadata and bind it to an install root. No directory
-    /// is created here; the caller can still show a confirmation screen.
+    /// Fetch remote metadata and bind it to an install root.
     pub async fn prepare(
         profile: GameProfile,
         root: impl Into<PathBuf>,
@@ -444,8 +431,7 @@ impl DownloadPlan {
         Self::from_document(document, root, remote.raw_manifest)
     }
 
-    /// Polymorphism hook: any provider can build a `PlanDocument` and hand it
-    /// to the same downloader, verifier, and repair path.
+    /// Build a provider-neutral plan.
     pub fn from_document(
         document: PlanDocument,
         root: impl Into<PathBuf>,
@@ -600,9 +586,7 @@ impl DownloadPlan {
         Ok(verify::diff_manifests(&old, &self.manifest()?))
     }
 
-    /// Write the official local metadata after a complete, verified download.
-    /// Other providers may use a different metadata format; for them this is a
-    /// no-op.
+    /// Write the official local metadata after a verified download.
     pub fn write_local_metadata(&self) -> Result<()> {
         if self.document.game.provider != YOSTAR_PROVIDER {
             return Ok(());
@@ -619,9 +603,7 @@ impl DownloadPlan {
         crate::path::reject_symlink_components(&self.root, &manifest_path(&self.root))?;
         local.save(&manifest_path(&self.root))?;
 
-        // The official launcher stores a base name and appends `.exe` itself.
-        // Keep the profile fallback (`StellaSora.exe`) from becoming
-        // `StellaSora.exe.exe` when the official launcher reads the file.
+        // Store the base name; the official launcher appends `.exe`.
         let name = if game.launch.executable.trim().is_empty() {
             game.tag.clone()
         } else {
@@ -639,9 +621,7 @@ impl DownloadPlan {
         Ok(())
     }
 
-    /// Persist the plan and manifest, download every file, verify checksums,
-    /// then write the official metadata. A partial failure leaves the plan,
-    /// task state, and all `.yayl-part` files in place for the next resume.
+    /// Download, verify, then write the official metadata.
     pub async fn run<F>(
         &self,
         downloader: &Downloader,
@@ -653,8 +633,7 @@ impl DownloadPlan {
     {
         std::fs::create_dir_all(&self.root)?;
         crate::path::reject_symlink_components(&self.root, &state::state_dir(&self.root))?;
-        // The exact official manifest cache is Yostar-specific. Generic plans
-        // keep their manifest snapshot in plan.json.
+        // Yostar keeps the raw manifest cache; generic plans keep it in plan.json.
         if !self.raw_manifest.trim().is_empty() || self.document.game.provider == YOSTAR_PROVIDER {
             self.save_remote_manifest()?;
         }
@@ -724,11 +703,7 @@ impl DownloadPlan {
                 bytes_total,
             )
         };
-        // Counters are per run. On a resume the downloader re-verifies files
-        // that are already complete, so its counters start at zero and climb
-        // back to the old value. Keep the persisted value as a floor so the
-        // progress bar never moves backwards. A completed task is a new run
-        // and starts from zero.
+        // Keep persisted counters as a floor so resume never moves the bar back.
         let resume_counters = matches!(
             task.state,
             TaskState::Running | TaskState::Verifying | TaskState::Paused | TaskState::Failed
@@ -822,9 +797,7 @@ impl DownloadPlan {
     }
 }
 
-/// Keep the persisted counters as a floor while a resumed run re-verifies
-/// files that were already complete. Without this the UI progress bar moves
-/// backwards to zero on every resume.
+/// Keep persisted counters as a floor on resume.
 fn resume_progress(mut progress: Progress, task: &DownloadTask, resumed: bool) -> Progress {
     if resumed {
         progress.downloaded = progress.downloaded.max(task.bytes_done);
@@ -833,8 +806,7 @@ fn resume_progress(mut progress: Progress, task: &DownloadTask, resumed: bool) -
     progress
 }
 
-/// Throttles and deduplicates progress snapshots. They skip the fsync because
-/// resume positions live in `.yayl-part` checkpoints.
+/// Throttle and deduplicate progress snapshots.
 struct ProgressSave {
     at: Instant,
     last: Option<(TaskState, usize, u64)>,

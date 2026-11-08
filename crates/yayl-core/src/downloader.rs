@@ -1,11 +1,4 @@
-//! Resumable HTTP downloader.
-//!
-//! Design goals:
-//! - Range resume from a `.yayl-part` file next to the target.
-//! - Verify CRC-64/XZ before the part file is committed.
-//! - Bounded concurrency with a shared progress model.
-//! - Cancellation leaves part files in place so the next run resumes.
-//! - No global mutable state: the caller owns the downloader and token.
+//! Resumable HTTP downloader with CRC-64 verification.
 
 use crate::checksum::Checksum;
 use crate::disk;
@@ -23,9 +16,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 
-/// Sync the part file and persist a durable length at this interval. On a
-/// power loss the next run truncates back to the checkpoint instead of trusting
-/// a file length whose tail may never have reached the disk.
+/// fsync and checkpoint interval; a power loss truncates to the last synced byte.
 const CHECKPOINT_BYTES: u64 = 8 * 1024 * 1024;
 
 #[derive(Debug, Clone)]
@@ -35,8 +26,7 @@ pub struct FileJob {
     /// Absolute destination inside the install root.
     pub dest: PathBuf,
     pub size: u64,
-    /// Provider-neutral checksum. Yostar plans use CRC-64/XZ, other games can
-    /// use MD5, SHA-256, or no checksum.
+    /// Provider-neutral checksum; Yostar plans use CRC-64/XZ.
     pub checksum: Checksum,
 }
 
@@ -75,8 +65,7 @@ impl FileJob {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DownloadOrder {
-    /// Small files first, then progressively larger files. This gets the game
-    /// to a launchable state sooner on slow connections.
+    /// Small files first, so the game reaches a launchable state sooner.
     #[default]
     SmallestFirst,
     /// Largest files first.
@@ -221,8 +210,7 @@ impl Downloader {
         self
     }
 
-    /// Download every job under `root`. Per-file failures are returned in the
-    /// report instead of aborting the whole batch.
+    /// Download every job under `root`; per-file failures are reported.
     pub async fn download_all<F>(
         &self,
         root: &Path,
@@ -260,9 +248,7 @@ impl Downloader {
         crate::path::validate_install_root(root)?;
         tokio::fs::create_dir_all(root).await?;
 
-        // Existing files and partial downloads already occupy disk. Counting
-        // only the missing bytes keeps a resumed 20 GB install from failing a
-        // free-space check that the first run already passed.
+        // Count only missing bytes so a resumed install still passes the check.
         let required_bytes = missing_bytes(&jobs).await;
         let space = disk::space_for(root)?;
         if space.free_bytes < required_bytes {
@@ -375,8 +361,7 @@ impl Downloader {
             return Err(Error::cancelled());
         }
 
-        // Re-check right before reading or writing: a link planted after the
-        // batch-level check must not redirect this file outside the root.
+        // Re-check before I/O; a planted link must not escape the root.
         crate::path::reject_symlink_components(root, &job.dest)?;
 
         if self.verify_existing && job.dest.is_file() {
@@ -416,8 +401,7 @@ impl Downloader {
             part_len = 0;
         }
 
-        // A checkpoint older than the part means the tail was never guaranteed
-        // durable. Drop that tail and resume from the last synced byte.
+        // Drop any tail past the last durable checkpoint.
         if part_len > 0 {
             if let Some(durable) = read_checkpoint(&part).await {
                 let durable = durable.min(part_len);
@@ -486,9 +470,7 @@ impl Downloader {
                         actual_size
                     ),
                 );
-                // A short stream is the normal network-drop case: keep the
-                // durable prefix and retry with a Range request. Only an
-                // oversized part is unsafe to keep.
+                // A short stream is a dropped connection; keep the durable prefix.
                 if actual_size > job.size {
                     remove_part(&part, counters, true).await;
                 }
@@ -533,8 +515,7 @@ impl Downloader {
         Err(last_error)
     }
 
-    // The arguments are one cohesive download step; grouping them into a
-    // struct would only move the same values around.
+    // Cohesive download step; a struct would only move the same values.
     #[allow(clippy::too_many_arguments)]
     async fn stream_to_part(
         &self,
@@ -612,8 +593,7 @@ impl Downloader {
                 .open(part)
                 .await?
         } else {
-            // Remove the old part (including a link planted at this path) and
-            // create a fresh file. `create_new` refuses to follow a link.
+            // Replace the part with a fresh file; `create_new` does not follow links.
             tokio::fs::remove_file(part).await.ok();
             tokio::fs::OpenOptions::new()
                 .create_new(true)
@@ -672,8 +652,7 @@ impl Downloader {
         }
         .await;
 
-        // Persist the durable prefix even when the stream failed or was
-        // cancelled. The next run can resume from this checkpoint.
+        // Persist the durable prefix even on failure so the next run resumes.
         file.sync_data().await?;
         write_checkpoint(part, written).await?;
         stream_result
@@ -801,8 +780,7 @@ async fn remove_part(part: &Path, counters: &Counters, counted: bool) {
     remove_checkpoint(part).await;
 }
 
-/// Bytes still needed for this batch, accounting for completed files and
-/// resumable partials already on disk.
+/// Bytes still needed, accounting for completed files and resumable partials.
 async fn missing_bytes(jobs: &[FileJob]) -> u64 {
     let mut total = 0u64;
     for job in jobs {
@@ -839,8 +817,7 @@ async fn read_checkpoint(part: &Path) -> Option<u64> {
 async fn write_checkpoint(part: &Path, durable: u64) -> Result<()> {
     let path = checkpoint_path(part);
     let tmp = path.with_extension("ckpt.tmp");
-    // A planted symlink at the temp path must not redirect this write. Remove
-    // the link itself (remove_file never follows it) and create the file fresh.
+    // Remove a planted link and create the file fresh.
     tokio::fs::remove_file(&tmp).await.ok();
     let mut file = tokio::fs::OpenOptions::new()
         .create_new(true)
@@ -1154,8 +1131,7 @@ mod tests {
                 let offset = request_range(&request).unwrap_or(0) as usize;
                 server_offsets.lock().unwrap().push(offset as u64);
                 if offset == 0 {
-                    // A dropped connection after 7000 bytes: no Content-Length,
-                    // so the body is complete but shorter than the manifest.
+                    // Simulate a dropped connection after 7000 bytes.
                     write_response(
                         &mut socket,
                         "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n",
@@ -1200,8 +1176,7 @@ mod tests {
             let (mut socket, _) = listener.accept().await.unwrap();
             let request = read_request(&mut socket).await;
             assert_eq!(request_range(&request), Some(1000));
-            // Claim the range starts at 0 even though the client asked for
-            // 1000. The downloader must reject this before appending.
+            // Claim offset 0 although the client asked for 1000.
             let slice = &server_body[..];
             let header = partial_head(0, server_body.len(), slice.len());
             write_response(&mut socket, &header, slice).await;

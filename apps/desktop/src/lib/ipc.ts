@@ -1,6 +1,4 @@
-/* Typed wrappers for the Tauri command layer.
-   The web build has no Rust host, so every wrapper falls back to the mock data
-   used by the UI lab. Components never call `invoke` directly. */
+/* Typed wrappers for the Tauri command layer; components never call `invoke`. */
 
 import { GAMES, type GameId } from "../data";
 
@@ -173,8 +171,7 @@ export function defaultSettings(): Settings {
 
 const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
-/* The web lab has no settings file. Keep one in memory so the settings and
-   first-run screens behave the same way they do in the real app. */
+/* In-memory settings for the web lab. */
 let mockSettings: Settings = {
   ...defaultSettings(),
   onboardingComplete: true,
@@ -182,8 +179,7 @@ let mockSettings: Settings = {
 
 const GIB = 1024 ** 3;
 
-/* Deterministic drive presets so the lab can demonstrate enough/insufficient
-   space by changing the path. */
+/* Deterministic disk presets for the lab. */
 const DISK_PRESETS: Record<string, DiskSpace> = {
   "C:": { freeBytes: 24 * GIB, totalBytes: 256 * GIB },
   "D:": { freeBytes: 182 * GIB, totalBytes: 512 * GIB },
@@ -227,8 +223,7 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(2)} ${units[unit]}`;
 }
 
-/* Total download size for a game. Cached per game: changing the install path
-   only needs the disk query to run again. */
+/* Total download size, cached per game. */
 export async function fetchDownloadBytes(gameId: GameId): Promise<number> {
   const cached = downloadCache.get(gameId);
   if (cached !== undefined) return cached;
@@ -275,8 +270,7 @@ export async function planInstall(gameId: GameId, path: string): Promise<Install
   };
 }
 
-/* Real host: opens a native folder picker. Lab: cycles the drive so the disk
-   query can be reviewed without a file dialog. */
+/* Native picker in Tauri; cycles drives in the lab. */
 export async function chooseInstallFolder(current: string): Promise<string> {
   if (IS_TAURI) {
     const selected = await invoke<string | null>("choose_install_folder", { defaultPath: current });
@@ -439,9 +433,7 @@ export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | nul
 
 export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
   if (!IS_TAURI) {
-    /* Dev-only bridge from vite.config.ts. It signs the request with the same
-       public protocol envelope as the Rust client so the browser lab can be
-       reviewed against real news data. */
+    /* Dev-only bridge from vite.config.ts. */
     if (!import.meta.env.DEV) return null;
     const response = await fetch(`/__dev/news?game=${encodeURIComponent(gameId)}`, {
       cache: "no-store",
@@ -464,8 +456,7 @@ export interface SocialLink {
   qr: string;
 }
 
-/* Official social channels. The Rust side validates every URL before it
-   reaches the webview. */
+/* Official social channels; URLs are validated by the core. */
 export async function fetchSocial(gameId: GameId): Promise<SocialLink[]> {
   if (!IS_TAURI) {
     if (!import.meta.env.DEV) return [];
@@ -480,8 +471,7 @@ export async function fetchSocial(gameId: GameId): Promise<SocialLink[]> {
   return invoke<SocialLink[]>("fetch_social", { game: gameId });
 }
 
-/* Local cached background art. In the Tauri build the backend verifies the
-   image and returns a path served by the asset protocol. */
+/* Cached background art served through the asset protocol. */
 export async function fetchBackground(gameId: GameId): Promise<string | null> {
   if (!IS_TAURI) {
     if (!import.meta.env.DEV) return null;
@@ -558,8 +548,7 @@ export async function downloadStatus(
   return invoke<DownloadSnapshot | null>("download_status", { game: gameId, path });
 }
 
-/* Returns true when a real backend accepted the download. The web lab keeps
-   its static download state so the UI can still be reviewed. */
+/* True when a real backend accepted the download. */
 export async function startDownload(gameId: GameId, path: string): Promise<boolean> {
   if (!IS_TAURI) return false;
   await invoke("start_download", { game: gameId, path });

@@ -1,8 +1,4 @@
 //! Verify, repair support, and manifest diffing.
-//!
-//! Verification is intentionally provider-neutral: a plan supplies a relative
-//! path, a size, and a checksum. The Yostar adapter fills those from CRC-64/XZ
-//! manifest entries, but other games can use MD5 or SHA-256.
 
 use crate::checksum::Checksum;
 use crate::error::{Error, ErrorCode, Result};
@@ -82,8 +78,7 @@ impl From<&ManifestEntry> for VerifyTarget {
     }
 }
 
-/// Verify every target under `root`, hashing at most `concurrency` files at a
-/// time. Files are hashed on blocking threads so the UI stays responsive.
+/// Verify targets with bounded hashing on blocking threads.
 pub async fn verify_targets(
     root: &Path,
     targets: &[VerifyTarget],
@@ -92,8 +87,7 @@ pub async fn verify_targets(
     verify_targets_with_progress(root, targets, concurrency, |_, _| {}).await
 }
 
-/// Same as [`verify_targets`] but reports `(files_done, bytes_done)` after each
-/// file. The callback runs on the verification task, so it must be cheap.
+/// Verify and report `(files_done, bytes_done)` after each file.
 pub async fn verify_targets_with_progress<F>(
     root: &Path,
     targets: &[VerifyTarget],

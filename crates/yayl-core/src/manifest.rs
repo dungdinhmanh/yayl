@@ -1,9 +1,4 @@
 //! Official Yostar manifest parsing.
-//!
-//! The manifest is a JSON object with `source` and a flat `file` list. Every
-//! entry has a leading-slash path, a decimal CRC-64/XZ hash, and a decimal
-//! size stored as a string. We keep the official file untouched and build a
-//! validated, typed view for the downloader.
 
 use crate::crc64;
 use crate::error::{Error, Result};
@@ -111,12 +106,7 @@ impl Manifest {
         self.files.iter().map(|file| file.size).sum()
     }
 
-    /// Build a download URL for a file. `base` is the CDN root, without a
-    /// trailing slash. The official layout is `<cdn>/<source>/<file path>`;
-    /// the source is the manifest's top-level `source` field.
-    ///
-    /// Path segments are percent-encoded because asset names can contain `#`,
-    /// `?`, spaces, or non-ASCII characters.
+    /// Build a download URL. `base` is the CDN root; path segments are encoded.
     pub fn file_url(&self, base: &str, entry: &ManifestEntry) -> String {
         let base = base.trim_end_matches('/');
         let source = self.source.trim_matches('/');

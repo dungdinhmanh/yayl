@@ -1,15 +1,9 @@
-//! Path validation for manifest entries and install roots.
-//!
-//! Manifest paths are untrusted. They must stay relative and inside the
-//! selected install root.
+//! Path validation for untrusted manifest entries and install roots.
 
 use crate::error::{Error, Result};
 use std::path::{Component, Path, PathBuf};
 
-/// Normalize a manifest path such as `/StellaSora_Data/app.info`.
-///
-/// Rejects absolute paths, `..`, Windows drive/ADS separators, backslashes,
-/// NUL bytes, and reserved device names. Returns a relative path.
+/// Normalize a manifest path; reject anything that escapes the root.
 pub fn normalize_manifest_path(raw: &str) -> Result<PathBuf> {
     if raw.is_empty() {
         return Err(Error::path("manifest path is empty"));
@@ -58,8 +52,7 @@ pub fn normalize_manifest_path(raw: &str) -> Result<PathBuf> {
     Ok(out)
 }
 
-/// Stable forward-slash key for a relative path. Used by plans, duplicate
-/// detection, and manifest diffs so Windows and Linux compare the same string.
+/// Stable forward-slash key for plans and diffs.
 pub fn path_key(path: &Path) -> String {
     path.components()
         .filter_map(|component| match component {
@@ -70,8 +63,7 @@ pub fn path_key(path: &Path) -> String {
         .join("/")
 }
 
-/// Join a normalized relative path to an install root and prove the result is
-/// still inside that root.
+/// Join a relative path to `root` and prove it stays inside.
 pub fn join_inside(root: &Path, relative: &Path) -> Result<PathBuf> {
     if relative.is_absolute() {
         return Err(Error::path("expected a relative manifest path"));
@@ -85,10 +77,7 @@ pub fn join_inside(root: &Path, relative: &Path) -> Result<PathBuf> {
     Ok(root.join(relative))
 }
 
-/// Reject symlinks and junctions in existing components of `path` below
-/// `root`. Missing components are allowed because they will be created as real
-/// directories. The root itself is trusted: the user chose it and may point it
-/// at another drive.
+/// Reject symlinks/junctions below `root`; missing components are allowed.
 pub fn reject_symlink_components(root: &Path, path: &Path) -> Result<()> {
     let relative = path.strip_prefix(root).map_err(|_| {
         Error::path(format!(
@@ -140,8 +129,7 @@ pub fn validate_install_root(root: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Nearest existing ancestor, used to query disk space before the folder is
-/// created.
+/// Nearest existing ancestor, used to query disk space.
 pub fn nearest_existing(path: &Path) -> Result<PathBuf> {
     let mut current = path.to_path_buf();
     loop {

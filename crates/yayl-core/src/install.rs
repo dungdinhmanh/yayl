@@ -79,9 +79,7 @@ impl InstallPlan {
     }
 }
 
-/// Fetch the manifest and read disk space concurrently. The UI can start the
-/// disk query immediately while the API request is still in flight; neither
-/// task waits for the other.
+/// Fetch the manifest and read disk space concurrently.
 pub async fn plan_install(
     manifest_url: &str,
     root: &Path,
@@ -118,10 +116,7 @@ pub async fn plan_install_with_client(
     ))
 }
 
-/// Build a plan when the manifest is already cached locally (offline start).
-///
-/// Accepts either the official local `manifest.json` (`files[]` with `vc`) or
-/// a remote manifest (`file[]` with `source`).
+/// Build a plan from a cached local manifest.
 pub fn plan_from_local_manifest(
     manifest_path: &Path,
     root: &Path,
@@ -137,8 +132,7 @@ pub fn plan_from_local_manifest(
     InstallPlan::from_manifest(&manifest, root, profile)
 }
 
-/// True when the selected folder already contains a game executable or the
-/// official launcher config.
+/// True when the folder already contains a game install.
 pub fn detect_existing(root: &Path, profile: &GameProfile) -> bool {
     root.join(profile.executable).is_file()
         || root

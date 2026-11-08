@@ -1,7 +1,4 @@
-//! Bounded local cache for the official launcher background art.
-//!
-//! `base/config` points at a content-hashed image and publishes its CRC-64;
-//! files are stored only after that checksum matches.
+//! Bounded cache for the official launcher background art.
 
 use crate::crc64;
 use crate::error::{Error, ErrorCode, Result};
@@ -19,11 +16,7 @@ pub struct BackgroundImage {
     pub crc64: String,
 }
 
-/// Validate the two background fields from `base/config`.
-///
-/// Returns `None` when the launcher has no art configured or when either field
-/// is not safe to use. The image URL must be HTTPS (or loopback for tests) and
-/// the checksum must be a decimal CRC-64, matching the official format.
+/// Parse the two background fields; `None` when either is missing or unsafe.
 pub fn image_from_config(url: &str, checksum: &str) -> Option<BackgroundImage> {
     let url = url.trim();
     if url.is_empty() || crate::url::validate_remote_url(url).is_err() {
@@ -53,7 +46,6 @@ fn extension(url: &str) -> &'static str {
     }
 }
 
-/// Path of the cached file for `image` inside `dir`.
 pub fn cached_path(dir: &Path, image: &BackgroundImage) -> PathBuf {
     dir.join(format!("{}.{}", image.crc64, extension(&image.url)))
 }
@@ -82,11 +74,7 @@ pub fn store(dir: &Path, image: &BackgroundImage, bytes: &[u8]) -> Result<PathBu
     Ok(target)
 }
 
-/// Keep at most `keep` files in `dir`, always keeping `current`.
-///
-/// Files are ordered by modification time, newest first, with `current` pinned
-/// to the front. Any file beyond the limit is removed. Partially written
-/// `.part` files are ignored here; they never become visible to the UI.
+/// Keep at most `keep` files, pinning `current` first.
 pub fn prune(dir: &Path, keep: usize, current: Option<&Path>) -> Result<()> {
     let keep = keep.max(1);
     let mut entries = Vec::new();

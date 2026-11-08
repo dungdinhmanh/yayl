@@ -1,5 +1,4 @@
-//! Small launcher settings file. Kept outside the game folder so the official
-//! manifest/config stay untouched.
+//! Launcher settings file, kept outside the game folder.
 
 use crate::downloader::DownloadOrder;
 use crate::error::Result;
@@ -8,8 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-/// Matches the desktop downloader default. Clamped again when a client is
-/// built, so an old or hand-edited file cannot open thousands of sockets.
+/// Matches the downloader default; clamped when a client is built.
 pub const DEFAULT_CONCURRENCY: usize = 10;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -43,8 +41,7 @@ pub struct Settings {
     /// Backdrop style for the launcher UI.
     #[serde(default)]
     pub background: BackgroundMode,
-    /// False only for a brand-new install. Old settings files are migrated to
-    /// true because they predate onboarding.
+    /// False only for a brand-new install.
     #[serde(default)]
     pub onboarding_complete: bool,
     /// Keep YAYL in the tray when the window is closed.
@@ -83,8 +80,7 @@ impl Settings {
         }
         let body = std::fs::read_to_string(path)?;
         let mut value: serde_json::Value = serde_json::from_str(&body)?;
-        // Settings files written before onboarding existed belong to users who
-        // already used the app. Do not show them the first-run flow again.
+        // Existing users are not sent through onboarding again.
         if let Some(object) = value.as_object_mut() {
             object
                 .entry("onboarding_complete")

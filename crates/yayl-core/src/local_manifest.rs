@@ -1,13 +1,5 @@
 //! Official local metadata files.
-//!
-//! The game itself and third-party tools read these files, so YAYL keeps the
-//! exact shape used by the official launcher:
-//!
-//! - `manifest.json`: `{ name, version, basis, vc, files[] }`
-//! - `game-launcher-config.json`: `{ tag, name, params, version, vc, ... }`
-//!
-//! `vc` is `base64(MD5(Object.values(object).join(";")))`. The field order is
-//! part of the format.
+//! `vc` is `base64(MD5(values.join(";")))`; field order is part of the format.
 
 use crate::error::{Error, Result};
 use crate::manifest::{Manifest, RawManifest, RawManifestFile};
@@ -93,9 +85,7 @@ impl LocalManifest {
         }
     }
 
-    /// Validate the info hash and every file hash. Invalid files are dropped,
-    /// matching the official reader's recovery behavior; an invalid info hash
-    /// is a hard error because the file set cannot be trusted.
+    /// Drop invalid file hashes; an invalid info hash is an error.
     pub fn validate(mut self) -> Result<Self> {
         let expected = object_hash(&[self.name.clone(), self.version.clone(), self.basis.clone()]);
         if self.vc != expected {
@@ -123,9 +113,7 @@ impl LocalManifest {
         crate::state::write_atomic(path, body.as_bytes())
     }
 
-    /// Convert back to the remote manifest shape for checksum and size
-    /// comparisons. The official local manifest does not store the remote
-    /// `source`, so download URLs must come from a freshly fetched manifest.
+    /// Convert to the remote manifest shape for comparisons.
     pub fn to_manifest(&self) -> Result<Manifest> {
         let raw = RawManifest {
             source: String::new(),
@@ -180,9 +168,7 @@ impl GameConfigFile {
         let body = std::fs::read_to_string(path)?;
         let value: serde_json::Value = serde_json::from_str(&body)?;
         let config: Self = serde_json::from_value(value.clone())?;
-        // The hash covers the values that are actually in the file. Require the
-        // matching shape instead of accepting either hash, so adding `params`
-        // to a compact config invalidates it.
+        // Hash the exact shape; adding `params` invalidates a compact config.
         let extended = value.get("params").is_some() || value.get("gameUninstallScript").is_some();
         if !config.has_valid_hash(extended) {
             return Err(Error::manifest("game config hash mismatch"));
@@ -190,10 +176,7 @@ impl GameConfigFile {
         Ok(config)
     }
 
-    /// The 1.6 launcher writes only `tag`, `name`, and `version`, while older
-    /// launchers and YAYL also record `params` and `gameUninstallScript`.
-    /// Accept both shapes so an install written by either launcher stays
-    /// readable.
+    /// Accept both the 1.6 and older config shapes.
     fn has_valid_hash(&self, extended: bool) -> bool {
         if extended {
             self.vc
@@ -232,8 +215,7 @@ fn game_config_hash(
     version: &str,
     game_uninstall_script: &str,
 ) -> String {
-    // JS `Object.values({tag,name,params,version,gameUninstallScript})` turns
-    // the params array into a comma-separated string before the outer join.
+    // JS joins the params array before the outer join.
     object_hash(&[
         tag.to_owned(),
         name.to_owned(),

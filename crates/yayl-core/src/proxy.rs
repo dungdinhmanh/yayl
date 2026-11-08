@@ -1,10 +1,5 @@
 //! Proxy settings and HTTP client construction.
-//!
-//! The official launcher supports two modes: direct and system proxy. YAYL
-//! keeps both and adds an explicit manual mode for HTTP/HTTPS/SOCKS proxies.
-//! On Windows, system mode reads the same WinINET registry values as the
-//! official launcher (`ProxyEnable`, `ProxyServer`, `ProxyOverride`). Other
-//! platforms fall back to the standard proxy environment variables.
+//! System mode reads WinINET on Windows and standard env vars elsewhere.
 
 use crate::error::{Error, ErrorCode, Result};
 use reqwest::{Client, NoProxy, Proxy};
@@ -75,8 +70,7 @@ impl ProxySettings {
         self
     }
 
-    /// Validate the manual proxy URL. System and direct modes do not require a
-    /// URL, even if an old value is still present in the settings file.
+    /// Manual mode requires a URL; direct and system modes ignore it.
     pub fn validate(&self) -> Result<()> {
         if self.mode != ProxyMode::Manual {
             return Ok(());
@@ -137,8 +131,7 @@ pub fn build_client(settings: &ProxySettings) -> Result<Client> {
     let builder = Client::builder()
         .user_agent(concat!("YAYL/", env!("CARGO_PKG_VERSION")))
         .connect_timeout(Duration::from_secs(15))
-        // Per-read idle timeout, not a total request deadline: large files must
-        // stay downloadable, but a stalled CDN connection must not hang resume.
+        // Idle timeout per read; large downloads must not be cut off.
         .read_timeout(Duration::from_secs(30));
 
     let builder = match settings.resolve()? {
@@ -160,8 +153,7 @@ pub fn build_client(settings: &ProxySettings) -> Result<Client> {
     builder.build().map_err(Into::into)
 }
 
-/// Read the current operating-system proxy. Returns `None` when no proxy is
-/// configured or the system proxy is disabled.
+/// Read the OS proxy, or `None` when disabled.
 pub fn detect_system_proxy() -> Option<DetectedProxy> {
     #[cfg(windows)]
     {
@@ -233,8 +225,7 @@ fn windows_system_proxy() -> Option<DetectedProxy> {
     })
 }
 
-/// Parse the WinINET `ProxyServer` value. It can be a bare `host:port`, a URL,
-/// or a semicolon-separated `http=...;https=...;socks=...` list.
+/// Parse WinINET `ProxyServer` (`host:port`, URL, or protocol list).
 pub fn parse_proxy_server(value: &str) -> Option<String> {
     let value = value.trim();
     if value.is_empty() {
@@ -271,8 +262,7 @@ pub fn parse_proxy_server(value: &str) -> Option<String> {
     Some(format!("http://{value}"))
 }
 
-/// Normalize proxy URL spellings accepted by different platforms. `socks://`
-/// is a common alias for SOCKS5 but reqwest requires an explicit version.
+/// Normalize proxy spellings; `socks://` becomes SOCKS5.
 pub fn normalize_proxy_url(value: &str) -> Option<String> {
     let value = value.trim();
     if value.is_empty() {
@@ -287,9 +277,7 @@ pub fn normalize_proxy_url(value: &str) -> Option<String> {
     Some(format!("http://{value}"))
 }
 
-/// Windows uses semicolons and `<local>` in `ProxyOverride`; reqwest expects a
-/// comma-separated `NoProxy` list. Keep the useful entries and drop `<local>`
-/// because the caller adds localhost explicitly.
+/// Convert `ProxyOverride` to reqwest's comma-separated list.
 pub fn normalize_no_proxy(value: &str) -> Option<String> {
     let entries: Vec<&str> = value
         .split([',', ';'])

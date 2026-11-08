@@ -1,7 +1,4 @@
 //! Download commands and progress events.
-//!
-//! The webview never sees a `DownloadPlan`. It starts a game download, listens
-//! for `download-progress`, and asks for a resume snapshot on startup.
 
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -55,8 +52,7 @@ impl DownloadEvent {
         }
     }
 
-    /// Verification is read-only, so the downloaded counters mirror the checked
-    /// bytes. The UI only needs the percentage and the file counts.
+    /// Verification is read-only; counters mirror the checked bytes.
     fn verifying(
         game: &str,
         checked: u64,
@@ -134,8 +130,7 @@ fn phase_name(phase: Phase) -> &'static str {
         Phase::Downloading => "downloading",
         Phase::Verifying => "verifying",
         Phase::Committing => "committing",
-        // The downloader reports Done before the official metadata is written.
-        // The command emits the authoritative `done` event after `run` returns.
+        // Emit `done` only after `run` writes the official metadata.
         Phase::Done => "committing",
     }
 }
@@ -194,15 +189,12 @@ pub fn load_snapshot(
         None => (TaskState::Pending, 0, files_total_plan, 0, bytes_total_plan),
     };
 
-    // A persisted `running` state means the previous process stopped before it
-    // could write a terminal state. Without a live token it is a pause.
+    // A persisted `running` state without a live token is a pause.
     if !active && matches!(state, TaskState::Running | TaskState::Verifying) {
         state = TaskState::Paused;
     }
 
-    // An executable can appear early in a download. Only trust it when there is
-    // no task yet (an official install imported into the folder); an unfinished
-    // task always means the install is not ready.
+    // An unfinished task always means the install is not ready.
     let installed = state == TaskState::Completed
         || (!has_task
             && profile::by_id(&game)
@@ -232,8 +224,7 @@ pub fn load_snapshot(
     }))
 }
 
-/// Reuse the saved plan only while the task is unfinished. A completed task
-/// means the next start is a fresh check (update/repair), not a resume.
+/// Reuse the saved plan only while the task is unfinished.
 pub fn resume_plan(root: &Path, game: &str) -> Result<Option<DownloadPlan>, CommandError> {
     if !core_state::plan_path(root).is_file() {
         return Ok(None);
@@ -309,8 +300,7 @@ pub fn cancel_download(state: State<'_, AppState>, game: String) -> Result<(), C
     Ok(())
 }
 
-/// Drop the resumable plan/task but keep downloaded and partial files. The
-/// next start re-verifies those files instead of downloading them again.
+/// Drop resume state but keep downloaded and partial files.
 #[tauri::command]
 pub fn discard_download(app: AppHandle, game: String, path: String) -> Result<(), CommandError> {
     let root = PathBuf::from(path);
@@ -375,8 +365,7 @@ impl From<&yayl_core::verify::VerifyReport> for VerifyView {
     }
 }
 
-/// Check the installed files against the saved plan, or against a fresh plan
-/// when the folder was imported from the official launcher.
+/// Verify against the saved plan, or a fresh plan for imported folders.
 #[tauri::command]
 pub async fn verify_game(
     app: AppHandle,
