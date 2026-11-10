@@ -674,6 +674,19 @@ mod tests {
     }
 
     #[test]
+    fn detects_updates_and_minimum_versions() {
+        let config = GameConfig {
+            game_lowest_version: "2.0.0".to_owned(),
+            game_latest_version: "2.2.0".to_owned(),
+            ..GameConfig::default()
+        };
+        assert!(config.needs_update("2.1.0"));
+        assert!(!config.is_below_minimum("2.1.0"));
+        assert!(config.is_below_minimum("1.9.9"));
+        assert!(!config.needs_update("2.2.0"));
+    }
+
+    #[test]
     fn normalizes_both_news_shapes() {
         let arknights: OperationsResource = serde_json::from_str(
             r#"{

@@ -17,6 +17,7 @@ import {
   fetchNews,
   fetchPlaytime,
   fetchSocial,
+  gameVersion,
   isTauri,
   launchGame,
   loadSettings,
@@ -32,6 +33,7 @@ import {
   windowToggleMaximize,
   type DownloadProgress,
   type DownloadSnapshot,
+  type GameVersion,
   type NewsFeed,
   type PlaytimeEntry,
   type Settings,
@@ -188,6 +190,7 @@ export default function App() {
   const [news, setNews] = useState<Partial<Record<GameId, NewsFeed | null>>>({});
   const [social, setSocial] = useState<Partial<Record<GameId, SocialLink[]>>>({});
   const [backgrounds, setBackgrounds] = useState<Partial<Record<GameId, string | null>>>({});
+  const [versions, setVersions] = useState<Partial<Record<GameId, GameVersion>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
   const [onboarding, setOnboarding] = useState(
     () => !isTauri() && QUERY.get("onboarding") === "1"
@@ -235,6 +238,7 @@ export default function App() {
       const nextRoots = {} as Record<GameId, string>;
       const nextStates: Partial<Record<GameId, GameState>> = {};
       const nextLive: Partial<Record<GameId, LiveDownload>> = {};
+      const nextVersions: Partial<Record<GameId, GameVersion>> = {};
 
       await Promise.all(
         GAME_IDS.map(async (id) => {
@@ -245,7 +249,17 @@ export default function App() {
             if (!snapshot) return;
             const view = liveFromSnapshot(snapshot);
             nextLive[id] = view;
-            nextStates[id] = view.state;
+            let nextState = view.state;
+            if (nextState === "ready") {
+              try {
+                const info = await gameVersion(id);
+                nextVersions[id] = info;
+                if (info.updateAvailable) nextState = "update";
+              } catch (error) {
+                console.error(`[YAYL] cannot check ${id} version`, error);
+              }
+            }
+            nextStates[id] = nextState;
           } catch (error) {
             // Do not invent a folder when the backend cannot resolve one.
             nextRoots[id] = "";
@@ -270,6 +284,7 @@ export default function App() {
       setRoots(nextRoots);
       setPlaytimes(nextPlaytimes);
       setLive((current) => ({ ...current, ...nextLive }));
+      setVersions(nextVersions);
       setStates((current) => {
         const merged = { ...current, ...nextStates };
         const forced = queryState();
@@ -306,6 +321,21 @@ export default function App() {
         delete next[id];
         return next;
       });
+
+      if (progress.phase === "done") {
+        void gameVersion(id)
+          .then((info) => {
+            setVersions((current) => ({ ...current, [id]: info }));
+            setStates((current) =>
+              current[id] === "ready" && info.updateAvailable
+                ? { ...current, [id]: "update" }
+                : current
+            );
+          })
+          .catch((error: unknown) => {
+            console.error(`[YAYL] cannot check ${id} version`, error);
+          });
+      }
     }).then((stop) => {
       if (active) unlisten = stop;
       else stop();
@@ -716,6 +746,7 @@ export default function App() {
                   errorCode={errors[gameId] ?? null}
                   playtime={playtimes[gameId]}
                   news={news[gameId]}
+                  updateRequired={versions[gameId]?.updateRequired ?? false}
                   onInstall={() => setInstallOpen(true)}
                   onLocate={locate}
                   onResume={() => void resume()}

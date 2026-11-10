@@ -153,6 +153,8 @@ export interface GameVersion {
   local: string | null;
   latest: string | null;
   minimum: string | null;
+  updateAvailable: boolean;
+  updateRequired: boolean;
 }
 
 export function defaultSettings(): Settings {
@@ -488,12 +490,29 @@ export async function fetchBackground(gameId: GameId): Promise<string | null> {
   return convertFileSrc(path);
 }
 
+function compareVersions(left: string, right: string): number {
+  const a = left.split(".");
+  const b = right.split(".");
+  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+    const x = Number(a[i] ?? 0);
+    const y = Number(b[i] ?? 0);
+    const nx = Number.isFinite(x) ? x : 0;
+    const ny = Number.isFinite(y) ? y : 0;
+    if (nx !== ny) return nx < ny ? -1 : 1;
+  }
+  return 0;
+}
+
 export async function gameVersion(gameId: GameId): Promise<GameVersion> {
   if (!IS_TAURI) {
+    const local = GAMES[gameId].version;
+    const latest = GAMES[gameId].latest;
     return {
-      local: GAMES[gameId].version,
-      latest: GAMES[gameId].latest,
+      local,
+      latest,
       minimum: null,
+      updateAvailable: compareVersions(local, latest) < 0,
+      updateRequired: false,
     };
   }
   return invoke<GameVersion>("game_version", { game: gameId });

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
@@ -388,6 +389,29 @@ pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandErr
     };
     ensure_allowed_root(&app, &game, &root)?;
 
+    let local = {
+        let root = root.clone();
+        tokio::task::spawn_blocking(move || local_game_version(&root))
+            .await
+            .map_err(|error| CommandError::new("unknown", error.to_string()))?
+    };
+    if let Some(local) = local {
+        // A slow or offline server must not block launch; only a reply can reject it.
+        let client = yayl_core::proxy::build_client(&settings.proxy)?;
+        let api =
+            yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+        if let Ok(Ok(config)) =
+            tokio::time::timeout(Duration::from_secs(3), api.game_config()).await
+        {
+            if config.is_below_minimum(&local) {
+                return Err(CommandError::new(
+                    "update_required",
+                    format!("installed {local} is below the minimum supported version"),
+                ));
+            }
+        }
+    }
+
     let (mut child, started) = tokio::task::spawn_blocking(move || {
         let damaged = yayl_core::process::damaged_files(&root).map_err(CommandError::from)?;
         if !damaged.is_empty() {
@@ -587,6 +611,8 @@ pub struct GameVersionView {
     pub local: Option<String>,
     pub latest: Option<String>,
     pub minimum: Option<String>,
+    pub update_available: bool,
+    pub update_required: bool,
 }
 
 fn non_empty(value: String) -> Option<String> {
@@ -595,6 +621,12 @@ fn non_empty(value: String) -> Option<String> {
     } else {
         Some(value)
     }
+}
+
+fn local_game_version(root: &Path) -> Option<String> {
+    yayl_core::local_manifest::LocalManifest::load(&yayl_core::local_manifest::manifest_path(root))
+        .ok()
+        .and_then(|manifest| non_empty(manifest.version))
 }
 
 /// Installed and latest/minimum versions; the local version works offline.
@@ -606,30 +638,36 @@ pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionVie
         .map(Path::to_path_buf)
         .unwrap_or(default_root(&app, &profile)?);
     ensure_allowed_root(&app, &game, &root)?;
-    let local = tokio::task::spawn_blocking(move || {
-        yayl_core::local_manifest::LocalManifest::load(&yayl_core::local_manifest::manifest_path(
-            &root,
-        ))
-        .ok()
-        .and_then(|manifest| non_empty(manifest.version))
-    })
-    .await
-    .map_err(|error| CommandError::new("unknown", error.to_string()))?;
+    let local = tokio::task::spawn_blocking(move || local_game_version(&root))
+        .await
+        .map_err(|error| CommandError::new("unknown", error.to_string()))?;
 
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
     let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
-    let (latest, minimum) = match api.game_config().await {
-        Ok(config) => (
-            non_empty(config.game_latest_version),
-            non_empty(config.game_lowest_version),
-        ),
-        Err(_) => (None, None),
+    let (latest, minimum, update_available, update_required) = match api.game_config().await {
+        Ok(config) => {
+            let update_available = local
+                .as_deref()
+                .is_some_and(|value| config.needs_update(value));
+            let update_required = local
+                .as_deref()
+                .is_some_and(|value| config.is_below_minimum(value));
+            (
+                non_empty(config.game_latest_version),
+                non_empty(config.game_lowest_version),
+                update_available,
+                update_required,
+            )
+        }
+        Err(_) => (None, None, false, false),
     };
 
     Ok(GameVersionView {
         local,
         latest,
         minimum,
+        update_available,
+        update_required,
     })
 }
 

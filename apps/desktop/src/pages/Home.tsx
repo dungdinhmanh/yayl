@@ -16,6 +16,7 @@ interface Props {
   errorCode?: string | null;
   playtime?: PlaytimeEntry | null;
   news?: NewsFeed | null;
+  updateRequired?: boolean;
   onInstall: () => void;
   onLocate: () => void;
   onResume: () => void;
@@ -50,8 +51,10 @@ type SecondaryAction = {
   action: "locate" | "pause" | "minimize" | "play" | "retry" | "none";
 };
 
-function secondaryAction(state: GameState): SecondaryAction | null {
-  if (state === "update") return { key: "home.action.playAnyway", action: "play" };
+function secondaryAction(state: GameState, updateRequired: boolean): SecondaryAction | null {
+  if (state === "update") {
+    return updateRequired ? null : { key: "home.action.playAnyway", action: "play" };
+  }
   if (state === "install") return { key: "home.action.locateGame", action: "locate" };
   if (state === "offline") return { key: "home.action.retry", action: "retry" };
   if (state === "running") return { key: "home.action.minimize", action: "minimize" };
@@ -94,6 +97,7 @@ export default function Home({
   errorCode,
   playtime,
   news,
+  updateRequired = false,
   onInstall,
   onLocate,
   onResume,
@@ -108,7 +112,7 @@ export default function Home({
   const game = GAMES[gameId];
   const live = isTauri();
   const meta = STATE_META[state];
-  const secondary = secondaryAction(state);
+  const secondary = secondaryAction(state, updateRequired);
   const percent = Math.round(progress ?? meta.progress ?? 0);
   const canCheck = CHECK_STATES.includes(state);
   // The lab keeps the static sample history; the real app shows the stored
@@ -259,7 +263,9 @@ export default function Home({
             {t(
               errorCode === "game_damaged"
                 ? "home.launch.damaged"
-                : "home.launch.error",
+                : errorCode === "update_required"
+                  ? "home.launch.updateRequired"
+                  : "home.launch.error",
             )}
           </div>
         )}
