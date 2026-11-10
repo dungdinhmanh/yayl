@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { GAMES, type GameId, type GameState } from "../data";
 import type { Lang } from "../App";
 import {
@@ -60,6 +60,12 @@ const BUSY_STATES: GameState[] = ["downloading", "paused", "verifying", "running
 
 function icon(name: Tab) {
   return <span dangerouslySetInnerHTML={{ __html: ICONS[name] }} />;
+}
+
+/* The track fill follows the thumb instead of a fixed gradient stop. */
+function rangeFill(value: number, min: number, max: number): CSSProperties {
+  const percent = max === min ? 0 : ((value - min) / (max - min)) * 100;
+  return { "--range-fill": `${percent}%` } as CSSProperties;
 }
 
 export default function Settings({
@@ -493,6 +499,7 @@ export default function Settings({
                             step={1}
                             aria-label={t("settings.background.blur")}
                             value={blur}
+                            style={rangeFill(blur, 0, 40)}
                             onChange={(event) => setBlur(Number(event.target.value))}
                             onPointerUp={(event) =>
                               commitBlur(Number(event.currentTarget.value))
@@ -519,6 +526,7 @@ export default function Settings({
                             step={1}
                             aria-label={t("settings.background.noise")}
                             value={noise}
+                            style={rangeFill(noise, 0, 100)}
                             onChange={(event) => setNoise(Number(event.target.value))}
                             onPointerUp={(event) =>
                               commitNoise(Number(event.currentTarget.value))
@@ -783,10 +791,14 @@ export default function Settings({
                         step="1"
                         aria-label={t("settings.network.concurrency")}
                         value={concurrency}
+                        style={rangeFill(concurrency, 1, 32)}
                         onChange={(event) => setConcurrency(Number(event.target.value))}
-                        onPointerUp={() => saveNetwork({ concurrency })}
-                        onKeyUp={() => saveNetwork({ concurrency })}
-                        onBlur={() => saveNetwork({ concurrency })}
+                        onPointerUp={(event) =>
+                          saveNetwork({ concurrency: Number(event.currentTarget.value) })
+                        }
+                        onKeyUp={(event) =>
+                          saveNetwork({ concurrency: Number(event.currentTarget.value) })
+                        }
                       />
                       <span className="range-value">{concurrency}</span>
                     </div>

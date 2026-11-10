@@ -2337,7 +2337,13 @@ body[data-game="stella"] .backdrop-art {
   height: 4px;
   appearance: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 55%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.1) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--accent) var(--range-fill, 55%),
+    rgba(255, 255, 255, 0.1) var(--range-fill, 55%),
+    rgba(255, 255, 255, 0.1) 100%
+  );
   outline: 0;
 }
 
