@@ -884,7 +884,6 @@ export default function Settings({
                   <div className="about-version">
                     v{info?.version ?? "0.1.0"} · {info?.debug ? "debug" : "release"} · MIT
                   </div>
-                  <p className="about-desc">{t("settings.about.desc")}</p>
                   <div className="about-links">
                     <span className="chip">Arknights EN</span>
                     <span className="chip">Stella Sora EN</span>

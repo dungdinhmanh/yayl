@@ -2452,14 +2452,6 @@ body[data-game="stella"] .backdrop-art {
   font-size: 13.2px;
 }
 
-.about-desc {
-  max-width: 520px;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 12.6px;
-  line-height: 1.6;
-}
-
 .about-links {
   display: flex;
   flex-wrap: wrap;
@@ -4624,13 +4616,6 @@ body[data-layout="rail"] .backdrop-scrim {
   object-fit: cover;
 }
 
-.banner-slide::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(4, 6, 10, 0.82) 0%, rgba(4, 6, 10, 0.2) 62%, rgba(4, 6, 10, 0.05) 100%);
-}
-
 /* Manual carousel controls: visible only while the banner is hovered or focused. */
 .banner-nav {
   position: absolute;
@@ -4684,6 +4669,7 @@ body[data-layout="rail"] .backdrop-scrim {
   bottom: 14px;
   left: 16px;
   z-index: 2;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
 }
 
 .banner-kicker {
