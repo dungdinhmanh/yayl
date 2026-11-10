@@ -25,6 +25,19 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* App chrome is not selectable, but inputs and technical text stay copyable. */
+input,
+textarea,
+select,
+code,
+pre,
+.mono {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 body[data-page="index"] {
@@ -4921,14 +4934,16 @@ body[data-layout="rail"] .backdrop-scrim {
   color: var(--text);
 }
 
-/* Sits under the primary button, right-aligned with it. Plain text link, no button chrome. */
+/* Sits under the primary button, centered with it. Plain text link, no button chrome. */
 .home-action-link {
+  width: 260px;
   margin-right: calc(var(--action-menu-size) + 10px);
   padding: 4px 0;
   border: 0;
   background: transparent;
   color: var(--muted);
   font-size: 13.2px;
+  text-align: center;
   text-decoration: none;
   white-space: nowrap;
   transition: color var(--dur-fast);
