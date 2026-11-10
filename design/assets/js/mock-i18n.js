@@ -250,7 +250,7 @@
       "download.queue.startNow": "Ưu tiên",
 
       "settings.title": "Cài đặt",
-      "settings.subtitle": "Tùy chỉnh cách YAYL hoạt động. Thay đổi được lưu tự động.",
+      "settings.subtitle": "Tùy chỉnh cách YAYL hoạt động.",
       "settings.nav.general": "Chung",
       "settings.nav.game": "Trò chơi",
       "settings.nav.network": "Mạng",
@@ -776,7 +776,7 @@
       "download.queue.startNow": "Start now",
 
       "settings.title": "Settings",
-      "settings.subtitle": "Customize how YAYL works. Changes save automatically.",
+      "settings.subtitle": "Customize how YAYL works.",
       "settings.nav.general": "General",
       "settings.nav.game": "Game",
       "settings.nav.network": "Network",
