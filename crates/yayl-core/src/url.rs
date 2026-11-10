@@ -1,8 +1,7 @@
 //! Remote URL validation.
 //!
-//! YAYL only talks to official HTTPS endpoints. Plain HTTP is accepted for
-//! loopback hosts so tests can run against a local server; any other host must
-//! use TLS so a network attacker cannot replace a manifest and its hashes.
+//! YAYL only talks to official HTTPS endpoints. Test builds also accept HTTP
+//! on loopback hosts so the downloader can run against a local server.
 
 use crate::error::{Error, ErrorCode, Result};
 use reqwest::Url;
@@ -12,6 +11,7 @@ pub fn validate_remote_url(raw: &str) -> Result<()> {
     let parsed = parse_without_credentials(raw)?;
     match parsed.scheme() {
         "https" => Ok(()),
+        #[cfg(test)]
         "http" if is_loopback(&parsed) => Ok(()),
         scheme => Err(Error::new(
             ErrorCode::InvalidInput,
@@ -49,6 +49,7 @@ fn parse_without_credentials(raw: &str) -> Result<Url> {
     Ok(parsed)
 }
 
+#[cfg(test)]
 fn is_loopback(url: &Url) -> bool {
     let Some(host) = url.host_str() else {
         return false;
