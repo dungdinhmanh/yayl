@@ -22,11 +22,17 @@ Tauri 2.12.5 yêu cầu Rust 1.90, nên workspace `rust-version` đã nâng 1.85
 
 ## Nâng cấp
 
-- [ ] `animejs` 4.5.0, bỏ `@types/animejs`.
-- [ ] `vite` 8.3.7 cùng `@vitejs/plugin-react` 6.3.0.
-- [ ] `sha2` và `md-5` 0.11, `fs4` 1.1.0, `reqwest` 0.13.
-- [ ] `windows-sys` 0.61, `winreg` 0.56, `base64` 0.23.
-- [ ] `typescript` 7.0.2 trên nhánh riêng.
+- [x] `animejs` 4.5.0, bỏ `@types/animejs`. Chuyển `BubbleProgress` sang API v4: `animate(targets, params)`, `ease: "inOutSine"`, `onComplete`, `remove()`.
+- [x] `vite` 8.3.7 cùng `@vitejs/plugin-react` 6.3.0.
+- [x] `sha2` 0.11.1 và `md-5` 0.11, `fs4` 1.1.0, `reqwest` 0.13.5.
+- [x] `windows-sys` 0.61, `winreg` 0.56, `base64` 0.23.
+- [x] `typescript` 7.0.2 (đã build `tsc -b` + vite thành công).
+
+Ghi chú nâng cấp:
+- `digest` 0.11 không còn format `{:x}` cho hash output, nên thêm `checksum::hex_lower`.
+- `reqwest` 0.13 đổi feature `rustls-tls` → `rustls`.
+- `fs4` 1.1 giữ nguyên `available_space`/`total_space` ở crate root.
+- Bundle JS tăng khoảng 12 kB (338 → 350 kB) sau khi lên animejs v4.
 
 ## Thay code tự viết
 

@@ -15,11 +15,11 @@ Số phiên bản lấy từ npm/crates.io cùng ngày, chỉ tính bản stable
 - [x] Rust (Tauri): `tauri` 2.12.5, `tauri-build` 2.7.4, `tauri-plugin-dialog` 2.8.4, `tauri-plugin-opener` 2.7.3 (cargo update chọn 2.7.3).
       `cargo update -p tauri -p tauri-build -p tauri-plugin-dialog -p tauri-plugin-opener`
       Tauri 2.12.5 yêu cầu Rust 1.90 nên workspace `rust-version` đã nâng từ 1.85 lên 1.90.
-- [ ] `animejs` 3.2.2 → 4.5.0 (chỉ `BubbleProgress.tsx` dùng), gỡ `@types/animejs`. API đổi, đọc migration guide v4.
-- [ ] `vite` 7.3.7 → 8.3.7 **cùng** `@vitejs/plugin-react` 5.2.0 → 6.3.0 (Node ≥ 20.19 hoặc ≥ 22.12).
-- [ ] `sha2` và `md-5` lên 0.11 cùng nhau; `fs4` 0.13 → 1.1.0; `reqwest` 0.12 → 0.13 (đọc changelog, tên feature có thể đổi).
-- [ ] Dọn bản trùng trong lock: `windows-sys` 0.59 → 0.61, `winreg` 0.55 → 0.56, `base64` 0.22 → 0.23.
-- [ ] `typescript` 5.9.3 → 7.0.2 (làm sau cùng, trên nhánh riêng, kiểm tra `tsc -b`).
+- [x] `animejs` 3.2.2 → 4.5.0 (chỉ `BubbleProgress.tsx` dùng), gỡ `@types/animejs`. API đổi, đọc migration guide v4.
+- [x] `vite` 7.3.7 → 8.3.7 **cùng** `@vitejs/plugin-react` 5.2.0 → 6.3.0 (Node ≥ 20.19 hoặc ≥ 22.12).
+- [x] `sha2` và `md-5` lên 0.11 cùng nhau; `fs4` 0.13 → 1.1.0; `reqwest` 0.12 → 0.13 (đọc changelog, tên feature có thể đổi).
+- [x] Dọn bản trùng trong lock: `windows-sys` 0.59 → 0.61, `winreg` 0.55 → 0.56, `base64` 0.22 → 0.23.
+- [x] `typescript` 5.9.3 → 7.0.2 (làm sau cùng, trên nhánh riêng, kiểm tra `tsc -b`).
 
 ## C. Thay code tự viết bằng package có sẵn
 
