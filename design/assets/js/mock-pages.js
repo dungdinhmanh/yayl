@@ -225,8 +225,23 @@
     if (scroll) scroll.scrollTop = 0;
   }
 
-  function updateRange(input, valueEl, formatter) {
-    if (!input) return;
+  var settingsSaveTimer = null;
+
+  /* Short confirmation after a setting changes, mirroring the React app. */
+  function flashSettingsSaved(appRef) {
+    var note = byId("settingsSaveNote");
+    var text = byId("settingsSaveText");
+    if (!note || !text) return;
+    text.textContent = appRef.t("settings.saved");
+    note.hidden = false;
+    if (settingsSaveTimer) window.clearTimeout(settingsSaveTimer);
+    settingsSaveTimer = window.setTimeout(function () {
+      settingsSaveTimer = null;
+      note.hidden = true;
+    }, 1800);
+  }
+
+  function updateRange(input, valueEl, formatter) {    if (!input) return;
     var min = Number(input.min || 0);
     var max = Number(input.max || 100);
     var value = Number(input.value || 0);
@@ -309,7 +324,7 @@
     if (language) {
       language.addEventListener("change", function () {
         appRef.setLang(language.value);
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     }
 
@@ -317,7 +332,7 @@
     if (motion) {
       motion.addEventListener("change", function () {
         appRef.setMotion(motion.checked);
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     }
 
@@ -325,7 +340,7 @@
       var control = byId(id);
       if (!control) return;
       control.addEventListener("change", function () {
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     });
 
@@ -427,7 +442,7 @@
         });
         var custom = byId("proxyCustom");
         if (custom) custom.hidden = button.getAttribute("data-proxy-mode") !== "custom";
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     });
 
@@ -439,7 +454,7 @@
         });
       });
       concurrency.addEventListener("change", function () {
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     }
 
@@ -451,7 +466,7 @@
         });
       });
       bandwidth.addEventListener("change", function () {
-        appRef.showToast(appRef.t("settings.toast.saved.title"), appRef.t("settings.toast.saved.text"));
+        flashSettingsSaved(appRef);
       });
     }
 
@@ -693,11 +708,7 @@
   var newsTimer = null;
 
   function homeSecondaryText(game, state) {
-    if (state === "update") return { key: "home.action.playAnyway" };
     if (state === "install") return { key: "home.action.locateGame", locate: true };
-    if (state === "error") return { key: "home.action.errorDetails" };
-    if (state === "offline") return { key: "home.action.retry" };
-    if (state === "running") return { key: "home.action.minimize" };
     return null;
   }
 
@@ -1155,6 +1166,11 @@
       }
     }
 
+    var stateMenuActions = { update: "play", paused: "cancel", running: "minimize", offline: "retry" };
+    document.querySelectorAll("[data-home-action]").forEach(function (item) {
+      item.hidden = stateMenuActions[state] !== item.getAttribute("data-home-action");
+    });
+
     renderNews();
   }
 
@@ -1250,8 +1266,25 @@
       });
       menuPop.querySelectorAll(".home-menu-item").forEach(function (item) {
         item.addEventListener("click", function () {
-          var label = item.textContent;
           closeMenu();
+          var action = item.getAttribute("data-home-action");
+          if (action === "play") {
+            appRef.showToast(appRef.t("home.toast.launch.title"), appRef.t("home.toast.launch.text", { game: appRef.game().name }));
+            return;
+          }
+          if (action === "cancel") {
+            appRef.setState("install");
+            return;
+          }
+          if (action === "minimize") {
+            appRef.showToast(appRef.t("home.toast.minimize.title"), appRef.t("home.toast.minimize.text"));
+            return;
+          }
+          if (action === "retry") {
+            appRef.showToast(appRef.t("home.toast.retry.title"), appRef.t("home.toast.retry.text"));
+            return;
+          }
+          var label = item.textContent;
           appRef.showToast(label, appRef.t("home.menu.stub"));
         });
       });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GAMES, type GameId, type GameState } from "../data";
 import type { Lang } from "../App";
 import {
@@ -85,6 +85,7 @@ export default function Settings({
   const [proxyNoProxy, setProxyNoProxy] = useState(settings.proxy.noProxy ?? "");
   const [order, setOrder] = useState<DownloadOrder>(settings.downloadOrder);
   const [concurrency, setConcurrency] = useState(settings.concurrency);
+  const savedTimer = useRef<number | null>(null);
 
   const game = GAMES[gameId];
   const root = roots[gameId];
@@ -163,12 +164,32 @@ export default function Settings({
     };
   }, [gameId, root]);
 
+  const clearSavedTimer = () => {
+    if (savedTimer.current !== null) {
+      window.clearTimeout(savedTimer.current);
+      savedTimer.current = null;
+    }
+  };
+
+  // The saved note is a short confirmation, not a permanent hint.
+  const flashSaved = () => {
+    setSave("saved");
+    clearSavedTimer();
+    savedTimer.current = window.setTimeout(() => {
+      savedTimer.current = null;
+      setSave("idle");
+    }, 1800);
+  };
+
+  useEffect(() => clearSavedTimer, []);
+
   const commit = async (action: () => Promise<SettingsData>) => {
+    clearSavedTimer();
     setSave("saving");
     try {
       const next = await action();
       onSettings(next);
-      setSave("saved");
+      flashSaved();
     } catch (error) {
       console.error("[YAYL] cannot save settings", error);
       setSave("error");
@@ -240,6 +261,7 @@ export default function Settings({
   };
 
   const doReset = async () => {
+    clearSavedTimer();
     setSave("saving");
     try {
       const next = await resetSettings();
@@ -247,19 +269,19 @@ export default function Settings({
       if (next.language === "vi" || next.language === "en") onLang(next.language);
       else onLang("vi");
       setResetArmed(false);
-      setSave("saved");
+      flashSaved();
     } catch (error) {
       console.error("[YAYL] cannot reset settings", error);
       setSave("error");
     }
   };
 
-  const footer = (() => {
-    if (save === "saving") return t("settings.saving");
-    if (save === "saved") return t("settings.saved");
-    if (save === "error") return t("settings.saveError");
-    return t("settings.footer");
-  })();
+  const footer =
+    save === "saving"
+      ? t("settings.saving")
+      : save === "saved"
+        ? t("settings.saved")
+        : t("settings.saveError");
 
   return (
     <div className="page settings-page">
@@ -719,27 +741,29 @@ export default function Settings({
             </div>
           </section>
 
-          <div className={"settings-footer" + (save === "error" ? " is-error" : "")}>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {save === "error" ? (
-                <>
-                  <path d="M10.3 4.2 2.8 17.3A1.7 1.7 0 0 0 4.3 20h15.4a1.7 1.7 0 0 0 1.5-2.7L13.7 4.2a2 2 0 0 0-3.4 0Z" />
-                  <path d="M12 9v4M12 16h.01" />
-                </>
-              ) : (
-                <path d="m5 12 4.5 4.5L19 7" />
-              )}
-            </svg>
-            <span role={save === "error" ? "alert" : "status"}>{footer}</span>
-          </div>
+          {save !== "idle" && (
+            <div className={"settings-footer" + (save === "error" ? " is-error" : "")}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                {save === "error" ? (
+                  <>
+                    <path d="M10.3 4.2 2.8 17.3A1.7 1.7 0 0 0 4.3 20h15.4a1.7 1.7 0 0 0 1.5-2.7L13.7 4.2a2 2 0 0 0-3.4 0Z" />
+                    <path d="M12 9v4M12 16h.01" />
+                  </>
+                ) : (
+                  <path d="m5 12 4.5 4.5L19 7" />
+                )}
+              </svg>
+              <span role={save === "error" ? "alert" : "status"}>{footer}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

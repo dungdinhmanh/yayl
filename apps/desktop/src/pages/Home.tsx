@@ -48,27 +48,29 @@ function icon(name: string) {
 
 type SecondaryAction = {
   key: string;
-  action: "locate" | "pause" | "minimize" | "play" | "retry" | "none";
+  action: "locate";
 };
 
-function secondaryAction(state: GameState, updateRequired: boolean): SecondaryAction | null {
-  if (state === "update") {
-    return updateRequired ? null : { key: "home.action.playAnyway", action: "play" };
-  }
+// The inline link is only for the installed game folder. Other per-state
+// actions live in the menu next to Play.
+function secondaryAction(state: GameState): SecondaryAction | null {
   if (state === "install") return { key: "home.action.locateGame", action: "locate" };
-  if (state === "offline") return { key: "home.action.retry", action: "retry" };
-  if (state === "running") return { key: "home.action.minimize", action: "minimize" };
-  if (state === "paused") return { key: "home.action.cancel", action: "pause" };
   return null;
 }
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
-type MenuAction = "verify" | "repair" | "settings";
+type MenuAction = "verify" | "repair" | "settings" | "play" | "cancel" | "minimize" | "retry";
 const MENU_ITEMS: { key: string; action: MenuAction }[] = [
   { key: "home.menu.verify", action: "verify" },
   { key: "home.menu.repair", action: "repair" },
   { key: "home.menu.settings", action: "settings" },
 ];
+const STATE_MENU: Partial<Record<GameState, { key: string; action: MenuAction }>> = {
+  update: { key: "home.action.playAnyway", action: "play" },
+  paused: { key: "home.action.cancel", action: "cancel" },
+  running: { key: "home.action.minimize", action: "minimize" },
+  offline: { key: "home.action.retry", action: "retry" },
+};
 const CHECK_STATES: GameState[] = ["ready", "error", "update"];
 
 function formatPlaytime(seconds: number, t: Props["t"]): string {
@@ -111,7 +113,8 @@ export default function Home({
   const game = GAMES[gameId];
   const live = isTauri();
   const meta = STATE_META[state];
-  const secondary = secondaryAction(state, updateRequired);
+  const secondary = secondaryAction(state);
+  const stateMenu = state === "update" && updateRequired ? undefined : STATE_MENU[state];
   const percent = Math.round(progress ?? meta.progress ?? 0);
   const canCheck = CHECK_STATES.includes(state);
   // The lab keeps the static sample history; the real app shows the stored
@@ -218,6 +221,22 @@ export default function Home({
             </button>
             {menuOpen && (
               <div className="home-menu-pop" role="menu">
+                {stateMenu && (
+                  <button
+                    className="home-menu-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (stateMenu.action === "play") onPlay();
+                      else if (stateMenu.action === "cancel") onPause();
+                      else if (stateMenu.action === "minimize") onMinimize();
+                      else onRetry();
+                    }}
+                  >
+                    {t(stateMenu.key)}
+                  </button>
+                )}
                 {MENU_ITEMS.map((item) => {
                   const disabled = item.action !== "settings" && !canCheck;
                   return (
@@ -245,14 +264,10 @@ export default function Home({
         {secondary && (
           <a
             className="home-action-link"
-            href={secondary.action === "locate" ? fileUrl(installRoot) : "#"}
+            href={fileUrl(installRoot)}
             onClick={(event) => {
               event.preventDefault();
-              if (secondary.action === "locate") onLocate();
-              else if (secondary.action === "pause") onPause();
-              else if (secondary.action === "minimize") onMinimize();
-              else if (secondary.action === "play") onPlay();
-              else if (secondary.action === "retry") onRetry();
+              onLocate();
             }}
           >
             {t(secondary.key, vars)}
