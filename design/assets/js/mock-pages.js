@@ -1176,6 +1176,7 @@
         }
         if (state === "downloading") {
           appRef.setState("paused");
+          appRef.showToast(appRef.t("home.toast.pause.title"), appRef.t("home.toast.pause.text"));
           return;
         }
         if (state === "paused") {

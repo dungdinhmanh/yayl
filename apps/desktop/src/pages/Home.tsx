@@ -58,7 +58,6 @@ function secondaryAction(state: GameState, updateRequired: boolean): SecondaryAc
   if (state === "install") return { key: "home.action.locateGame", action: "locate" };
   if (state === "offline") return { key: "home.action.retry", action: "retry" };
   if (state === "running") return { key: "home.action.minimize", action: "minimize" };
-  if (state === "downloading") return { key: "home.action.pause", action: "pause" };
   if (state === "paused") return { key: "home.action.cancel", action: "pause" };
   return null;
 }
@@ -175,9 +174,10 @@ export default function Home({
           <button
             className={"home-play is-" + state}
             type="button"
-            disabled={Boolean((meta as { disabled?: boolean }).disabled) || state === "downloading"}
+            disabled={Boolean((meta as { disabled?: boolean }).disabled)}
             onClick={() => {
               if (state === "install" || state === "update") onInstall();
+              else if (state === "downloading") onPause();
               else if (state === "paused") onResume();
               else if (state === "ready" || state === "offline") onPlay();
               else if (state === "error") onRepair();

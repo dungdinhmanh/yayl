@@ -109,10 +109,8 @@
     downloading: {
       tone: "info",
       status: "home.status.downloading",
-      primary: "home.action.downloading",
-      primaryIcon: "download",
-      secondary: "home.action.pause",
-      secondaryIcon: "pause",
+      primary: "home.action.pauseProgress",
+      primaryIcon: "pause",
       note: "home.note.downloading",
       versionMode: "update",
       sizeMode: "progress",
