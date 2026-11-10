@@ -4,7 +4,7 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::{AppHandle, Emitter, Manager, State};
-use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, DownloadPlan};
+use yayl_core::download_plan::DownloadPlan;
 use yayl_core::downloader::{CancelToken, Downloader, Phase, Progress};
 use yayl_core::profile::{self, GameProfile};
 use yayl_core::task::{DownloadTask, TaskState};
@@ -434,7 +434,7 @@ async fn run_verify(
         DownloadPlan::prepare_with(
             profile,
             root.clone(),
-            DEFAULT_LAUNCHER_VERSION,
+            profile.protocol_version,
             client,
             settings.download_order,
         )
@@ -499,7 +499,7 @@ async fn run_repair(
         DownloadPlan::prepare_with(
             profile,
             root.clone(),
-            DEFAULT_LAUNCHER_VERSION,
+            profile.protocol_version,
             client.clone(),
             settings.download_order,
         )
@@ -627,7 +627,7 @@ async fn run_download(
         Ok(None) => match DownloadPlan::prepare_with(
             profile,
             root.clone(),
-            DEFAULT_LAUNCHER_VERSION,
+            profile.protocol_version,
             client.clone(),
             order,
         )
@@ -757,7 +757,8 @@ mod tests {
     use super::*;
     use yayl_core::Checksum;
     use yayl_core::download_plan::{
-        PLAN_SCHEMA_VERSION, PlanDocument, PlanFile, PlanGame, PlanJob, PlanManifest,
+        DEFAULT_LAUNCHER_VERSION, PLAN_SCHEMA_VERSION, PlanDocument, PlanFile, PlanGame, PlanJob,
+        PlanManifest,
     };
     use yayl_core::downloader::DownloadOrder;
 

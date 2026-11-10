@@ -7,13 +7,12 @@ import react from "@vitejs/plugin-react";
 const API_BASE = "https://api-launcher-en.yo-star.com";
 /* Keep in sync with EN_AUTH_SALT in crates/yayl-core/src/profile.rs. */
 const AUTH_SALT = "DE7108E9B2842FD460F4777702727869";
-const LAUNCHER_VERSION = "0.1.0";
-const CACHE_MS = 60_000;
-
-const GAME_TAGS: Record<string, string> = {
-  arknights: "Arknights_EN",
-  stella: "StellaSora_EN",
+/* Keep in sync with the profiles in crates/yayl-core/src/profile.rs. */
+const GAMES: Record<string, { tag: string; version: string }> = {
+  arknights: { tag: "Arknights_EN", version: "1.8.1" },
+  stella: { tag: "StellaSora_EN", version: "1.6.0" },
 };
+const CACHE_MS = 60_000;
 
 type JsonObject = Record<string, unknown>;
 
@@ -44,11 +43,11 @@ function formatTimestampMs(value: number): string {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-function authHeader(gameTag: string): string {
+function authHeader(gameTag: string, version: string): string {
   const head = {
     game_tag: gameTag,
     time: Math.floor(Date.now() / 1000),
-    version: LAUNCHER_VERSION,
+    version,
   };
   const sign = createHash("md5")
     .update(JSON.stringify(head))
@@ -135,7 +134,7 @@ function devNewsPlugin(): Plugin {
         void (async () => {
           const url = new URL(req.url ?? "/", "http://localhost");
           const game = url.searchParams.get("game") ?? "";
-          const tag = GAME_TAGS[game];
+          const tag = GAMES[game]?.tag;
           if (!tag) {
             send(400, { error: `unknown game: ${game}` });
             return;
@@ -150,7 +149,7 @@ function devNewsPlugin(): Plugin {
           try {
             const response = await fetch(`${API_BASE}/api/launcher/operations/resource`, {
               headers: {
-                Authorization: authHeader(tag),
+                Authorization: authHeader(tag, GAMES[game]?.version ?? "1.0.0"),
                 Accept: "application/json",
               },
               signal: AbortSignal.timeout(15_000),
@@ -223,7 +222,7 @@ function devLauncherPlugin(): Plugin {
       ) => {
         const url = new URL(req.url ?? "/", "http://localhost");
         const game = url.searchParams.get("game") ?? "";
-        const tag = GAME_TAGS[game];
+        const tag = GAMES[game]?.tag;
         if (!tag) {
           send(res, 400, { error: `unknown game: ${game}` });
           return;
@@ -231,7 +230,7 @@ function devLauncherPlugin(): Plugin {
         try {
           const response = await fetch(`${API_BASE}${endpoint}`, {
             headers: {
-              Authorization: authHeader(tag),
+              Authorization: authHeader(tag, GAMES[game]?.version ?? "1.0.0"),
               Accept: "application/json",
             },
             signal: AbortSignal.timeout(15_000),

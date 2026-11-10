@@ -218,59 +218,61 @@ export default function NewsWidget({ lang, t, news }: Props) {
         </div>
       )}
 
-      <div className="news-panel">
-        <div className="news-tabs" role="tablist" aria-label={t("news.title")}>
-          {data.tabs.map((item) => (
-            <button
-              key={item.id}
-              className={"news-tab" + (item.id === tabId ? " is-active" : "")}
-              type="button"
-              role="tab"
-              aria-selected={item.id === tabId}
-              onClick={() => setTabId(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-        <div className="news-list">
-          {loading ? (
-            <div className="news-placeholder-row" aria-busy="true" />
-          ) : unavailable ? (
-            <div className="news-placeholder-row" />
-          ) : (
-            (tab?.items ?? []).map((item) => {
-              const body = (
-                <>
-                  <span className="news-title">{item.title}</span>
-                  <span className="news-date">{item.date}</span>
-                </>
-              );
-              if (!item.url) {
-                return (
-                  <span key={item.title + item.date} className="news-item">
-                    {body}
-                  </span>
+      {(loading || unavailable || data.tabs.length > 0) && (
+        <div className="news-panel">
+          <div className="news-tabs" role="tablist" aria-label={t("news.title")}>
+            {data.tabs.map((item) => (
+              <button
+                key={item.id}
+                className={"news-tab" + (item.id === tabId ? " is-active" : "")}
+                type="button"
+                role="tab"
+                aria-selected={item.id === tabId}
+                onClick={() => setTabId(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="news-list">
+            {loading ? (
+              <div className="news-placeholder-row" aria-busy="true" />
+            ) : unavailable ? (
+              <div className="news-placeholder-row" />
+            ) : (
+              (tab?.items ?? []).map((item) => {
+                const body = (
+                  <>
+                    <span className="news-title">{item.title}</span>
+                    <span className="news-date">{item.date}</span>
+                  </>
                 );
-              }
-              return (
-                <a
-                  key={item.title + item.date}
-                  className="news-item"
-                  href={item.url}
-                  rel="noreferrer"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    open(item.url);
-                  }}
-                >
-                  {body}
-                </a>
-              );
-            })
-          )}
+                if (!item.url) {
+                  return (
+                    <span key={item.title + item.date} className="news-item">
+                      {body}
+                    </span>
+                  );
+                }
+                return (
+                  <a
+                    key={item.title + item.date}
+                    className="news-item"
+                    href={item.url}
+                    rel="noreferrer"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      open(item.url);
+                    }}
+                  >
+                    {body}
+                  </a>
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

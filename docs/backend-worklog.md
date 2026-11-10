@@ -121,7 +121,7 @@
 |---|---|
 | `GET /api/launcher/game/config` | `game_latest_version`, `game_lowest_version`, `game_latest_file_path`, `game_start_exe_name`, `decompression_size` |
 | `GET /api/launcher/base/config` | background, notice popup, terms/privacy |
-| `GET /api/launcher/operations/resource` | banner + news (Arknights); Stella hiện chỉ trả banner, `news_list`/`notice_list` là `null` |
+| `GET /api/launcher/operations/resource` | banner + news (Arknights); Stella trả banner + `notice_list` (News/Events/Notices) khi `head.version` ≥ 1.5.0 |
 | `GET /api/launcher/advanced/game/download/cdn` | `primary_cdn`, `back_up_cdn` |
 | `GET /api/launcher/game/config/json?version=&file_path=` | `{ data: { url } }` → manifest JSON |
 
@@ -137,7 +137,8 @@ Kết quả live probe gần nhất (2026-10-28):
 - Arknights `042.0.0`, 3.122 file, 3.727.697.138 byte.
 - CDN chính `https://launcher-pkg-ark-en.yo-star.com`, dự phòng `https://launcher-pkg-ark-en-bk.yo-star.com`.
 - `probe --game arknights` và `news --game arknights` chạy thành công.
-- `news --game stella` trả 6 banner, 0 section (đúng với response hiện tại của API).
+- `news --game stella` trả 5 banner, 3 section (News/Events/Notices). API ẩn
+  `notice_list` khi `head.version` < 1.5.0; profile Stella gửi `1.6.0`.
 
 ## 5. File map
 

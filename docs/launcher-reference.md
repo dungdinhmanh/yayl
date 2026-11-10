@@ -73,6 +73,17 @@ Source: `A9_extracted/node_modules/@launcher/utils/src/crypto.ts:16-29`. The EN 
 
 The live contract was probed successfully. Arknights EN and Stella Sora EN responded with the expected shapes.
 
+### Launcher version gate
+
+`head.version` is the official launcher version, not the game version. The
+operations endpoint gates content on it: Stella Sora returns `news_list` and
+`notice_list` as `null` for launcher versions below `1.5.0`, and returns a
+three-section `notice_list` (`News`, `Events`, `Notices`) from `1.5.0` onward.
+Profiles therefore send the version of the launcher they implement:
+`1.8.1` for Arknights EN (`A9_extracted/package.json`) and `1.6.0` for Stella
+Sora EN (`SS_extracted/package.json`). Sending YAYL's own version hides the
+Stella news list.
+
 ### Live versions observed
 
 | Game | Region | Version |

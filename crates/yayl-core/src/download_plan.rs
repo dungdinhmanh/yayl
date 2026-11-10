@@ -20,7 +20,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
-/// Version sent in the signed envelope; not the game version.
+/// Fallback version for demo plans and tests. Real clients send
+/// `GameProfile::protocol_version`, which the API gates content on.
 pub const DEFAULT_LAUNCHER_VERSION: &str = "0.1.0";
 pub const PLAN_SCHEMA_VERSION: u32 = 1;
 pub const YOSTAR_PROVIDER: &str = "yostar";

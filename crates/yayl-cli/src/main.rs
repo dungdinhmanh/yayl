@@ -24,7 +24,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use yayl_core::api::LauncherApi;
-use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, DownloadPlan, RemoteGame};
+use yayl_core::download_plan::{DownloadPlan, RemoteGame};
 use yayl_core::downloader::{
     CancelToken, DownloadOrder, DownloadReport, Downloader, FileJob, Progress,
 };
@@ -240,7 +240,7 @@ async fn download_game(
     let plan = DownloadPlan::prepare_with(
         *profile,
         root.to_path_buf(),
-        launcher_version(args),
+        launcher_version(args, profile),
         client.clone(),
         order,
     )
@@ -302,8 +302,9 @@ async fn probe_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "probe")?;
     let client = client_for(args)?;
     let remote =
-        RemoteGame::fetch_with_client(*profile, launcher_version(args), client.clone()).await?;
-    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
+        RemoteGame::fetch_with_client(*profile, launcher_version(args, profile), client.clone())
+            .await?;
+    let api = LauncherApi::with_client(profile, launcher_version(args, profile), client)?;
     let base = api.base_config().await?;
     let summary = remote.manifest.summary();
 
@@ -333,7 +334,7 @@ async fn probe_command(args: &[String]) -> Result<()> {
 async fn news_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "news")?;
     let client = client_for(args)?;
-    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
+    let api = LauncherApi::with_client(profile, launcher_version(args, profile), client)?;
     let feed = api.news().await?;
 
     if args.iter().any(|arg| arg == "--json") {
@@ -364,7 +365,7 @@ async fn news_command(args: &[String]) -> Result<()> {
 async fn manifest_url_command(args: &[String]) -> Result<()> {
     let profile = required_game(args, "manifest-url")?;
     let client = client_for(args)?;
-    let api = LauncherApi::with_client(profile, launcher_version(args), client)?;
+    let api = LauncherApi::with_client(profile, launcher_version(args, profile), client)?;
     let game = api.game_config().await?;
     let url = api
         .manifest_url(&game.game_latest_version, &game.game_latest_file_path)
@@ -442,7 +443,7 @@ async fn diff_command(args: &[String]) -> Result<()> {
     let plan = DownloadPlan::prepare_with(
         *profile,
         root,
-        launcher_version(args),
+        launcher_version(args, profile),
         client,
         order_option(args)?,
     )
@@ -660,8 +661,8 @@ fn client_for(args: &[String]) -> Result<reqwest::Client> {
     build_client(&proxy_settings(args)?)
 }
 
-fn launcher_version(args: &[String]) -> &str {
-    option(args, "--launcher-version").unwrap_or(DEFAULT_LAUNCHER_VERSION)
+fn launcher_version<'a>(args: &'a [String], profile: &GameProfile) -> &'a str {
+    option(args, "--launcher-version").unwrap_or(profile.protocol_version)
 }
 
 fn required_game(args: &[String], command: &str) -> Result<&'static GameProfile> {

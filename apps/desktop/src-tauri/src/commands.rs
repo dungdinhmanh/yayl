@@ -8,7 +8,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
-use yayl_core::download_plan::{DEFAULT_LAUNCHER_VERSION, RemoteGame};
+use yayl_core::download_plan::RemoteGame;
 use yayl_core::downloader::DownloadOrder;
 use yayl_core::path::nearest_existing;
 use yayl_core::playtime::{PLAYTIME_FILE, PlaytimeEntry, PlaytimeStore};
@@ -40,7 +40,7 @@ pub async fn download_bytes(
     }
 
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
-    let remote = RemoteGame::fetch_with_client(profile, DEFAULT_LAUNCHER_VERSION, client).await?;
+    let remote = RemoteGame::fetch_with_client(profile, profile.protocol_version, client).await?;
     let bytes = remote.manifest.total_bytes();
     state.cache_size(game, bytes);
     Ok(bytes)
@@ -403,7 +403,7 @@ pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandErr
         // A slow or offline server must not block launch; only a reply can reject it.
         let client = yayl_core::proxy::build_client(&settings.proxy)?;
         let api =
-            yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+            yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
         if let Ok(Ok(config)) =
             tokio::time::timeout(Duration::from_secs(3), api.game_config()).await
             && config.is_below_minimum(&local)
@@ -604,7 +604,7 @@ pub async fn fetch_news(
 ) -> Result<yayl_core::api::NewsFeed, CommandError> {
     let profile = profile(&game)?;
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
-    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
     Ok(api.news().await?)
 }
 
@@ -616,7 +616,7 @@ pub async fn fetch_social(
 ) -> Result<Vec<yayl_core::api::SocialLink>, CommandError> {
     let profile = profile(&game)?;
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
-    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
     Ok(api.social().await?)
 }
 
@@ -640,7 +640,7 @@ pub async fn fetch_background(
 ) -> Result<Option<String>, CommandError> {
     let profile = profile(&game)?;
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
-    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
     let dir = background_dir(&app, profile.id)?;
 
     let fetched = async {
@@ -747,7 +747,7 @@ pub async fn game_version(app: AppHandle, game: String) -> Result<GameVersionVie
         .map_err(|error| CommandError::new("unknown", error.to_string()))?;
 
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
-    let api = yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
+    let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
     let (latest, minimum, update_available, update_required) = match api.game_config().await {
         Ok(config) => {
             let update_available = local
