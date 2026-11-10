@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
-import anime from "animejs";
+import { animate, remove } from "animejs";
 
 interface Props {
   /** Progress from 0 to 1. */
@@ -47,15 +47,14 @@ export default function BubbleProgress({ progress }: Props) {
       bubble.style.height = `${size}px`;
       layer.appendChild(bubble);
 
-      anime({
-        targets: bubble,
+      animate(bubble, {
         translateX: [0, targetX - startX],
         translateY: [0, -wobble, 0, wobble, 0],
         scale: [0.7, 1.05, 1.18, 1.3],
         opacity: [0, 1, 1, 0],
         duration: 900 + Math.random() * 800,
-        easing: "easeInOutSine",
-        complete: () => {
+        ease: "inOutSine",
+        onComplete: () => {
           bubble.remove();
         },
       });
@@ -65,7 +64,7 @@ export default function BubbleProgress({ progress }: Props) {
     spawn();
     return () => {
       window.clearInterval(timer);
-      anime.remove(Array.from(layer.querySelectorAll(".bp__bubble")));
+      remove(Array.from(layer.querySelectorAll(".bp__bubble")));
       layer.replaceChildren();
     };
   }, []);
