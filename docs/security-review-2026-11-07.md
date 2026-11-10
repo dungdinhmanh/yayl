@@ -4,6 +4,14 @@
 **Scope:** Rust core, Tauri command boundary, React webview, and download/launch flows  
 **Review type:** source review informed by the [Cloudflare security-audit skill](https://github.com/cloudflare/security-audit-skill). This is not a completed run of that skill.
 
+## Status (2026-11-10)
+
+- #1 news URL validation: fixed in `api.rs`; links and images are HTTPS-only and `remark` is not rendered.
+- #2 launch install-root check: fixed; `launch_game` and `game_version` call `ensure_allowed_root`.
+- Manifest total-size overflow: fixed with checked addition in `manifest.rs`.
+- Update/minimum-version flow: connected in `App.tsx` and `launch_game` (3 s server timeout; offline launches stay allowed).
+- Local manifest completeness: still open; the trust model for `LocalManifest::validate` is not decided.
+
 ## Method and limits
 
 The requested skill repository could not be cloned because this environment could not resolve `github.com`. Its published instructions describe a six-phase workflow requiring independent hunter/verifier agents, an OS-enforced source execution sandbox, and Node-based schema/coverage validators. Those requirements could not be met here, so this report does not claim independent validation or complete coverage. `cargo`, `rustc`, `bun`, and `node` are also unavailable; no build or tests were run. Findings below are based on source inspection only and should be revalidated by maintainers before release.

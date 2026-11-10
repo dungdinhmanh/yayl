@@ -13,14 +13,15 @@ Các mục chưa làm, tách khỏi `TODO.md` và `audit.md` ngày 2026-11-10.
 
 ## Bảo mật / hardening
 
-- [ ] `capabilities/default.json`: thêm `core:window:allow-start-dragging`.
-- [ ] `tauri.conf.json`: đặt CSP thay `csp: null`; cho phép `asset:`, `http://asset.localhost` và host ảnh news.
-- [ ] Nâng crate `tauri` cùng minor với npm.
-- [ ] `validate_remote_url`: chỉ cho loopback `http` trong test (`cfg(test)` hoặc feature).
+- [x] `capabilities/default.json`: thêm `core:window:allow-start-dragging` cho titlebar.
+- [x] `tauri.conf.json`: CSP production và `devCsp`; `img-src` cho `asset:`, `http://asset.localhost`, `https:` và `data:`.
+- [x] Nâng crate `tauri` 2.12.5 (npm `@tauri-apps/api`/`cli` 2.12.4), kéo theo `tauri-build` 2.7.4, `tauri-plugin-dialog` 2.8.4, `tauri-plugin-opener` 2.7.3.
+- [x] `validate_remote_url`: chỉ cho loopback `http` trong `cfg(test)`.
+
+Tauri 2.12.5 yêu cầu Rust 1.90, nên workspace `rust-version` đã nâng 1.85 → 1.90. Máy build hiện dùng Rust 1.98.
 
 ## Nâng cấp
 
-- [ ] `tauri` 2.12.5, `tauri-build` 2.7.4, `tauri-plugin-dialog` 2.8.4, `tauri-plugin-opener` 2.7.2.
 - [ ] `animejs` 4.5.0, bỏ `@types/animejs`.
 - [ ] `vite` 8.3.7 cùng `@vitejs/plugin-react` 6.3.0.
 - [ ] `sha2` và `md-5` 0.11, `fs4` 1.1.0, `reqwest` 0.13.

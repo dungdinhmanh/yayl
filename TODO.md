@@ -5,15 +5,16 @@ Số phiên bản lấy từ npm/crates.io cùng ngày, chỉ tính bản stable
 
 ## A. Lỗi / bảo mật (làm trước)
 
-- [ ] Thêm `"core:window:allow-start-dragging"` vào `apps/desktop/src-tauri/capabilities/default.json`. Titlebar dùng `data-tauri-drag-region` nhưng quyền này không nằm trong `core:default` (đã đối chiếu với Tauri 2.11.6, chưa chạy app để xác nhận).
-- [ ] Đặt CSP thay cho `csp: null` trong `tauri.conf.json`. `img-src` phải cho phép `asset:`, `http://asset.localhost` và các host ảnh của news.
-- [ ] Nâng crate `tauri` lên cùng minor với npm (crate 2.11.6, `@tauri-apps/api` và `cli` đã 2.12.4).
-- [ ] `validate_remote_url` (`crates/yayl-core/src/url.rs`) cho phép `http` loopback cả ở bản release. Thu hẹp bằng `cfg(test)` hoặc feature.
+- [x] Thêm `"core:window:allow-start-dragging"` vào `apps/desktop/src-tauri/capabilities/default.json`. Titlebar dùng `data-tauri-drag-region` nhưng quyền này không nằm trong `core:default` (đã đối chiếu với Tauri 2.11.6, chưa chạy app để xác nhận).
+- [x] Đặt CSP thay cho `csp: null` trong `tauri.conf.json`. `img-src` phải cho phép `asset:`, `http://asset.localhost` và các host ảnh của news.
+- [x] Nâng crate `tauri` lên cùng minor với npm (crate 2.11.6, `@tauri-apps/api` và `cli` đã 2.12.4).
+- [x] `validate_remote_url` (`crates/yayl-core/src/url.rs`) cho phép `http` loopback cả ở bản release. Thu hẹp bằng `cfg(test)` hoặc feature.
 
 ## B. Nâng cấp phiên bản
 
-- [ ] Rust (Tauri): `tauri` 2.12.5, `tauri-build` 2.7.4, `tauri-plugin-dialog` 2.8.4, `tauri-plugin-opener` 2.7.2.
+- [x] Rust (Tauri): `tauri` 2.12.5, `tauri-build` 2.7.4, `tauri-plugin-dialog` 2.8.4, `tauri-plugin-opener` 2.7.3 (cargo update chọn 2.7.3).
       `cargo update -p tauri -p tauri-build -p tauri-plugin-dialog -p tauri-plugin-opener`
+      Tauri 2.12.5 yêu cầu Rust 1.90 nên workspace `rust-version` đã nâng từ 1.85 lên 1.90.
 - [ ] `animejs` 3.2.2 → 4.5.0 (chỉ `BubbleProgress.tsx` dùng), gỡ `@types/animejs`. API đổi, đọc migration guide v4.
 - [ ] `vite` 7.3.7 → 8.3.7 **cùng** `@vitejs/plugin-react` 5.2.0 → 6.3.0 (Node ≥ 20.19 hoặc ≥ 22.12).
 - [ ] `sha2` và `md-5` lên 0.11 cùng nhau; `fs4` 0.13 → 1.1.0; `reqwest` 0.12 → 0.13 (đọc changelog, tên feature có thể đổi).
