@@ -16,6 +16,8 @@ pub enum BackgroundMode {
     /// Full-bleed key art fetched by the launcher.
     #[default]
     Art,
+    /// User-provided image, GIF, or video.
+    Custom,
     /// Token gradient without game art.
     Solid,
 }
@@ -41,6 +43,15 @@ pub struct Settings {
     /// Backdrop style for the launcher UI.
     #[serde(default)]
     pub background: BackgroundMode,
+    /// Copied custom backdrop media; only used when `background` is custom.
+    #[serde(default)]
+    pub background_path: Option<PathBuf>,
+    /// Backdrop blur in pixels, 0-40.
+    #[serde(default)]
+    pub background_blur: u8,
+    /// Backdrop grain strength, 0-100.
+    #[serde(default)]
+    pub background_noise: u8,
     /// False only for a brand-new install.
     #[serde(default)]
     pub onboarding_complete: bool,
@@ -67,6 +78,9 @@ impl Default for Settings {
             concurrency: DEFAULT_CONCURRENCY,
             reduced_motion: false,
             background: BackgroundMode::default(),
+            background_path: None,
+            background_blur: 0,
+            background_noise: 0,
             onboarding_complete: false,
             close_to_tray: true,
         }
@@ -123,7 +137,10 @@ mod tests {
         settings.download_order = DownloadOrder::LargestFirst;
         settings.concurrency = 16;
         settings.reduced_motion = true;
-        settings.background = BackgroundMode::Solid;
+        settings.background = BackgroundMode::Custom;
+        settings.background_path = Some(dir.path().join("wallpaper.mp4"));
+        settings.background_blur = 12;
+        settings.background_noise = 40;
         settings.onboarding_complete = true;
         settings.close_to_tray = false;
         settings.save(&path).unwrap();
@@ -137,7 +154,13 @@ mod tests {
         assert_eq!(loaded.download_order, DownloadOrder::LargestFirst);
         assert_eq!(loaded.concurrency, 16);
         assert!(loaded.reduced_motion);
-        assert_eq!(loaded.background, BackgroundMode::Solid);
+        assert_eq!(loaded.background, BackgroundMode::Custom);
+        assert_eq!(
+            loaded.background_path,
+            Some(dir.path().join("wallpaper.mp4"))
+        );
+        assert_eq!(loaded.background_blur, 12);
+        assert_eq!(loaded.background_noise, 40);
         assert!(loaded.onboarding_complete);
         assert!(!loaded.close_to_tray);
     }

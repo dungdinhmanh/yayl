@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { GAMES, HOME_STATES, type GameState } from "./data";
 import { I18N } from "./i18n";
 import Rail from "./components/Rail";
@@ -8,6 +9,8 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import InstallDialog from "./components/InstallDialog";
 import SocialLinks from "./components/SocialLinks";
 import {
+  backgroundIsVideo,
+  backgroundSrc,
   cancelDownload,
   defaultInstallRoot,
   defaultSettings,
@@ -190,6 +193,8 @@ export default function App() {
   const [news, setNews] = useState<Partial<Record<GameId, NewsFeed | null>>>({});
   const [social, setSocial] = useState<Partial<Record<GameId, SocialLink[]>>>({});
   const [backgrounds, setBackgrounds] = useState<Partial<Record<GameId, string | null>>>({});
+  const [customSrc, setCustomSrc] = useState<string | null>(null);
+  const custom = settings.background === "custom" && customSrc !== null;
   const [versions, setVersions] = useState<Partial<Record<GameId, GameVersion>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
   const [onboarding, setOnboarding] = useState(
@@ -422,6 +427,26 @@ export default function App() {
     };
   }, [gameId, booted, backgrounds]);
 
+  // Custom media is copied into the app cache and served by the asset protocol.
+  useEffect(() => {
+    if (!settings.backgroundPath) {
+      setCustomSrc(null);
+      return;
+    }
+    let active = true;
+    void backgroundSrc(settings.backgroundPath)
+      .then((src) => {
+        if (active) setCustomSrc(src);
+      })
+      .catch((error: unknown) => {
+        console.error("[YAYL] cannot load custom background", error);
+        if (active) setCustomSrc(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [settings.backgroundPath]);
+
   // Layout effect so the root attributes are in place before paint.
   useLayoutEffect(() => {
     document.body.dataset.game = gameId;
@@ -605,23 +630,53 @@ export default function App() {
   };
 
   return (
-    <div className="app">
+    <div
+      className="app"
+      style={
+        {
+          "--bg-blur": custom ? `${settings.backgroundBlur}px` : "0px",
+          "--bg-noise": custom ? String(settings.backgroundNoise / 100) : "0",
+        } as CSSProperties
+      }
+    >
       <div className="backdrop">
-        <img
-          className="backdrop-art"
-          data-active-art
-          key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
-          src={backgrounds[gameId] || `/art/${gameId}.png`}
-          alt=""
-          onError={(event) => {
-            if (backgrounds[gameId]) {
-              // A verified cache file can still disappear; fall back once.
-              setBackgrounds((current) => ({ ...current, [gameId]: null }));
-              return;
-            }
-            event.currentTarget.classList.add("is-missing");
-          }}
-        />
+        {settings.background === "custom" && customSrc ? (
+          backgroundIsVideo(settings.backgroundPath ?? "") ? (
+            <video
+              className="backdrop-art backdrop-media"
+              key={customSrc}
+              src={customSrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              className="backdrop-art backdrop-media"
+              key={customSrc}
+              src={customSrc}
+              alt=""
+              onError={() => setCustomSrc(null)}
+            />
+          )
+        ) : (
+          <img
+            className="backdrop-art"
+            data-active-art
+            key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
+            src={backgrounds[gameId] || `/art/${gameId}.png`}
+            alt=""
+            onError={(event) => {
+              if (backgrounds[gameId]) {
+                // A verified cache file can still disappear; fall back once.
+                setBackgrounds((current) => ({ ...current, [gameId]: null }));
+                return;
+              }
+              event.currentTarget.classList.add("is-missing");
+            }}
+          />
+        )}
         <div className="backdrop-scrim" />
         <div className="backdrop-grain" />
       </div>

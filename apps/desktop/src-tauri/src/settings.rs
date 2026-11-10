@@ -43,6 +43,9 @@ pub struct SettingsView {
     pub concurrency: usize,
     pub reduced_motion: bool,
     pub background: BackgroundMode,
+    pub background_path: Option<String>,
+    pub background_blur: u8,
+    pub background_noise: u8,
     pub onboarding_complete: bool,
     pub close_to_tray: bool,
 }
@@ -61,6 +64,11 @@ impl From<Settings> for SettingsView {
             concurrency: value.concurrency,
             reduced_motion: value.reduced_motion,
             background: value.background,
+            background_path: value
+                .background_path
+                .map(|path| path.to_string_lossy().into_owned()),
+            background_blur: value.background_blur,
+            background_noise: value.background_noise,
             onboarding_complete: value.onboarding_complete,
             close_to_tray: value.close_to_tray,
         }

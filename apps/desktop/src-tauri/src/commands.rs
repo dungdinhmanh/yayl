@@ -212,10 +212,14 @@ pub fn save_appearance(
     app: AppHandle,
     reduced_motion: bool,
     background: BackgroundMode,
+    background_blur: u8,
+    background_noise: u8,
 ) -> Result<SettingsView, CommandError> {
     let mut settings = settings::load(&app)?;
     settings.reduced_motion = reduced_motion;
     settings.background = background;
+    settings.background_blur = background_blur.min(40);
+    settings.background_noise = background_noise.min(100);
     settings::save(&app, &settings)?;
     Ok(settings.into())
 }
@@ -490,6 +494,107 @@ pub async fn choose_install_folder(
     Ok(folder
         .and_then(|path| path.into_path().ok())
         .map(|path| path.to_string_lossy().into_owned()))
+}
+
+const BACKGROUND_EXTENSIONS: [&str; 7] = ["png", "jpg", "jpeg", "webp", "gif", "mp4", "webm"];
+
+fn custom_background_dir(app: &AppHandle) -> Result<PathBuf, CommandError> {
+    let data = app
+        .path()
+        .data_dir()
+        .map_err(|error| CommandError::new("io", error.to_string()))?;
+    Ok(data.join("yayl").join("cache").join("custom"))
+}
+
+/// Pick a user background, copy it into the cache, and select custom mode.
+#[tauri::command]
+pub async fn choose_custom_background(
+    app: AppHandle,
+) -> Result<Option<SettingsView>, CommandError> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog()
+        .file()
+        .add_filter("Background", &BACKGROUND_EXTENSIONS)
+        .pick_file(move |file| {
+            let _ = tx.send(file);
+        });
+
+    let file = rx
+        .await
+        .map_err(|error| CommandError::new("unknown", error.to_string()))?;
+    let Some(path) = file.and_then(|path| path.into_path().ok()) else {
+        return Ok(None);
+    };
+
+    let extension = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(str::to_ascii_lowercase)
+        .unwrap_or_default();
+    if !BACKGROUND_EXTENSIONS.contains(&extension.as_str()) {
+        return Err(CommandError::new(
+            "invalid_input",
+            "unsupported background format",
+        ));
+    }
+
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("background");
+    let dir = custom_background_dir(&app)?;
+    tokio::fs::create_dir_all(&dir)
+        .await
+        .map_err(|error| CommandError::new("io", error.to_string()))?;
+
+    let dest = dir.join(name);
+    tokio::fs::copy(&path, &dest)
+        .await
+        .map_err(|error| CommandError::new("io", error.to_string()))?;
+
+    // Keep a single custom file; drop older copies after the new one lands.
+    let mut entries = tokio::fs::read_dir(&dir)
+        .await
+        .map_err(|error| CommandError::new("io", error.to_string()))?;
+    while let Some(entry) = entries
+        .next_entry()
+        .await
+        .map_err(|error| CommandError::new("io", error.to_string()))?
+    {
+        let entry_path = entry.path();
+        if entry_path != dest
+            && entry
+                .file_type()
+                .await
+                .map(|kind| kind.is_file())
+                .unwrap_or(false)
+        {
+            let _ = tokio::fs::remove_file(entry_path).await;
+        }
+    }
+
+    let mut settings = settings::load(&app)?;
+    settings.background = BackgroundMode::Custom;
+    settings.background_path = Some(dest);
+    settings::save(&app, &settings)?;
+    Ok(Some(settings.into()))
+}
+
+#[tauri::command]
+pub async fn clear_custom_background(app: AppHandle) -> Result<SettingsView, CommandError> {
+    let mut settings = settings::load(&app)?;
+    let dir = custom_background_dir(&app)?;
+    if let Some(path) = settings.background_path.take() {
+        // Only delete files this command owns; never trust the stored path.
+        if path.parent() == Some(dir.as_path()) {
+            let _ = tokio::fs::remove_file(&path).await;
+        }
+    }
+    if settings.background == BackgroundMode::Custom {
+        settings.background = BackgroundMode::Art;
+    }
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
 }
 
 #[tauri::command]

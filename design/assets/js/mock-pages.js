@@ -241,6 +241,106 @@
     }, 1800);
   }
 
+  var labBackground = { mode: "art", url: null, video: false, name: "", blur: 0, noise: 0 };
+
+  function applyLabBackground() {
+    var app = document.querySelector(".app");
+    if (!app) return;
+    app.style.setProperty("--bg-blur", labBackground.mode === "custom" ? labBackground.blur + "px" : "0px");
+    app.style.setProperty("--bg-noise", labBackground.mode === "custom" ? String(labBackground.noise / 100) : "0");
+    document.body.dataset.background = labBackground.mode;
+
+    var backdrop = app.querySelector(".backdrop");
+    if (!backdrop) return;
+    var custom = backdrop.querySelector(".backdrop-media");
+    if (custom) custom.remove();
+    var art = backdrop.querySelector(".backdrop-art:not(.backdrop-media)");
+    if (art) art.style.display = labBackground.mode === "custom" && labBackground.url ? "none" : "";
+    if (labBackground.mode !== "custom" || !labBackground.url) return;
+
+    var media;
+    if (labBackground.video) {
+      media = document.createElement("video");
+      media.src = labBackground.url;
+      media.autoplay = true;
+      media.muted = true;
+      media.loop = true;
+      media.playsInline = true;
+    } else {
+      media = document.createElement("img");
+      media.src = labBackground.url;
+      media.alt = "";
+    }
+    media.className = "backdrop-art backdrop-media";
+    backdrop.insertBefore(media, backdrop.querySelector(".backdrop-scrim"));
+  }
+
+  function syncBackgroundRows(appRef) {
+    var select = byId("backgroundSelect");
+    if (!select) return;
+    select.value = labBackground.mode;
+    var custom = labBackground.mode === "custom";
+    ["backgroundFileRow", "backgroundBlurRow", "backgroundNoiseRow"].forEach(function (id) {
+      var row = byId(id);
+      if (row) row.hidden = !custom;
+    });
+    var name = byId("backgroundFileName");
+    if (name) {
+      name.textContent = labBackground.url
+        ? labBackground.name || appRef.t("settings.background.custom.chosen")
+        : appRef.t("settings.background.file.desc");
+    }
+    var remove = byId("backgroundRemove");
+    if (remove) remove.hidden = !labBackground.url;
+    var blur = byId("backgroundBlurRange");
+    if (blur) {
+      blur.value = String(labBackground.blur);
+      updateRange(blur, byId("backgroundBlurValue"), function (value) {
+        return value + "px";
+      });
+    }
+    var noise = byId("backgroundNoiseRange");
+    if (noise) {
+      noise.value = String(labBackground.noise);
+      updateRange(noise, byId("backgroundNoiseValue"), function (value) {
+        return value + "%";
+      });
+    }
+    applyLabBackground();
+  }
+
+  function pickLabBackground(appRef) {
+    var input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm";
+    input.style.display = "none";
+    document.body.appendChild(input);
+    function finish() {
+      if (input.parentNode) input.parentNode.removeChild(input);
+    }
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) {
+        finish();
+        syncBackgroundRows(appRef);
+        return;
+      }
+      if (labBackground.url) URL.revokeObjectURL(labBackground.url);
+      labBackground.url = URL.createObjectURL(file);
+      labBackground.video = file.type.indexOf("video/") === 0;
+      labBackground.name = file.name;
+      labBackground.mode = "custom";
+      finish();
+      syncBackgroundRows(appRef);
+      flashSettingsSaved(appRef);
+    });
+    input.addEventListener("cancel", function () {
+      finish();
+      syncBackgroundRows(appRef);
+    });
+    input.click();
+  }
+
   function updateRange(input, valueEl, formatter) {    if (!input) return;
     var min = Number(input.min || 0);
     var max = Number(input.max || 100);
@@ -308,6 +408,8 @@
         return value === 0 ? app.t("settings.network.unlimited") : value + " MB/s";
       });
     }
+
+    syncBackgroundRows(app);
   }
 
   pages.settings = function (appRef) {
@@ -336,7 +438,68 @@
       });
     }
 
-    ["backgroundSelect", "autostartToggle", "closeBehavior", "minimizeOnPlay", "startMinimized", "cdnSelect", "logLevel", "timeoutInput", "proxyUrl"].forEach(function (id) {
+    var background = byId("backgroundSelect");
+    if (background) {
+      background.addEventListener("change", function () {
+        if (background.value === "custom") {
+          pickLabBackground(appRef);
+          return;
+        }
+        labBackground.mode = background.value;
+        syncBackgroundRows(appRef);
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var chooseBackground = byId("backgroundChoose");
+    if (chooseBackground) {
+      chooseBackground.addEventListener("click", function () {
+        pickLabBackground(appRef);
+      });
+    }
+
+    var removeBackground = byId("backgroundRemove");
+    if (removeBackground) {
+      removeBackground.addEventListener("click", function () {
+        if (labBackground.url) URL.revokeObjectURL(labBackground.url);
+        labBackground.url = null;
+        labBackground.video = false;
+        labBackground.name = "";
+        labBackground.mode = "art";
+        syncBackgroundRows(appRef);
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var blurRange = byId("backgroundBlurRange");
+    if (blurRange) {
+      blurRange.addEventListener("input", function () {
+        labBackground.blur = Number(blurRange.value);
+        updateRange(blurRange, byId("backgroundBlurValue"), function (value) {
+          return value + "px";
+        });
+        applyLabBackground();
+      });
+      blurRange.addEventListener("change", function () {
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var noiseRange = byId("backgroundNoiseRange");
+    if (noiseRange) {
+      noiseRange.addEventListener("input", function () {
+        labBackground.noise = Number(noiseRange.value);
+        updateRange(noiseRange, byId("backgroundNoiseValue"), function (value) {
+          return value + "%";
+        });
+        applyLabBackground();
+      });
+      noiseRange.addEventListener("change", function () {
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    ["autostartToggle", "closeBehavior", "minimizeOnPlay", "startMinimized", "cdnSelect", "logLevel", "timeoutInput", "proxyUrl"].forEach(function (id) {
       var control = byId(id);
       if (!control) return;
       control.addEventListener("change", function () {

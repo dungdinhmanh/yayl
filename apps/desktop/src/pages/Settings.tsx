@@ -3,7 +3,9 @@ import { GAMES, type GameId, type GameState } from "../data";
 import type { Lang } from "../App";
 import {
   appInfo,
+  chooseCustomBackground,
   chooseInstallFolder,
+  clearCustomBackground,
   driveOf,
   fetchDiskSpace,
   fetchDownloadBytes,
@@ -85,12 +87,19 @@ export default function Settings({
   const [proxyNoProxy, setProxyNoProxy] = useState(settings.proxy.noProxy ?? "");
   const [order, setOrder] = useState<DownloadOrder>(settings.downloadOrder);
   const [concurrency, setConcurrency] = useState(settings.concurrency);
+  const [blur, setBlur] = useState(settings.backgroundBlur);
+  const [noise, setNoise] = useState(settings.backgroundNoise);
   const savedTimer = useRef<number | null>(null);
 
   const game = GAMES[gameId];
   const root = roots[gameId];
   const busy = BUSY_STATES.includes(states[gameId]);
   const pathChanged = pathDraft.trim() !== root.trim();
+  const customName = settings.backgroundPath
+    ? settings.backgroundPath.startsWith("blob:")
+      ? t("settings.background.custom.chosen")
+      : settings.backgroundPath.split(/[\\/]/).pop() || t("settings.background.custom.chosen")
+    : null;
 
   // Keep the draft in sync with the saved root, but do not clear the "saved"
   // status when the root changes because of our own save.
@@ -108,12 +117,16 @@ export default function Settings({
     setProxyNoProxy(settings.proxy.noProxy ?? "");
     setOrder(settings.downloadOrder);
     setConcurrency(settings.concurrency);
+    setBlur(settings.backgroundBlur);
+    setNoise(settings.backgroundNoise);
   }, [
     settings.proxy.mode,
     settings.proxy.url,
     settings.proxy.noProxy,
     settings.downloadOrder,
     settings.concurrency,
+    settings.backgroundBlur,
+    settings.backgroundNoise,
   ]);
 
   useEffect(() => {
@@ -201,12 +214,58 @@ export default function Settings({
     void commit(() => setLanguage(value));
   };
 
+  const saveBackground = (
+    mode: BackgroundMode,
+    nextBlur: number = blur,
+    nextNoise: number = noise
+  ) => {
+    void commit(() => saveAppearance(settings.reducedMotion, mode, nextBlur, nextNoise));
+  };
+
   const changeMotion = (enabled: boolean) => {
-    void commit(() => saveAppearance(!enabled, settings.background));
+    void commit(() =>
+      saveAppearance(!enabled, settings.background, settings.backgroundBlur, settings.backgroundNoise)
+    );
+  };
+
+  const pickCustom = () => {
+    clearSavedTimer();
+    setSave("saving");
+    void chooseCustomBackground()
+      .then((next) => {
+        if (!next) {
+          setSave("idle");
+          return;
+        }
+        onSettings(next);
+        flashSaved();
+      })
+      .catch((error: unknown) => {
+        console.error("[YAYL] cannot pick a custom background", error);
+        setSave("error");
+      });
   };
 
   const changeBackground = (value: BackgroundMode) => {
-    void commit(() => saveAppearance(settings.reducedMotion, value));
+    if (value === "custom") {
+      pickCustom();
+      return;
+    }
+    saveBackground(value);
+  };
+
+  const removeCustom = () => {
+    void commit(() => clearCustomBackground());
+  };
+
+  const commitBlur = (value: number) => {
+    setBlur(value);
+    saveBackground(settings.background, value, noise);
+  };
+
+  const commitNoise = (value: number) => {
+    setNoise(value);
+    saveBackground(settings.background, blur, value);
   };
 
   const changeTray = (enabled: boolean) => {
@@ -287,7 +346,6 @@ export default function Settings({
     <div className="page settings-page">
       <div className="settings-header">
         <div>
-          <div className="eyebrow">{t("settings.title")}</div>
           <h1 className="page-title">{t("settings.title")}</h1>
           <p className="page-subtitle">{t("settings.subtitle")}</p>
         </div>
@@ -379,14 +437,100 @@ export default function Settings({
                       aria-label={t("settings.background")}
                       value={settings.background}
                       onChange={(event) =>
-                        changeBackground(event.target.value === "solid" ? "solid" : "art")
+                        changeBackground(event.target.value as BackgroundMode)
                       }
                     >
                       <option value="art">{t("settings.background.art")}</option>
+                      <option value="custom">{t("settings.background.custom")}</option>
                       <option value="solid">{t("settings.background.solid")}</option>
                     </select>
                   </div>
                 </div>
+
+                {settings.background === "custom" && (
+                  <>
+                    <div className="setting-row">
+                      <div className="setting-copy">
+                        <div className="setting-label">{t("settings.background.file")}</div>
+                        <div className="setting-desc">
+                          {customName ?? t("settings.background.file.desc")}
+                        </div>
+                      </div>
+                      <div className="setting-control">
+                        <div className="setting-actions">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            type="button"
+                            onClick={pickCustom}
+                          >
+                            {t("settings.background.choose")}
+                          </button>
+                          {settings.backgroundPath && (
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              type="button"
+                              onClick={removeCustom}
+                            >
+                              {t("settings.background.remove")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="setting-row">
+                      <div className="setting-copy">
+                        <div className="setting-label">{t("settings.background.blur")}</div>
+                        <div className="setting-desc">{t("settings.background.blur.desc")}</div>
+                      </div>
+                      <div className="setting-control">
+                        <div className="range-wrap">
+                          <input
+                            className="range"
+                            type="range"
+                            min={0}
+                            max={40}
+                            step={1}
+                            aria-label={t("settings.background.blur")}
+                            value={blur}
+                            onChange={(event) => setBlur(Number(event.target.value))}
+                            onPointerUp={(event) =>
+                              commitBlur(Number(event.currentTarget.value))
+                            }
+                            onKeyUp={(event) => commitBlur(Number(event.currentTarget.value))}
+                          />
+                          <span className="range-value">{blur}px</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="setting-row">
+                      <div className="setting-copy">
+                        <div className="setting-label">{t("settings.background.noise")}</div>
+                        <div className="setting-desc">{t("settings.background.noise.desc")}</div>
+                      </div>
+                      <div className="setting-control">
+                        <div className="range-wrap">
+                          <input
+                            className="range"
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            aria-label={t("settings.background.noise")}
+                            value={noise}
+                            onChange={(event) => setNoise(Number(event.target.value))}
+                            onPointerUp={(event) =>
+                              commitNoise(Number(event.currentTarget.value))
+                            }
+                            onKeyUp={(event) => commitNoise(Number(event.currentTarget.value))}
+                          />
+                          <span className="range-value">{noise}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="setting-row">
                   <div className="setting-copy">

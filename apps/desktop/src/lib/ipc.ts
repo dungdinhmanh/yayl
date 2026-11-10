@@ -64,7 +64,7 @@ export interface DownloadProgress {
 
 export type ProxyMode = "direct" | "system" | "manual";
 export type DownloadOrder = "smallest_first" | "largest_first" | "manifest";
-export type BackgroundMode = "art" | "solid";
+export type BackgroundMode = "art" | "custom" | "solid";
 
 export interface ProxySettings {
   mode: ProxyMode;
@@ -80,6 +80,9 @@ export interface Settings {
   concurrency: number;
   reducedMotion: boolean;
   background: BackgroundMode;
+  backgroundPath: string | null;
+  backgroundBlur: number;
+  backgroundNoise: number;
   onboardingComplete: boolean;
   closeToTray: boolean;
 }
@@ -166,6 +169,9 @@ export function defaultSettings(): Settings {
     concurrency: 10,
     reducedMotion: false,
     background: "art",
+    backgroundPath: null,
+    backgroundBlur: 0,
+    backgroundNoise: 0,
     onboardingComplete: false,
     closeToTray: true,
   };
@@ -355,13 +361,79 @@ export async function saveNetworkSettings(
 
 export async function saveAppearance(
   reducedMotion: boolean,
-  background: BackgroundMode
+  background: BackgroundMode,
+  backgroundBlur: number,
+  backgroundNoise: number
 ): Promise<Settings> {
   if (IS_TAURI) {
-    return invoke<Settings>("save_appearance", { reducedMotion, background });
+    return invoke<Settings>("save_appearance", {
+      reducedMotion,
+      background,
+      backgroundBlur,
+      backgroundNoise,
+    });
   }
-  mockSettings = { ...mockSettings, reducedMotion, background };
+  mockSettings = { ...mockSettings, reducedMotion, background, backgroundBlur, backgroundNoise };
   return { ...mockSettings };
+}
+
+let mockCustomVideo = false;
+
+function pickBackgroundFile(): Promise<File | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm";
+    input.style.display = "none";
+    document.body.appendChild(input);
+    const done = (file: File | null) => {
+      input.remove();
+      resolve(file);
+    };
+    input.addEventListener("change", () => done(input.files?.[0] ?? null), { once: true });
+    input.addEventListener("cancel", () => done(null), { once: true });
+    input.click();
+  });
+}
+
+/* Copies the picked media into the app cache and selects custom mode. */
+export async function chooseCustomBackground(): Promise<Settings | null> {
+  if (IS_TAURI) return invoke<Settings | null>("choose_custom_background");
+
+  const file = await pickBackgroundFile();
+  if (!file) return null;
+  if (mockSettings.backgroundPath?.startsWith("blob:")) {
+    URL.revokeObjectURL(mockSettings.backgroundPath);
+  }
+  mockCustomVideo = file.type.startsWith("video/");
+  const url = URL.createObjectURL(file);
+  mockSettings = { ...mockSettings, background: "custom", backgroundPath: url };
+  return { ...mockSettings };
+}
+
+export async function clearCustomBackground(): Promise<Settings> {
+  if (IS_TAURI) return invoke<Settings>("clear_custom_background");
+
+  if (mockSettings.backgroundPath?.startsWith("blob:")) {
+    URL.revokeObjectURL(mockSettings.backgroundPath);
+  }
+  mockSettings = {
+    ...mockSettings,
+    background: mockSettings.background === "custom" ? "art" : mockSettings.background,
+    backgroundPath: null,
+  };
+  return { ...mockSettings };
+}
+
+export async function backgroundSrc(path: string): Promise<string> {
+  if (!IS_TAURI) return path;
+  const { convertFileSrc } = await import("@tauri-apps/api/core");
+  return convertFileSrc(path);
+}
+
+export function backgroundIsVideo(path: string): boolean {
+  if (path.startsWith("blob:")) return mockCustomVideo;
+  return /\.(mp4|webm)(?:[?#].*)?$/i.test(path);
 }
 
 export async function saveWindowBehavior(closeToTray: boolean): Promise<Settings> {

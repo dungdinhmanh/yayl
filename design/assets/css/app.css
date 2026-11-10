@@ -141,6 +141,19 @@ body[data-game="stella"] .backdrop {
   animation: art-in 900ms var(--ease-out) both;
 }
 
+/* Custom media is blurred, so overscan keeps the edges out of view. */
+.backdrop-media {
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  filter: saturate(1.04) contrast(1.03) blur(var(--bg-blur, 0px));
+  transform: scale(1.02);
+}
+
+body[data-background="solid"] .backdrop-art {
+  display: none;
+}
+
 body[data-game="stella"] .backdrop-art {
   object-position: center 32%;
 }
@@ -157,7 +170,7 @@ body[data-game="stella"] .backdrop-art {
 .backdrop-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.03;
+  opacity: calc(0.03 + var(--bg-noise, 0) * 0.22);
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
 }
@@ -2160,6 +2173,12 @@ body[data-game="stella"] .backdrop-art {
 
 .setting-control.is-medium {
   width: 200px;
+}
+
+.setting-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .settings-footer {
