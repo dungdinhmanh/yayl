@@ -1185,7 +1185,7 @@ mod tests {
 
         let dir = tempfile::tempdir().unwrap();
         let url = format!("http://127.0.0.1:{port}/a.bin");
-        let checksum = Checksum::Sha256(format!("{:x}", Sha256::digest(&body)));
+        let checksum = Checksum::Sha256(crate::checksum::hex_lower(Sha256::digest(&body)));
         let document = PlanDocument {
             schema_version: PLAN_SCHEMA_VERSION,
             game: PlanGame {

@@ -39,7 +39,7 @@ pub fn auth_header(
     hasher.update(head_json.as_bytes());
     hasher.update(data.as_bytes());
     hasher.update(salt.as_bytes());
-    let sign = format!("{:x}", hasher.finalize());
+    let sign = crate::checksum::hex_lower(hasher.finalize());
     serde_json::to_string(&AuthEnvelope { head, sign }).map_err(Into::into)
 }
 

@@ -12,6 +12,17 @@ use sha2::Sha256;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
+/// Lowercase hex for hash output; digest 0.11 no longer formats as hex.
+pub(crate) fn hex_lower(bytes: impl AsRef<[u8]>) -> String {
+    use std::fmt::Write as _;
+    let bytes = bytes.as_ref();
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "algorithm", content = "value", rename_all = "snake_case")]
 pub enum Checksum {
@@ -114,13 +125,13 @@ where
 fn md5_file_blocking(path: &Path) -> Result<String> {
     let mut hasher = Md5::new();
     read_hashed(path, |bytes| hasher.update(bytes))?;
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(hex_lower(hasher.finalize()))
 }
 
 fn sha256_file_blocking(path: &Path) -> Result<String> {
     let mut hasher = Sha256::new();
     read_hashed(path, |bytes| hasher.update(bytes))?;
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(hex_lower(hasher.finalize()))
 }
 
 /// Small helper used by tests and provider adapters that only have a path.
