@@ -402,18 +402,18 @@ impl Downloader {
         }
 
         // Drop any tail past the last durable checkpoint.
-        if part_len > 0 {
-            if let Some(durable) = read_checkpoint(&part).await {
-                let durable = durable.min(part_len);
-                if durable < part_len {
-                    let file = tokio::fs::OpenOptions::new()
-                        .write(true)
-                        .open(&part)
-                        .await?;
-                    file.set_len(durable).await?;
-                    file.sync_all().await?;
-                    part_len = durable;
-                }
+        if part_len > 0
+            && let Some(durable) = read_checkpoint(&part).await
+        {
+            let durable = durable.min(part_len);
+            if durable < part_len {
+                let file = tokio::fs::OpenOptions::new()
+                    .write(true)
+                    .open(&part)
+                    .await?;
+                file.set_len(durable).await?;
+                file.sync_all().await?;
+                part_len = durable;
             }
         }
         if part_len > 0 {

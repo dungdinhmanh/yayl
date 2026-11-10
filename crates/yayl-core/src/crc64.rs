@@ -52,9 +52,9 @@ pub fn crc64(bytes: &[u8]) -> u64 {
 }
 
 fn update(mut crc: u64, bytes: &[u8]) -> u64 {
-    let mut chunks = bytes.chunks_exact(8);
-    for chunk in &mut chunks {
-        let word = u64::from_le_bytes(chunk.try_into().expect("chunk is exactly 8 bytes"));
+    let (chunks, remainder) = bytes.as_chunks::<8>();
+    for chunk in chunks {
+        let word = u64::from_le_bytes(*chunk);
         let mixed = crc ^ word;
         crc = TABLES[7][(mixed & 0xFF) as usize]
             ^ TABLES[6][((mixed >> 8) & 0xFF) as usize]
@@ -65,7 +65,7 @@ fn update(mut crc: u64, bytes: &[u8]) -> u64 {
             ^ TABLES[1][((mixed >> 48) & 0xFF) as usize]
             ^ TABLES[0][((mixed >> 56) & 0xFF) as usize];
     }
-    for byte in chunks.remainder() {
+    for byte in remainder {
         crc = TABLE[((crc ^ u64::from(*byte)) & 0xFF) as usize] ^ (crc >> 8);
     }
     crc

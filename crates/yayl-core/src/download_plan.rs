@@ -738,12 +738,12 @@ impl DownloadPlan {
                         None
                     }
                 };
-                if let Some(snapshot) = snapshot {
-                    if let Some(path) = &task_path {
-                        let saved = snapshot.save_progress(path).is_ok();
-                        let current = lock(&task);
-                        lock(&last_save).finish(&current, saved);
-                    }
+                if let Some(snapshot) = snapshot
+                    && let Some(path) = &task_path
+                {
+                    let saved = snapshot.save_progress(path).is_ok();
+                    let current = lock(&task);
+                    lock(&last_save).finish(&current, saved);
                 }
                 user.as_ref()(progress);
             }
@@ -777,15 +777,14 @@ impl DownloadPlan {
     /// Reuse the persisted task when it still describes this plan.
     fn resumable_task(&self, files_total: usize, bytes_total: u64) -> Result<DownloadTask> {
         let game = &self.document.game;
-        if let Some(task) = DownloadTask::load(&self.task_path())? {
-            if task.game_id == game.id
-                && task.version == game.version
-                && task.basis == game.basis
-                && task.files_total == files_total
-                && task.bytes_total == bytes_total
-            {
-                return Ok(task);
-            }
+        if let Some(task) = DownloadTask::load(&self.task_path())?
+            && task.game_id == game.id
+            && task.version == game.version
+            && task.basis == game.basis
+            && task.files_total == files_total
+            && task.bytes_total == bytes_total
+        {
+            return Ok(task);
         }
         Ok(DownloadTask::new(
             game.id.clone(),

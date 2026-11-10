@@ -533,13 +533,13 @@ fn print_diff(diff: &ManifestDiff) {
 }
 
 fn ensure_plan_game(args: &[String], plan: &DownloadPlan) -> Result<()> {
-    if let Some(id) = option(args, "--game") {
-        if id != plan.document.game.id {
-            return Err(Error::new(
-                ErrorCode::InvalidInput,
-                format!("plan belongs to {}, not {id}", plan.document.game.id),
-            ));
-        }
+    if let Some(id) = option(args, "--game")
+        && id != plan.document.game.id
+    {
+        return Err(Error::new(
+            ErrorCode::InvalidInput,
+            format!("plan belongs to {}, not {id}", plan.document.game.id),
+        ));
     }
     Ok(())
 }

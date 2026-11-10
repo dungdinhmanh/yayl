@@ -60,17 +60,17 @@ struct ApiEnvelope<T> {
 
 impl<T> ApiEnvelope<T> {
     fn into_data(self, endpoint: &str) -> Result<T> {
-        if let Some(code) = self.code {
-            if code != 200 {
-                let message = self
-                    .msg
-                    .or(self.message)
-                    .unwrap_or_else(|| format!("API returned code {code}"));
-                return Err(Error::new(
-                    ErrorCode::Http,
-                    format!("{endpoint}: {message}"),
-                ));
-            }
+        if let Some(code) = self.code
+            && code != 200
+        {
+            let message = self
+                .msg
+                .or(self.message)
+                .unwrap_or_else(|| format!("API returned code {code}"));
+            return Err(Error::new(
+                ErrorCode::Http,
+                format!("{endpoint}: {message}"),
+            ));
         }
         self.data
             .ok_or_else(|| Error::new(ErrorCode::Http, format!("{endpoint}: empty data")))
@@ -337,49 +337,49 @@ impl OperationsResource {
             .collect();
 
         let mut sections = Vec::new();
-        if let Some(news) = &self.news_list {
-            if let Some(data) = &news.data {
-                for section in &data.news {
-                    if section.rows.is_empty() {
-                        continue;
-                    }
-                    sections.push(NewsSectionView {
-                        label: section.type_label.clone(),
-                        items: section
-                            .rows
-                            .iter()
-                            .map(|row| NewsItemView {
-                                title: row.title.clone(),
-                                url: safe_url(&row.link),
-                                date: format_timestamp_ms(row.publish_time),
-                                image: safe_url(&row.thumbnail),
-                            })
-                            .collect(),
-                    });
+        if let Some(news) = &self.news_list
+            && let Some(data) = &news.data
+        {
+            for section in &data.news {
+                if section.rows.is_empty() {
+                    continue;
                 }
+                sections.push(NewsSectionView {
+                    label: section.type_label.clone(),
+                    items: section
+                        .rows
+                        .iter()
+                        .map(|row| NewsItemView {
+                            title: row.title.clone(),
+                            url: safe_url(&row.link),
+                            date: format_timestamp_ms(row.publish_time),
+                            image: safe_url(&row.thumbnail),
+                        })
+                        .collect(),
+                });
             }
         }
 
-        if sections.is_empty() {
-            if let Some(notices) = &self.notice_list {
-                for section in notices {
-                    if section.notice_detail_list.is_empty() {
-                        continue;
-                    }
-                    sections.push(NewsSectionView {
-                        label: section.notice_type.clone(),
-                        items: section
-                            .notice_detail_list
-                            .iter()
-                            .map(|item| NewsItemView {
-                                title: item.notice_title.clone(),
-                                url: safe_url(&item.jump_url),
-                                date: item.notice_time.clone(),
-                                image: String::new(),
-                            })
-                            .collect(),
-                    });
+        if sections.is_empty()
+            && let Some(notices) = &self.notice_list
+        {
+            for section in notices {
+                if section.notice_detail_list.is_empty() {
+                    continue;
                 }
+                sections.push(NewsSectionView {
+                    label: section.notice_type.clone(),
+                    items: section
+                        .notice_detail_list
+                        .iter()
+                        .map(|item| NewsItemView {
+                            title: item.notice_title.clone(),
+                            url: safe_url(&item.jump_url),
+                            date: item.notice_time.clone(),
+                            image: String::new(),
+                        })
+                        .collect(),
+                });
             }
         }
 

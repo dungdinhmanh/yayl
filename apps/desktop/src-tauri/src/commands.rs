@@ -402,13 +402,12 @@ pub async fn launch_game(app: AppHandle, game: String) -> Result<u32, CommandErr
             yayl_core::api::LauncherApi::with_client(&profile, DEFAULT_LAUNCHER_VERSION, client)?;
         if let Ok(Ok(config)) =
             tokio::time::timeout(Duration::from_secs(3), api.game_config()).await
+            && config.is_below_minimum(&local)
         {
-            if config.is_below_minimum(&local) {
-                return Err(CommandError::new(
-                    "update_required",
-                    format!("installed {local} is below the minimum supported version"),
-                ));
-            }
+            return Err(CommandError::new(
+                "update_required",
+                format!("installed {local} is below the minimum supported version"),
+            ));
         }
     }
 
