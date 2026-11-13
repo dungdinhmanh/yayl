@@ -97,3 +97,11 @@ Custom backdrop now renders the picked file itself; one cache copy stays as the 
 - Settings game hero: version + "Bản mới vX" badge replaces "vA → vB"; disk line uses a comma, no middle dot.
 Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13).
 Gap: scope only grows during a session (forbid_file would also block re-picking a file); no size cap yet (Q-07).
+
+[2026-11-14 01:25] opencode>all done ref:1ed7ee0
+Official icons come from the extracted launcher resources (A9_extracted/resources/build.ico, stella-sora-en/app/resources/build.ico), copied to apps/desktop/public/icons/<game>.ico.
+- No icon extraction code: the previous game_icon command and its windows-sys dependency were removed.
+- FirstRun and the settings hero render /icons/<game>.ico; thumbs are 40x40 squares.
+- First-run footer copy, LAUNCHER span, feature row and their keys/CSS are gone; primary button has no glow.
+Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked first-run and settings in vi.
+Gap: design/assets/img/icons stays local (gitignored); the app ships the two .ico files (391 KB total).
