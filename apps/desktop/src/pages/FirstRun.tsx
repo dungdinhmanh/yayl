@@ -328,7 +328,7 @@ export default function FirstRun({
                             </span>
                             {sizes[profile.id] !== undefined && (
                               <>
-                                {" · "}
+                                {", "}
                                 {formatBytes(sizes[profile.id])}
                               </>
                             )}
@@ -403,18 +403,16 @@ export default function FirstRun({
                         : checking
                           ? "—"
                           : t("firstRun.path.sizeUnknown")}
-                    </span>
-                    {disk && (
-                      <>
-                        {" · "}
+                      {disk && required !== null ? ", " : null}
+                      {disk && (
                         <strong>
                           {t("firstRun.path.freeValue", {
                             drive: baseDrive,
                             free: formatBytes(disk.freeBytes),
                           })}
                         </strong>
-                      </>
-                    )}
+                      )}
+                    </span>
                   </div>
                   {!checking && (disk === null || required === null) && (
                     <div className="onboarding-hint" role="status">
@@ -473,7 +471,7 @@ export default function FirstRun({
               <div className="summary-list">
                 <div className="summary-row">
                   <span>{t("firstRun.summary.games")}</span>
-                  <strong>{selectedProfiles.map((profile) => GAMES[profile.id as GameId].name).join(" · ")}</strong>
+                  <strong>{selectedProfiles.map((profile) => GAMES[profile.id as GameId].name).join(", ")}</strong>
                 </div>
                 <div className="summary-row">
                   <span>{t("firstRun.summary.path")}</span>
@@ -507,7 +505,7 @@ export default function FirstRun({
 
         <div className="onboarding-foot">
           <span>{t("firstRun.footer")}</span>
-          <span>v0.1.0 · {t("app.launcher")}</span>
+          <span className="onboarding-version"><span>v0.1.0</span><span>{t("app.launcher")}</span></span>
         </div>
       </div>
 

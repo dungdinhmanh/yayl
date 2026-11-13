@@ -386,7 +386,7 @@
   }
 
   function sidebarStateLabel(stateId, game) {
-    if (stateId === "downloading") return t("home.status.downloading") + " · 42%";
+    if (stateId === "downloading") return t("home.status.downloading") + ", 42%";
     if (stateId === "paused") return t("home.status.paused");
     if (stateId === "verifying") return t("home.status.verifying");
     if (stateId === "update") return t("home.status.update");
@@ -398,7 +398,7 @@
   }
 
   function sidebarBadge(stateId) {
-    if (stateId === "update") return t("home.updateChip", { version: app.game().latest }).replace(" · " + app.game().latest, "");
+    if (stateId === "update") return t("home.updateBadge");
     if (stateId === "downloading") return "42%";
     if (stateId === "paused") return "PAUSE";
     if (stateId === "verifying") return "CRC";
@@ -480,7 +480,7 @@
         '<div class="mock-field"><label for="mockLang">Language</label><select id="mockLang" data-mock-lang>' +
           '<option value="vi">Tiếng Việt</option><option value="en">English</option>' +
         "</select></div>" +
-        (page === "first-run" ? '<div class="mock-field"><label for="mockStep">Step</label><select id="mockStep" data-mock-step><option value="1">01 · Language</option><option value="2">02 · Games</option><option value="3">03 · Done</option></select></div>' : "") +
+        (page === "first-run" ? '<div class="mock-field"><label for="mockStep">Step</label><select id="mockStep" data-mock-step><option value="1">01 Language</option><option value="2">02 Games</option><option value="3">03 Done</option></select></div>' : "") +
         '<div class="mock-panel-actions"><button type="button" class="mock-toggle" data-mock-motion>Motion: on</button></div>' +
         '<div class="mock-panel-note">Mock only. Add <code>?ui=0</code> to hide this panel. <code>?state=</code>, <code>?lang=</code>, <code>?game=</code> are also supported.</div>' +
       "</div>";

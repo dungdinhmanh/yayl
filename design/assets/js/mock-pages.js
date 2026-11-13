@@ -993,7 +993,7 @@
       .map(function (id) {
         return Y.GAMES[id] ? Y.GAMES[id].name : id;
       })
-      .join(" · ");
+      .join(", ");
   }
 
   pages["first-run"] = function (appRef) {

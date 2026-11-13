@@ -2851,6 +2851,12 @@ body[data-game="stella"] .backdrop-art {
   font-size: 12px;
 }
 
+.onboarding-version {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
 .onboarding-visual {
   position: relative;
   min-width: 0;

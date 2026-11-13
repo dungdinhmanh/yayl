@@ -1004,7 +1004,7 @@ export default function Settings({
                 <div>
                   <div className="about-name">YAYL</div>
                   <div className="about-version">
-                    v{info?.version ?? "0.1.0"} · {info?.debug ? "debug" : "release"} · MIT
+                    v{info?.version ?? "0.1.0"}, {info?.debug ? "debug" : "release"}, MIT
                   </div>
                   <div className="about-links">
                     {Object.values(GAMES).map((entry) => (

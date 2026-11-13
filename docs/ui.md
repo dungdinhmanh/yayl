@@ -36,7 +36,7 @@
 | Update available | Cập nhật | Chơi bản hiện tại | current → latest |
 | Ready | Chơi | — | Sẵn sàng |
 | Running | Đang chạy (disabled) | Thu nhỏ | Đang chơi |
-| Downloading | Đang tải · 42% | Tạm dừng | speed · ETA |
+| Downloading | Đang tải, 42% | Tạm dừng | speed, ETA |
 | Paused | Tiếp tục tải | — | Đã tạm dừng |
 | Verifying | Đang xác minh… | — | CRC-64/XZ |
 | Repair required | Sửa nhanh | Xem lỗi | YAYL-CRC-03 |

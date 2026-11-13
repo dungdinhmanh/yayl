@@ -63,7 +63,7 @@
       for (var i = 0; i < instances.length; i += 1) instances[i].setProgress(p);
       if (range) range.value = String(current);
       if (out) out.textContent = current + "%";
-      if (caption) caption.textContent = txt("anim.buttonLoading") + " · " + current + "%";
+      if (caption) caption.textContent = txt("anim.buttonLoading") + ", " + current + "%";
       updateElapsed();
     }
 
