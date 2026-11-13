@@ -1028,8 +1028,11 @@ export default function Settings({
                     v{info?.version ?? "0.1.0"} · {info?.debug ? "debug" : "release"} · MIT
                   </div>
                   <div className="about-links">
-                    <span className="chip">Arknights EN</span>
-                    <span className="chip">Stella Sora EN</span>
+                    {Object.values(GAMES).map((entry) => (
+                      <span className="chip" key={entry.id}>
+                        {entry.name} {entry.region}
+                      </span>
+                    ))}
                     <span className="chip is-accent">Tauri 2</span>
                     <span className="chip">React 19</span>
                   </div>
