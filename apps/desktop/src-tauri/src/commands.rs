@@ -562,9 +562,12 @@ pub async fn choose_custom_background(
         .map_err(|error| CommandError::new("io", error.to_string()))?;
 
     let dest = dir.join(name);
-    tokio::fs::copy(&path, &dest)
-        .await
-        .map_err(|error| CommandError::new("io", error.to_string()))?;
+    // Copying a file onto itself truncates it, so keep an already-cached pick.
+    if !same_path(&path, &dest) {
+        tokio::fs::copy(&path, &dest)
+            .await
+            .map_err(|error| CommandError::new("io", error.to_string()))?;
+    }
 
     // Keep a single custom file; drop older copies after the new one lands.
     let mut entries = tokio::fs::read_dir(&dir)
