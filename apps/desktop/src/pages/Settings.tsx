@@ -406,7 +406,6 @@ export default function Settings({
       <div className="settings-header">
         <div>
           <h1 className="page-title">{t("settings.title")}</h1>
-          <p className="page-subtitle">{t("settings.subtitle")}</p>
         </div>
       </div>
 
@@ -445,7 +444,6 @@ export default function Settings({
             <div className="settings-section">
               <div className="settings-section-header">
                 <div className="settings-section-title">{t("settings.general.title")}</div>
-                <div className="settings-section-desc">{t("settings.general.desc")}</div>
               </div>
               <div className="settings-rows">
                 <div className="setting-row">
@@ -488,7 +486,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.background")}</div>
-                    <div className="setting-desc">{t("settings.background.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
                     <Select
@@ -537,7 +534,6 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.opacity")}</div>
-                        <div className="setting-desc">{t("settings.background.opacity.desc")}</div>
                       </div>
                       <div className="setting-control">
                         <div className="range-wrap">
@@ -591,7 +587,6 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.noise")}</div>
-                        <div className="setting-desc">{t("settings.background.noise.desc")}</div>
                       </div>
                       <div className="setting-control">
                         <div className="range-wrap">
@@ -618,7 +613,6 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.fit")}</div>
-                        <div className="setting-desc">{t("settings.background.fit.desc")}</div>
                       </div>
                       <div className="setting-control is-medium">
                         <Select
@@ -647,7 +641,6 @@ export default function Settings({
                         <div className="setting-row">
                           <div className="setting-copy">
                             <div className="setting-label">{t("settings.background.muted")}</div>
-                            <div className="setting-desc">{t("settings.background.muted.desc")}</div>
                           </div>
                           <div className="setting-control">
                             <label className="toggle">
@@ -665,7 +658,6 @@ export default function Settings({
                         <div className="setting-row">
                           <div className="setting-copy">
                             <div className="setting-label">{t("settings.background.loop")}</div>
-                            <div className="setting-desc">{t("settings.background.loop.desc")}</div>
                           </div>
                           <div className="setting-control">
                             <label className="toggle">
@@ -687,7 +679,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.closeBehavior")}</div>
-                    <div className="setting-desc">{t("settings.closeBehavior.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
                     <Select
@@ -757,7 +748,6 @@ export default function Settings({
             <div className="settings-section">
               <div className="settings-section-header">
                 <div className="settings-section-title">{t("settings.game.installTitle")}</div>
-                <div className="settings-section-desc">{t("settings.game.installDesc")}</div>
               </div>
               <div className="settings-rows">
                 <div className="setting-row">
@@ -817,7 +807,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.game.tools")}</div>
-                    <div className="setting-desc">{t("settings.game.tools.desc")}</div>
                   </div>
                   <div className="setting-control">
                     <div className="settings-actions">
@@ -849,13 +838,11 @@ export default function Settings({
             <div className="settings-section">
               <div className="settings-section-header">
                 <div className="settings-section-title">{t("settings.network.title")}</div>
-                <div className="settings-section-desc">{t("settings.network.desc")}</div>
               </div>
               <div className="settings-rows">
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.network.proxy")}</div>
-                    <div className="setting-desc">{t("settings.network.proxy.desc")}</div>
                   </div>
                   <div className="setting-control">
                     <div className="segmented" role="group" aria-label={t("settings.network.proxy")}>
@@ -900,7 +887,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.network.order")}</div>
-                    <div className="setting-desc">{t("settings.network.order.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
                     <Select

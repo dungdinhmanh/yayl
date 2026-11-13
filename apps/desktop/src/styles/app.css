@@ -2134,7 +2134,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .settings-section-header {
-  padding: 17px 18px 0;
+  padding: 17px 18px 6px;
 }
 
 .settings-section-title {
@@ -2149,7 +2149,7 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .settings-rows {
-  padding: 4px 18px 8px;
+  padding: 0 18px 8px;
 }
 
 .setting-row {
