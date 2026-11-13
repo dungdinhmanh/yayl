@@ -48,10 +48,16 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::default())
         .setup(|app| {
-            let lang = settings::load(app.handle())
-                .ok()
-                .and_then(|settings| settings.language)
-                .unwrap_or_else(|| "vi".to_owned());
+            let settings = settings::load(app.handle()).unwrap_or_default();
+            let lang = settings.language.clone().unwrap_or_else(|| "vi".to_owned());
+            // The picked backdrop sits outside the bundled asset scope.
+            if let Some(source) = settings
+                .background_source
+                .as_ref()
+                .filter(|path| path.is_file())
+            {
+                let _ = app.asset_protocol_scope().allow_file(source);
+            }
             if let Some(icon) = app.default_window_icon().cloned() {
                 let menu = tray_menu(app.handle(), &lang)?;
                 TrayIconBuilder::with_id("main")

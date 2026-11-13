@@ -202,6 +202,10 @@ export default function App() {
   const [social, setSocial] = useState<Partial<Record<GameId, SocialLink[]>>>({});
   const [backgrounds, setBackgrounds] = useState<Partial<Record<GameId, string | null>>>({});
   const [customSrc, setCustomSrc] = useState<string | null>(null);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const customSource = settings.backgroundSource ?? settings.backgroundPath;
+  const customFallback = customSource !== null && failedSource === customSource;
+  const customActive = customFallback ? settings.backgroundPath : customSource;
   const custom = settings.background === "custom" && customSrc !== null;
   const [versions, setVersions] = useState<Partial<Record<GameId, GameVersion>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
@@ -435,25 +439,45 @@ export default function App() {
     };
   }, [gameId, booted, backgrounds]);
 
-  // Custom media is copied into the app cache and served by the asset protocol.
+  // Custom media uses the picked file first; the cache copy is the fallback.
+  const customFailed = () => {
+    setCustomSrc(null);
+    if (settings.backgroundPath && settings.backgroundPath !== customActive) {
+      setFailedSource(customSource);
+    }
+  };
+
   useEffect(() => {
-    if (!settings.backgroundPath) {
+    if (!customActive) {
       setCustomSrc(null);
       return;
     }
     let active = true;
-    void backgroundSrc(settings.backgroundPath)
+    void backgroundSrc(customActive)
       .then((src) => {
-        if (active) setCustomSrc(src);
+        if (!active) return;
+        if (backgroundIsVideo(customActive)) {
+          setCustomSrc(src);
+          return;
+        }
+        // Probe images so a missing source falls back before it paints.
+        const probe = new Image();
+        probe.onload = () => {
+          if (active) setCustomSrc(src);
+        };
+        probe.onerror = () => {
+          if (active) customFailed();
+        };
+        probe.src = src;
       })
       .catch((error: unknown) => {
         console.error("[YAYL] cannot load custom background", error);
-        if (active) setCustomSrc(null);
+        if (active) customFailed();
       });
     return () => {
       active = false;
     };
-  }, [settings.backgroundPath]);
+  }, [customActive, customFallback, customSource, settings.backgroundPath]);
 
   // Layout effect so the root attributes are in place before paint.
   useLayoutEffect(() => {
@@ -653,7 +677,7 @@ export default function App() {
             className="backdrop-custom"
             style={{ "--bg-opacity": String(settings.backgroundOpacity / 100) } as CSSProperties}
           >
-            {backgroundIsVideo(settings.backgroundPath ?? "") ? (
+            {backgroundIsVideo(customActive ?? "") ? (
               <video
                 className="backdrop-art backdrop-media"
                 key={customSrc}
@@ -666,6 +690,7 @@ export default function App() {
                   objectFit: customObjectFit(settings.backgroundFit),
                   objectPosition: "center",
                 }}
+                onError={customFailed}
               />
             ) : settings.backgroundFit === "tile" ? (
               <div
@@ -683,7 +708,7 @@ export default function App() {
                   objectFit: customObjectFit(settings.backgroundFit),
                   objectPosition: "center",
                 }}
-                onError={() => setCustomSrc(null)}
+                onError={customFailed}
               />
             )}
           </div>

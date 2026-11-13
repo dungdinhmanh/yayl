@@ -57,9 +57,12 @@ pub struct Settings {
     /// Backdrop style for the launcher UI.
     #[serde(default)]
     pub background: BackgroundMode,
-    /// Copied custom backdrop media; only used when `background` is custom.
+    /// Fallback copy of the custom backdrop in the app cache.
     #[serde(default)]
     pub background_path: Option<PathBuf>,
+    /// Original custom backdrop path; used first, with `background_path` as fallback.
+    #[serde(default)]
+    pub background_source: Option<PathBuf>,
     /// Backdrop blur in pixels, 0-40.
     #[serde(default)]
     pub background_blur: u8,
@@ -109,6 +112,7 @@ impl Default for Settings {
             reduced_motion: false,
             background: BackgroundMode::default(),
             background_path: None,
+            background_source: None,
             background_blur: 0,
             background_noise: 0,
             background_opacity: 100,
@@ -172,7 +176,8 @@ mod tests {
         settings.concurrency = 16;
         settings.reduced_motion = true;
         settings.background = BackgroundMode::Custom;
-        settings.background_path = Some(dir.path().join("wallpaper.mp4"));
+        settings.background_path = Some(dir.path().join("cache").join("wallpaper.mp4"));
+        settings.background_source = Some(dir.path().join("wallpaper.mp4"));
         settings.background_blur = 12;
         settings.background_noise = 40;
         settings.background_opacity = 70;
@@ -195,6 +200,10 @@ mod tests {
         assert_eq!(loaded.background, BackgroundMode::Custom);
         assert_eq!(
             loaded.background_path,
+            Some(dir.path().join("cache").join("wallpaper.mp4"))
+        );
+        assert_eq!(
+            loaded.background_source,
             Some(dir.path().join("wallpaper.mp4"))
         );
         assert_eq!(loaded.background_blur, 12);

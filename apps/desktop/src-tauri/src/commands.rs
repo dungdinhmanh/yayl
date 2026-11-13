@@ -592,6 +592,15 @@ pub async fn choose_custom_background(
 
     let mut settings = settings::load(&app)?;
     settings.background = BackgroundMode::Custom;
+    // Use the picked file directly; the cache copy only covers a moved or deleted source.
+    let source = if tokio::fs::metadata(&path).await.is_ok() {
+        path
+    } else {
+        dest.clone()
+    };
+    // The asset protocol serves the app cache only, so open the picked file too.
+    let _ = app.asset_protocol_scope().allow_file(&source);
+    settings.background_source = Some(source);
     settings.background_path = Some(dest);
     settings::save(&app, &settings)?;
     Ok(Some(settings.into()))
@@ -601,6 +610,7 @@ pub async fn choose_custom_background(
 pub async fn clear_custom_background(app: AppHandle) -> Result<SettingsView, CommandError> {
     let mut settings = settings::load(&app)?;
     let dir = custom_background_dir(&app)?;
+    settings.background_source = None;
     if let Some(path) = settings.background_path.take() {
         // Only delete files this command owns; never trust the stored path.
         if path.parent() == Some(dir.as_path()) {

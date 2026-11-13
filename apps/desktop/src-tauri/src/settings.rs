@@ -44,6 +44,7 @@ pub struct SettingsView {
     pub reduced_motion: bool,
     pub background: BackgroundMode,
     pub background_path: Option<String>,
+    pub background_source: Option<String>,
     pub background_blur: u8,
     pub background_noise: u8,
     pub background_opacity: u8,
@@ -70,6 +71,9 @@ impl From<Settings> for SettingsView {
             background: value.background,
             background_path: value
                 .background_path
+                .map(|path| path.to_string_lossy().into_owned()),
+            background_source: value
+                .background_source
                 .map(|path| path.to_string_lossy().into_owned()),
             background_blur: value.background_blur,
             background_noise: value.background_noise,

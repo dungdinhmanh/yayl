@@ -107,7 +107,7 @@ export default function Settings({
   const root = roots[gameId];
   const busy = BUSY_STATES.includes(states[gameId]);
   const pathChanged = pathDraft.trim() !== root.trim();
-  const customPath = settings.backgroundPath;
+  const customPath = settings.backgroundSource ?? settings.backgroundPath;
   const isVideo = customPath ? backgroundIsVideo(customPath) : false;
   const customPathLabel = customPath
     ? backgroundDisplayPath(customPath)
@@ -514,7 +514,7 @@ export default function Settings({
                           >
                             <span className="background-path-text">{customPathLabel}</span>
                           </button>
-                          {settings.backgroundPath && (
+                          {customPath && (
                             <button
                               className="btn btn-ghost btn-sm"
                               type="button"
@@ -717,15 +717,17 @@ export default function Settings({
                   <div className="game-hero-name">{game.name}</div>
                   <div className="game-hero-meta">
                     {versionInfo?.local ? (
-                      <span className="mono">
-                        v{versionInfo.local}
-                        {versionInfo.latest && versionInfo.latest !== versionInfo.local
-                          ? ` → v${versionInfo.latest}`
-                          : ""}
-                      </span>
+                      <span className="mono">v{versionInfo.local}</span>
                     ) : (
                       <span>{t("common.notInstalled")}</span>
                     )}
+                    {versionInfo?.local &&
+                      versionInfo.latest &&
+                      versionInfo.latest !== versionInfo.local && (
+                        <span className="game-hero-badge">
+                          {t("settings.game.newVersion", { version: versionInfo.latest })}
+                        </span>
+                      )}
                     <span>
                       {disk && downloadBytes !== null
                         ? t("settings.game.diskValue", {

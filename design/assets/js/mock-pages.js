@@ -327,7 +327,7 @@
     var pathButton = byId("backgroundChoose");
     if (pathText) {
       var pathLabel = labBackground.url
-        ? "%APPDATA%\\yayl\\cache\\custom\\" + (labBackground.name || "background")
+        ? "C:\\Users\\kazuki\\Pictures\\" + (labBackground.name || "background")
         : appRef.t("settings.background.path.empty");
       pathText.textContent = pathLabel;
       if (pathButton) pathButton.title = pathLabel;
@@ -452,7 +452,7 @@
     var heroBadge = document.querySelector("[data-settings-update]");
     if (heroBadge) {
       heroBadge.hidden = game.latest === game.version;
-      heroBadge.textContent = app.t("home.updateChip", { version: game.latest });
+      heroBadge.textContent = app.t("settings.game.newVersion", { version: game.latest });
     }
 
     document.querySelectorAll("[data-settings-game]").forEach(function (tab) {

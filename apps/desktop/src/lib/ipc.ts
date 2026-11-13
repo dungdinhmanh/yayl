@@ -82,6 +82,7 @@ export interface Settings {
   reducedMotion: boolean;
   background: BackgroundMode;
   backgroundPath: string | null;
+  backgroundSource: string | null;
   backgroundBlur: number;
   backgroundNoise: number;
   backgroundOpacity: number;
@@ -175,6 +176,7 @@ export function defaultSettings(): Settings {
     reducedMotion: false,
     background: "art",
     backgroundPath: null,
+    backgroundSource: null,
     backgroundBlur: 0,
     backgroundNoise: 0,
     backgroundOpacity: 100,
@@ -433,13 +435,13 @@ export async function chooseCustomBackground(): Promise<Settings | null> {
   if (!file) return null;
   if (mockBackground) URL.revokeObjectURL(mockBackground.url);
   const url = URL.createObjectURL(file);
-  // The browser hides the real path, so show the cache path the copy stands for.
+  // The browser hides the real path, so show a source-shaped path for review.
   mockBackground = {
     url,
-    label: `%APPDATA%\\yayl\\cache\\custom\\${file.name}`,
+    label: `C:\\Users\\kazuki\\Pictures\\${file.name}`,
     video: file.type.startsWith("video/"),
   };
-  mockSettings = { ...mockSettings, background: "custom", backgroundPath: url };
+  mockSettings = { ...mockSettings, background: "custom", backgroundPath: url, backgroundSource: null };
   return { ...mockSettings };
 }
 
@@ -454,6 +456,7 @@ export async function clearCustomBackground(): Promise<Settings> {
     ...mockSettings,
     background: mockSettings.background === "custom" ? "art" : mockSettings.background,
     backgroundPath: null,
+    backgroundSource: null,
   };
   return { ...mockSettings };
 }
@@ -469,7 +472,7 @@ export function backgroundIsVideo(path: string): boolean {
   return /\.(mp4|webm)(?:[?#].*)?$/i.test(path);
 }
 
-/* The mock stores a blob URL, so show the cache path it stands for. */
+/* The mock stores a blob URL, so show the source path it stands for. */
 export function backgroundDisplayPath(path: string): string {
   if (IS_TAURI || !path.startsWith("blob:")) return path;
   return mockBackground?.label ?? path;
