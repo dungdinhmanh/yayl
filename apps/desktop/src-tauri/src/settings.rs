@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 use yayl_core::downloader::DownloadOrder;
 use yayl_core::proxy::{ProxyMode, ProxySettings};
-use yayl_core::settings::{BackgroundMode, Settings};
+use yayl_core::settings::{BackgroundFit, BackgroundMode, Settings};
 
 use crate::error::CommandError;
 
@@ -46,6 +46,10 @@ pub struct SettingsView {
     pub background_path: Option<String>,
     pub background_blur: u8,
     pub background_noise: u8,
+    pub background_opacity: u8,
+    pub background_fit: BackgroundFit,
+    pub background_muted: bool,
+    pub background_loop: bool,
     pub onboarding_complete: bool,
     pub close_to_tray: bool,
 }
@@ -69,6 +73,10 @@ impl From<Settings> for SettingsView {
                 .map(|path| path.to_string_lossy().into_owned()),
             background_blur: value.background_blur,
             background_noise: value.background_noise,
+            background_opacity: value.background_opacity,
+            background_fit: value.background_fit,
+            background_muted: value.background_muted,
+            background_loop: value.background_loop,
             onboarding_complete: value.onboarding_complete,
             close_to_tray: value.close_to_tray,
         }

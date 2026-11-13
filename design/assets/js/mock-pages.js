@@ -111,9 +111,7 @@
     setStatusPill(byId("statusPill"), meta.tone, app.t(meta.status));
 
     var primary = byId("primaryAction");
-    var secondary = byId("secondaryAction");
     setButton(primary, app.t(meta.primary, vars), meta.primaryIcon, meta.disabled);
-    setButton(secondary, app.t(meta.secondary, vars), meta.secondaryIcon, false);
 
     var versionLabel = byId("versionChipLabel");
     var versionValue = byId("versionChipValue");
@@ -241,38 +239,69 @@
     }, 1800);
   }
 
-  var labBackground = { mode: "art", url: null, video: false, name: "", blur: 0, noise: 0 };
+  var labBackground = {
+    mode: "art",
+    url: null,
+    video: false,
+    name: "",
+    blur: 0,
+    noise: 0,
+    opacity: 100,
+    fit: "cover",
+    muted: true,
+    loop: true
+  };
+
+  function labObjectFit(fit) {
+    if (fit === "contain") return "contain";
+    if (fit === "center") return "none";
+    return "cover";
+  }
 
   function applyLabBackground() {
     var app = document.querySelector(".app");
     if (!app) return;
-    app.style.setProperty("--bg-blur", labBackground.mode === "custom" ? labBackground.blur + "px" : "0px");
-    app.style.setProperty("--bg-noise", labBackground.mode === "custom" ? String(labBackground.noise / 100) : "0");
+    var custom = labBackground.mode === "custom";
+    app.style.setProperty("--bg-blur", custom ? labBackground.blur + "px" : "0px");
+    app.style.setProperty("--bg-noise", custom ? String(labBackground.noise / 100) : "0");
+    app.style.setProperty("--bg-opacity", custom ? String(labBackground.opacity / 100) : "1");
     document.body.dataset.background = labBackground.mode;
 
     var backdrop = app.querySelector(".backdrop");
     if (!backdrop) return;
-    var custom = backdrop.querySelector(".backdrop-media");
-    if (custom) custom.remove();
+    var layer = backdrop.querySelector(".backdrop-custom");
+    if (layer) layer.remove();
     var art = backdrop.querySelector(".backdrop-art:not(.backdrop-media)");
-    if (art) art.style.display = labBackground.mode === "custom" && labBackground.url ? "none" : "";
-    if (labBackground.mode !== "custom" || !labBackground.url) return;
+    if (art) art.style.display = custom && labBackground.url ? "none" : "";
+    if (!custom || !labBackground.url) return;
 
+    layer = document.createElement("div");
+    layer.className = "backdrop-custom";
     var media;
     if (labBackground.video) {
       media = document.createElement("video");
       media.src = labBackground.url;
       media.autoplay = true;
-      media.muted = true;
-      media.loop = true;
+      media.muted = labBackground.muted;
+      media.loop = labBackground.loop;
       media.playsInline = true;
+      media.style.objectFit = labObjectFit(labBackground.fit);
+      media.style.objectPosition = "center";
+    } else if (labBackground.fit === "tile") {
+      media = document.createElement("div");
+      media.style.backgroundImage = 'url("' + labBackground.url + '")';
     } else {
       media = document.createElement("img");
       media.src = labBackground.url;
       media.alt = "";
+      media.style.objectFit = labObjectFit(labBackground.fit);
+      media.style.objectPosition = "center";
     }
-    media.className = "backdrop-art backdrop-media";
-    backdrop.insertBefore(media, backdrop.querySelector(".backdrop-scrim"));
+    media.className =
+      "backdrop-art backdrop-media" +
+      (!labBackground.video && labBackground.fit === "tile" ? " backdrop-tile" : "");
+    layer.appendChild(media);
+    backdrop.insertBefore(layer, backdrop.querySelector(".backdrop-scrim"));
   }
 
   function syncBackgroundRows(appRef) {
@@ -280,18 +309,38 @@
     if (!select) return;
     select.value = labBackground.mode;
     var custom = labBackground.mode === "custom";
-    ["backgroundFileRow", "backgroundBlurRow", "backgroundNoiseRow"].forEach(function (id) {
+    [
+      "backgroundFileRow",
+      "backgroundOpacityRow",
+      "backgroundBlurRow",
+      "backgroundNoiseRow",
+      "backgroundFitRow"
+    ].forEach(function (id) {
       var row = byId(id);
       if (row) row.hidden = !custom;
     });
-    var name = byId("backgroundFileName");
-    if (name) {
-      name.textContent = labBackground.url
+    ["backgroundMutedRow", "backgroundLoopRow"].forEach(function (id) {
+      var row = byId(id);
+      if (row) row.hidden = !custom || !labBackground.video;
+    });
+    var pathText = byId("backgroundPathText");
+    var pathButton = byId("backgroundChoose");
+    if (pathText) {
+      var pathLabel = labBackground.url
         ? labBackground.name || appRef.t("settings.background.custom.chosen")
-        : appRef.t("settings.background.file.desc");
+        : appRef.t("settings.background.path.empty");
+      pathText.textContent = pathLabel;
+      if (pathButton) pathButton.title = pathLabel;
     }
     var remove = byId("backgroundRemove");
     if (remove) remove.hidden = !labBackground.url;
+    var opacity = byId("backgroundOpacityRange");
+    if (opacity) {
+      opacity.value = String(labBackground.opacity);
+      updateRange(opacity, byId("backgroundOpacityValue"), function (value) {
+        return value + "%";
+      });
+    }
     var blur = byId("backgroundBlurRange");
     if (blur) {
       blur.value = String(labBackground.blur);
@@ -306,7 +355,22 @@
         return value + "%";
       });
     }
+    var fit = byId("backgroundFitSelect");
+    if (fit) {
+      fit.value = labBackground.fit;
+      var tile = fit.querySelector('option[value="tile"]');
+      if (tile) tile.disabled = labBackground.video;
+      if (labBackground.video && labBackground.fit === "tile") {
+        labBackground.fit = "cover";
+        fit.value = "cover";
+      }
+    }
+    var muted = byId("backgroundMutedToggle");
+    if (muted) muted.checked = labBackground.muted;
+    var loop = byId("backgroundLoopToggle");
+    if (loop) loop.checked = labBackground.loop;
     applyLabBackground();
+    if (typeof syncSelectLabels === "function") syncSelectLabels();
   }
 
   function pickLabBackground(appRef) {
@@ -341,8 +405,7 @@
     input.click();
   }
 
-  function updateRange(input, valueEl, formatter) {    if (!input) return;
-    var min = Number(input.min || 0);
+  function updateRange(input, valueEl, formatter) {    if (!input) return;    var min = Number(input.min || 0);
     var max = Number(input.max || 100);
     var value = Number(input.value || 0);
     var percent = max === min ? 0 : ((value - min) / (max - min)) * 100;
@@ -410,9 +473,213 @@
     }
 
     syncBackgroundRows(app);
+    syncSelectLabels();
+  }
+
+  /* Native select metrics vary by platform, so the lab mirrors the app's
+     listbox: the native element stays as the value holder and event source. */
+  function syncSelectLabels() {
+    document.querySelectorAll("select.select[data-enhanced]").forEach(function (select) {
+      var trigger = select._yaylTrigger;
+      if (!trigger) return;
+      var option = select.options[select.selectedIndex];
+      var label = trigger.querySelector(".ui-select-label");
+      if (label) label.textContent = option ? option.textContent : "";
+      var row = select.closest(".setting-row");
+      var rowLabel = row ? row.querySelector(".setting-label") : null;
+      if (rowLabel) trigger.setAttribute("aria-label", rowLabel.textContent.trim());
+      var list = select._yaylList;
+      if (list && !list.hidden) {
+        Array.prototype.forEach.call(list.children, function (row, index) {
+          row.setAttribute("aria-selected", index === select.selectedIndex ? "true" : "false");
+          row.classList.toggle("is-active", index === select._yaylActive);
+        });
+      }
+    });
+  }
+
+  function enhanceSelects() {
+    document.querySelectorAll("select.select").forEach(function (select) {
+      if (select.dataset.enhanced) return;
+      select.dataset.enhanced = "1";
+      select.classList.add("ui-select-native");
+      select.setAttribute("aria-hidden", "true");
+      select.tabIndex = -1;
+
+      var trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "ui-select-trigger";
+      trigger.setAttribute("role", "combobox");
+      trigger.setAttribute("aria-haspopup", "listbox");
+      trigger.setAttribute("aria-expanded", "false");
+      var label = document.createElement("span");
+      label.className = "ui-select-label";
+      var caret = document.createElement("span");
+      caret.className = "ui-select-caret";
+      caret.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+      trigger.appendChild(label);
+      trigger.appendChild(caret);
+
+      var list = document.createElement("ul");
+      list.className = "ui-select-list";
+      list.setAttribute("role", "listbox");
+      list.hidden = true;
+      document.body.appendChild(list);
+
+      select.parentNode.insertBefore(trigger, select.nextSibling);
+      select._yaylTrigger = trigger;
+      select._yaylList = list;
+      select._yaylActive = Math.max(0, select.selectedIndex);
+
+      function sync() {
+        var option = select.options[select.selectedIndex];
+        label.textContent = option ? option.textContent : "";
+        var row = select.closest(".setting-row");
+        var rowLabel = row ? row.querySelector(".setting-label") : null;
+        if (rowLabel) trigger.setAttribute("aria-label", rowLabel.textContent.trim());
+        Array.prototype.forEach.call(list.children, function (row, index) {
+          row.setAttribute("aria-selected", index === select.selectedIndex ? "true" : "false");
+          row.classList.toggle("is-active", index === select._yaylActive);
+        });
+      }
+
+      function place() {
+        var rect = trigger.getBoundingClientRect();
+        var spaceBelow = window.innerHeight - rect.bottom - 12;
+        var spaceAbove = rect.top - 12;
+        var openUp = spaceBelow < 140 && spaceAbove > spaceBelow;
+        list.style.left = rect.left + "px";
+        list.style.width = rect.width + "px";
+        list.style.maxHeight =
+          Math.min(280, Math.max(80, openUp ? spaceAbove : spaceBelow)) + "px";
+        list.style.top = openUp ? "auto" : rect.bottom + 6 + "px";
+        list.style.bottom = openUp ? window.innerHeight - rect.top + 6 + "px" : "auto";
+      }
+
+      function rebuild() {
+        list.innerHTML = "";
+        Array.prototype.forEach.call(select.options, function (option, index) {
+          var row = document.createElement("li");
+          row.className = "ui-select-option";
+          row.setAttribute("role", "option");
+          if (option.disabled) {
+            row.classList.add("is-disabled");
+            row.setAttribute("aria-disabled", "true");
+          }
+          row.textContent = option.textContent;
+          row.addEventListener("pointermove", function () {
+            select._yaylActive = index;
+            sync();
+          });
+          row.addEventListener("click", function () {
+            choose(index);
+          });
+          list.appendChild(row);
+        });
+      }
+
+      function open() {
+        select._yaylActive = Math.max(0, select.selectedIndex);
+        rebuild();
+        place();
+        list.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+        sync();
+      }
+
+      function close(focus) {
+        list.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+        if (focus) trigger.focus();
+      }
+
+      function choose(index) {
+        var option = select.options[index];
+        if (!option || option.disabled) return;
+        if (select.selectedIndex !== index) {
+          select.selectedIndex = index;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        sync();
+        close(true);
+      }
+
+      trigger.addEventListener("click", function () {
+        if (list.hidden) open();
+        else close(true);
+      });
+      trigger.addEventListener("keydown", function (event) {
+        var last = select.options.length - 1;
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          if (list.hidden) open();
+          else {
+            select._yaylActive = Math.min(last, select._yaylActive + 1);
+            sync();
+          }
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          if (list.hidden) open();
+          else {
+            select._yaylActive = Math.max(0, select._yaylActive - 1);
+            sync();
+          }
+        } else if (event.key === "Home") {
+          if (list.hidden) return;
+          event.preventDefault();
+          select._yaylActive = 0;
+          sync();
+        } else if (event.key === "End") {
+          if (list.hidden) return;
+          event.preventDefault();
+          select._yaylActive = last;
+          sync();
+        } else if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (list.hidden) open();
+          else choose(select._yaylActive);
+        } else if (event.key === "Escape") {
+          if (list.hidden) return;
+          event.preventDefault();
+          close(true);
+        } else if (event.key === "Tab" && !list.hidden) {
+          close(false);
+        }
+      });
+
+      document.addEventListener(
+        "pointerdown",
+        function (event) {
+          if (list.hidden) return;
+          if (trigger.contains(event.target) || list.contains(event.target)) return;
+          close(false);
+        },
+        true
+      );
+      window.addEventListener("resize", function () {
+        if (!list.hidden) close(false);
+      });
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (!list.hidden) close(false);
+        },
+        true
+      );
+      select.addEventListener("change", sync);
+      new MutationObserver(sync).observe(select, {
+        subtree: true,
+        characterData: true,
+        childList: true
+      });
+
+      sync();
+    });
   }
 
   pages.settings = function (appRef) {
+    enhanceSelects();
     var initialTab = appRef.params.get("tab") || "general";
     showSettingsTab(initialTab, false);
 
@@ -495,6 +762,47 @@
         applyLabBackground();
       });
       noiseRange.addEventListener("change", function () {
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var opacityRange = byId("backgroundOpacityRange");
+    if (opacityRange) {
+      opacityRange.addEventListener("input", function () {
+        labBackground.opacity = Number(opacityRange.value);
+        updateRange(opacityRange, byId("backgroundOpacityValue"), function (value) {
+          return value + "%";
+        });
+        applyLabBackground();
+      });
+      opacityRange.addEventListener("change", function () {
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var fitSelect = byId("backgroundFitSelect");
+    if (fitSelect) {
+      fitSelect.addEventListener("change", function () {
+        labBackground.fit = fitSelect.value;
+        applyLabBackground();
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var mutedToggle = byId("backgroundMutedToggle");
+    if (mutedToggle) {
+      mutedToggle.addEventListener("change", function () {
+        labBackground.muted = mutedToggle.checked;
+        applyLabBackground();
+        flashSettingsSaved(appRef);
+      });
+    }
+
+    var loopToggle = byId("backgroundLoopToggle");
+    if (loopToggle) {
+      loopToggle.addEventListener("change", function () {
+        labBackground.loop = loopToggle.checked;
+        applyLabBackground();
         flashSettingsSaved(appRef);
       });
     }
@@ -1319,12 +1627,12 @@
       var secondaryText = homeSecondaryText(game, state);
       secondary.hidden = !secondaryText;
       if (secondaryText) {
-        secondary.textContent = app.t(secondaryText.key, secondaryText.vars || {});
-        secondary.setAttribute("href", secondaryText.locate ? fileUrl(game.path) : "#");
-        if (secondaryText.locate) {
-          secondary.setAttribute("data-locate", "1");
-        } else {
-          secondary.removeAttribute("data-locate");
+        var prefix = secondary.querySelector("[data-installed-prefix]");
+        var locate = byId("secondaryLocate");
+        if (prefix) prefix.textContent = app.t("home.action.installedPrefix");
+        if (locate) {
+          locate.textContent = app.t(secondaryText.key, secondaryText.vars || {});
+          locate.setAttribute("href", secondaryText.locate ? fileUrl(game.path) : "#");
         }
       }
     }
@@ -1339,7 +1647,7 @@
 
   pages.home = function (appRef) {
     var primary = byId("primaryAction");
-    var secondary = byId("secondaryAction");
+    var secondary = byId("secondaryLocate");
 
     if (primary) {
       primary.addEventListener("click", function () {

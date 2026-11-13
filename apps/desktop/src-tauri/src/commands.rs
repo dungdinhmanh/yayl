@@ -14,7 +14,7 @@ use yayl_core::path::nearest_existing;
 use yayl_core::playtime::{PLAYTIME_FILE, PlaytimeEntry, PlaytimeStore};
 use yayl_core::profile::{self, GameProfile};
 use yayl_core::proxy::{ProxyMode, ProxySettings};
-use yayl_core::settings::{BackgroundMode, Settings as CoreSettings};
+use yayl_core::settings::{BackgroundFit, BackgroundMode, Settings as CoreSettings};
 use yayl_core::state::now_unix;
 use yayl_core::{disk, path::validate_install_root};
 
@@ -207,19 +207,33 @@ pub fn save_network_settings(
     Ok(settings.into())
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppearancePatch {
+    pub reduced_motion: bool,
+    pub background: BackgroundMode,
+    pub background_blur: u8,
+    pub background_noise: u8,
+    pub background_opacity: u8,
+    pub background_fit: BackgroundFit,
+    pub background_muted: bool,
+    pub background_loop: bool,
+}
+
 #[tauri::command]
 pub fn save_appearance(
     app: AppHandle,
-    reduced_motion: bool,
-    background: BackgroundMode,
-    background_blur: u8,
-    background_noise: u8,
+    patch: AppearancePatch,
 ) -> Result<SettingsView, CommandError> {
     let mut settings = settings::load(&app)?;
-    settings.reduced_motion = reduced_motion;
-    settings.background = background;
-    settings.background_blur = background_blur.min(40);
-    settings.background_noise = background_noise.min(100);
+    settings.reduced_motion = patch.reduced_motion;
+    settings.background = patch.background;
+    settings.background_blur = patch.background_blur.min(40);
+    settings.background_noise = patch.background_noise.min(100);
+    settings.background_opacity = patch.background_opacity.clamp(20, 100);
+    settings.background_fit = patch.background_fit;
+    settings.background_muted = patch.background_muted;
+    settings.background_loop = patch.background_loop;
     settings::save(&app, &settings)?;
     Ok(settings.into())
 }

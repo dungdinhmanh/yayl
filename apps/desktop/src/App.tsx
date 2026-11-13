@@ -34,6 +34,7 @@ import {
   windowClose,
   windowMinimize,
   windowToggleMaximize,
+  type BackgroundFit,
   type DownloadProgress,
   type DownloadSnapshot,
   type GameVersion,
@@ -47,6 +48,13 @@ const SettingsPage = lazy(() => import("./pages/Settings"));
 const FirstRunPage = lazy(() => import("./pages/FirstRun"));
 
 type View = "home" | "settings";
+
+/* Tile is rendered as a repeating background div; video falls back to cover. */
+function customObjectFit(fit: BackgroundFit): CSSProperties["objectFit"] {
+  if (fit === "contain") return "contain";
+  if (fit === "center") return "none";
+  return "cover";
+}
 
 export type GameId = keyof typeof GAMES;
 export type Lang = "vi" | "en";
@@ -641,25 +649,44 @@ export default function App() {
     >
       <div className="backdrop">
         {settings.background === "custom" && customSrc ? (
-          backgroundIsVideo(settings.backgroundPath ?? "") ? (
-            <video
-              className="backdrop-art backdrop-media"
-              key={customSrc}
-              src={customSrc}
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
-          ) : (
-            <img
-              className="backdrop-art backdrop-media"
-              key={customSrc}
-              src={customSrc}
-              alt=""
-              onError={() => setCustomSrc(null)}
-            />
-          )
+          <div
+            className="backdrop-custom"
+            style={{ "--bg-opacity": String(settings.backgroundOpacity / 100) } as CSSProperties}
+          >
+            {backgroundIsVideo(settings.backgroundPath ?? "") ? (
+              <video
+                className="backdrop-art backdrop-media"
+                key={customSrc}
+                src={customSrc}
+                autoPlay
+                muted={settings.backgroundMuted}
+                loop={settings.backgroundLoop}
+                playsInline
+                style={{
+                  objectFit: customObjectFit(settings.backgroundFit),
+                  objectPosition: "center",
+                }}
+              />
+            ) : settings.backgroundFit === "tile" ? (
+              <div
+                className="backdrop-art backdrop-media backdrop-tile"
+                key={customSrc}
+                style={{ backgroundImage: `url("${customSrc}")` }}
+              />
+            ) : (
+              <img
+                className="backdrop-art backdrop-media"
+                key={customSrc}
+                src={customSrc}
+                alt=""
+                style={{
+                  objectFit: customObjectFit(settings.backgroundFit),
+                  objectPosition: "center",
+                }}
+                onError={() => setCustomSrc(null)}
+              />
+            )}
+          </div>
         ) : (
           <img
             className="backdrop-art"

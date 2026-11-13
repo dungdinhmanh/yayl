@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { GAMES, type GameId, type GameState } from "../data";
 import type { Lang } from "../App";
+import Select from "../components/Select";
 import {
   appInfo,
+  backgroundIsVideo,
   chooseCustomBackground,
   chooseInstallFolder,
   clearCustomBackground,
@@ -19,6 +21,7 @@ import {
   saveWindowBehavior,
   setLanguage,
   type AppInfo,
+  type BackgroundFit,
   type BackgroundMode,
   type DiskSpace,
   type DownloadOrder,
@@ -95,17 +98,21 @@ export default function Settings({
   const [concurrency, setConcurrency] = useState(settings.concurrency);
   const [blur, setBlur] = useState(settings.backgroundBlur);
   const [noise, setNoise] = useState(settings.backgroundNoise);
+  const [opacity, setOpacity] = useState(settings.backgroundOpacity);
+  const [fit, setFit] = useState<BackgroundFit>(settings.backgroundFit);
   const savedTimer = useRef<number | null>(null);
 
   const game = GAMES[gameId];
   const root = roots[gameId];
   const busy = BUSY_STATES.includes(states[gameId]);
   const pathChanged = pathDraft.trim() !== root.trim();
-  const customName = settings.backgroundPath
-    ? settings.backgroundPath.startsWith("blob:")
+  const customPath = settings.backgroundPath;
+  const isVideo = customPath ? backgroundIsVideo(customPath) : false;
+  const customPathLabel = customPath
+    ? customPath.startsWith("blob:")
       ? t("settings.background.custom.chosen")
-      : settings.backgroundPath.split(/[\\/]/).pop() || t("settings.background.custom.chosen")
-    : null;
+      : customPath
+    : t("settings.background.path.empty");
 
   // Keep the draft in sync with the saved root, but do not clear the "saved"
   // status when the root changes because of our own save.
@@ -125,6 +132,8 @@ export default function Settings({
     setConcurrency(settings.concurrency);
     setBlur(settings.backgroundBlur);
     setNoise(settings.backgroundNoise);
+    setOpacity(settings.backgroundOpacity);
+    setFit(settings.backgroundFit);
   }, [
     settings.proxy.mode,
     settings.proxy.url,
@@ -133,6 +142,8 @@ export default function Settings({
     settings.concurrency,
     settings.backgroundBlur,
     settings.backgroundNoise,
+    settings.backgroundOpacity,
+    settings.backgroundFit,
   ]);
 
   useEffect(() => {
@@ -220,17 +231,41 @@ export default function Settings({
     void commit(() => setLanguage(value));
   };
 
-  const saveBackground = (
-    mode: BackgroundMode,
-    nextBlur: number = blur,
-    nextNoise: number = noise
-  ) => {
-    void commit(() => saveAppearance(settings.reducedMotion, mode, nextBlur, nextNoise));
+  const saveBackground = (overrides?: {
+    mode?: BackgroundMode;
+    blur?: number;
+    noise?: number;
+    opacity?: number;
+    fit?: BackgroundFit;
+    muted?: boolean;
+    loop?: boolean;
+  }) => {
+    void commit(() =>
+      saveAppearance(
+        settings.reducedMotion,
+        overrides?.mode ?? settings.background,
+        overrides?.blur ?? blur,
+        overrides?.noise ?? noise,
+        overrides?.opacity ?? opacity,
+        overrides?.fit ?? fit,
+        overrides?.muted ?? settings.backgroundMuted,
+        overrides?.loop ?? settings.backgroundLoop
+      )
+    );
   };
 
   const changeMotion = (enabled: boolean) => {
     void commit(() =>
-      saveAppearance(!enabled, settings.background, settings.backgroundBlur, settings.backgroundNoise)
+      saveAppearance(
+        !enabled,
+        settings.background,
+        settings.backgroundBlur,
+        settings.backgroundNoise,
+        settings.backgroundOpacity,
+        settings.backgroundFit,
+        settings.backgroundMuted,
+        settings.backgroundLoop
+      )
     );
   };
 
@@ -257,7 +292,7 @@ export default function Settings({
       pickCustom();
       return;
     }
-    saveBackground(value);
+    saveBackground({ mode: value });
   };
 
   const removeCustom = () => {
@@ -266,12 +301,30 @@ export default function Settings({
 
   const commitBlur = (value: number) => {
     setBlur(value);
-    saveBackground(settings.background, value, noise);
+    saveBackground({ blur: value });
   };
 
   const commitNoise = (value: number) => {
     setNoise(value);
-    saveBackground(settings.background, blur, value);
+    saveBackground({ noise: value });
+  };
+
+  const commitOpacity = (value: number) => {
+    setOpacity(value);
+    saveBackground({ opacity: value });
+  };
+
+  const changeFit = (value: BackgroundFit) => {
+    setFit(value);
+    saveBackground({ fit: value });
+  };
+
+  const changeMuted = (muted: boolean) => {
+    saveBackground({ muted });
+  };
+
+  const changeLoop = (loop: boolean) => {
+    saveBackground({ loop });
   };
 
   const changeTray = (enabled: boolean) => {
@@ -401,16 +454,16 @@ export default function Settings({
                     <div className="setting-desc">{t("settings.language.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
-                    <select
-                      className="select"
+                    <Select
                       id="settings-language"
-                      aria-label={t("settings.language")}
+                      label={t("settings.language")}
                       value={settings.language === "en" ? "en" : "vi"}
-                      onChange={(event) => changeLanguage(event.target.value === "en" ? "en" : "vi")}
-                    >
-                      <option value="vi">{t("common.vi")}</option>
-                      <option value="en">{t("common.en")}</option>
-                    </select>
+                      options={[
+                        { value: "vi", label: t("common.vi") },
+                        { value: "en", label: t("common.en") },
+                      ]}
+                      onChange={(value) => changeLanguage(value === "en" ? "en" : "vi")}
+                    />
                   </div>
                 </div>
 
@@ -438,18 +491,16 @@ export default function Settings({
                     <div className="setting-desc">{t("settings.background.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
-                    <select
-                      className="select"
-                      aria-label={t("settings.background")}
+                    <Select
+                      label={t("settings.background")}
                       value={settings.background}
-                      onChange={(event) =>
-                        changeBackground(event.target.value as BackgroundMode)
-                      }
-                    >
-                      <option value="art">{t("settings.background.art")}</option>
-                      <option value="custom">{t("settings.background.custom")}</option>
-                      <option value="solid">{t("settings.background.solid")}</option>
-                    </select>
+                      options={[
+                        { value: "art", label: t("settings.background.art") },
+                        { value: "custom", label: t("settings.background.custom") },
+                        { value: "solid", label: t("settings.background.solid") },
+                      ]}
+                      onChange={(value) => changeBackground(value)}
+                    />
                   </div>
                 </div>
 
@@ -457,19 +508,18 @@ export default function Settings({
                   <>
                     <div className="setting-row">
                       <div className="setting-copy">
-                        <div className="setting-label">{t("settings.background.file")}</div>
-                        <div className="setting-desc">
-                          {customName ?? t("settings.background.file.desc")}
-                        </div>
+                        <div className="setting-label">{t("settings.background.path")}</div>
+                        <div className="setting-desc">{t("settings.background.path.desc")}</div>
                       </div>
-                      <div className="setting-control">
+                      <div className="setting-control is-wide">
                         <div className="setting-actions">
                           <button
-                            className="btn btn-secondary btn-sm"
+                            className="background-path"
                             type="button"
+                            title={customPathLabel}
                             onClick={pickCustom}
                           >
-                            {t("settings.background.choose")}
+                            <span className="background-path-text">{customPathLabel}</span>
                           </button>
                           {settings.backgroundPath && (
                             <button
@@ -480,6 +530,33 @@ export default function Settings({
                               {t("settings.background.remove")}
                             </button>
                           )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="setting-row">
+                      <div className="setting-copy">
+                        <div className="setting-label">{t("settings.background.opacity")}</div>
+                        <div className="setting-desc">{t("settings.background.opacity.desc")}</div>
+                      </div>
+                      <div className="setting-control">
+                        <div className="range-wrap">
+                          <input
+                            className="range"
+                            type="range"
+                            min={20}
+                            max={100}
+                            step={1}
+                            aria-label={t("settings.background.opacity")}
+                            value={opacity}
+                            style={rangeFill(opacity, 20, 100)}
+                            onChange={(event) => setOpacity(Number(event.target.value))}
+                            onPointerUp={(event) =>
+                              commitOpacity(Number(event.currentTarget.value))
+                            }
+                            onKeyUp={(event) => commitOpacity(Number(event.currentTarget.value))}
+                          />
+                          <span className="range-value">{opacity}%</span>
                         </div>
                       </div>
                     </div>
@@ -537,6 +614,73 @@ export default function Settings({
                         </div>
                       </div>
                     </div>
+
+                    <div className="setting-row">
+                      <div className="setting-copy">
+                        <div className="setting-label">{t("settings.background.fit")}</div>
+                        <div className="setting-desc">{t("settings.background.fit.desc")}</div>
+                      </div>
+                      <div className="setting-control is-medium">
+                        <Select
+                          label={t("settings.background.fit")}
+                          value={fit}
+                          options={[
+                            { value: "cover", label: t("settings.background.fit.cover") },
+                            { value: "contain", label: t("settings.background.fit.contain") },
+                            { value: "center", label: t("settings.background.fit.center") },
+                            ...(isVideo
+                              ? []
+                              : [
+                                  {
+                                    value: "tile" as BackgroundFit,
+                                    label: t("settings.background.fit.tile"),
+                                  },
+                                ]),
+                          ]}
+                          onChange={(value) => changeFit(value)}
+                        />
+                      </div>
+                    </div>
+
+                    {isVideo && (
+                      <>
+                        <div className="setting-row">
+                          <div className="setting-copy">
+                            <div className="setting-label">{t("settings.background.muted")}</div>
+                            <div className="setting-desc">{t("settings.background.muted.desc")}</div>
+                          </div>
+                          <div className="setting-control">
+                            <label className="toggle">
+                              <input
+                                type="checkbox"
+                                aria-label={t("settings.background.muted")}
+                                checked={settings.backgroundMuted}
+                                onChange={(event) => changeMuted(event.target.checked)}
+                              />
+                              <span className="toggle-track" />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="setting-row">
+                          <div className="setting-copy">
+                            <div className="setting-label">{t("settings.background.loop")}</div>
+                            <div className="setting-desc">{t("settings.background.loop.desc")}</div>
+                          </div>
+                          <div className="setting-control">
+                            <label className="toggle">
+                              <input
+                                type="checkbox"
+                                aria-label={t("settings.background.loop")}
+                                checked={settings.backgroundLoop}
+                                onChange={(event) => changeLoop(event.target.checked)}
+                              />
+                              <span className="toggle-track" />
+                            </label>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
 
@@ -546,15 +690,15 @@ export default function Settings({
                     <div className="setting-desc">{t("settings.closeBehavior.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
-                    <select
-                      className="select"
-                      aria-label={t("settings.closeBehavior")}
+                    <Select
+                      label={t("settings.closeBehavior")}
                       value={settings.closeToTray ? "tray" : "exit"}
-                      onChange={(event) => changeTray(event.target.value === "tray")}
-                    >
-                      <option value="tray">{t("settings.closeTray")}</option>
-                      <option value="exit">{t("settings.closeExit")}</option>
-                    </select>
+                      options={[
+                        { value: "tray", label: t("settings.closeTray") },
+                        { value: "exit", label: t("settings.closeExit") },
+                      ]}
+                      onChange={(value) => changeTray(value === "tray")}
+                    />
                   </div>
                 </div>
               </div>
@@ -759,20 +903,19 @@ export default function Settings({
                     <div className="setting-desc">{t("settings.network.order.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
-                    <select
-                      className="select"
-                      aria-label={t("settings.network.order")}
+                    <Select
+                      label={t("settings.network.order")}
                       value={order}
-                      onChange={(event) => {
-                        const value = event.target.value as DownloadOrder;
+                      options={[
+                        { value: "smallest_first", label: t("settings.network.order.smallest") },
+                        { value: "largest_first", label: t("settings.network.order.largest") },
+                        { value: "manifest", label: t("settings.network.order.manifest") },
+                      ]}
+                      onChange={(value) => {
                         setOrder(value);
                         saveNetwork({ order: value });
                       }}
-                    >
-                      <option value="smallest_first">{t("settings.network.order.smallest")}</option>
-                      <option value="largest_first">{t("settings.network.order.largest")}</option>
-                      <option value="manifest">{t("settings.network.order.manifest")}</option>
-                    </select>
+                    />
                   </div>
                 </div>
 

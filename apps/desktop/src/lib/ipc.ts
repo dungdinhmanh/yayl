@@ -65,6 +65,7 @@ export interface DownloadProgress {
 export type ProxyMode = "direct" | "system" | "manual";
 export type DownloadOrder = "smallest_first" | "largest_first" | "manifest";
 export type BackgroundMode = "art" | "custom" | "solid";
+export type BackgroundFit = "cover" | "contain" | "center" | "tile";
 
 export interface ProxySettings {
   mode: ProxyMode;
@@ -83,6 +84,10 @@ export interface Settings {
   backgroundPath: string | null;
   backgroundBlur: number;
   backgroundNoise: number;
+  backgroundOpacity: number;
+  backgroundFit: BackgroundFit;
+  backgroundMuted: boolean;
+  backgroundLoop: boolean;
   onboardingComplete: boolean;
   closeToTray: boolean;
 }
@@ -172,6 +177,10 @@ export function defaultSettings(): Settings {
     backgroundPath: null,
     backgroundBlur: 0,
     backgroundNoise: 0,
+    backgroundOpacity: 100,
+    backgroundFit: "cover",
+    backgroundMuted: true,
+    backgroundLoop: true,
     onboardingComplete: false,
     closeToTray: true,
   };
@@ -363,17 +372,37 @@ export async function saveAppearance(
   reducedMotion: boolean,
   background: BackgroundMode,
   backgroundBlur: number,
-  backgroundNoise: number
+  backgroundNoise: number,
+  backgroundOpacity: number,
+  backgroundFit: BackgroundFit,
+  backgroundMuted: boolean,
+  backgroundLoop: boolean
 ): Promise<Settings> {
   if (IS_TAURI) {
     return invoke<Settings>("save_appearance", {
-      reducedMotion,
-      background,
-      backgroundBlur,
-      backgroundNoise,
+      patch: {
+        reducedMotion,
+        background,
+        backgroundBlur,
+        backgroundNoise,
+        backgroundOpacity,
+        backgroundFit,
+        backgroundMuted,
+        backgroundLoop,
+      },
     });
   }
-  mockSettings = { ...mockSettings, reducedMotion, background, backgroundBlur, backgroundNoise };
+  mockSettings = {
+    ...mockSettings,
+    reducedMotion,
+    background,
+    backgroundBlur,
+    backgroundNoise,
+    backgroundOpacity,
+    backgroundFit,
+    backgroundMuted,
+    backgroundLoop,
+  };
   return { ...mockSettings };
 }
 

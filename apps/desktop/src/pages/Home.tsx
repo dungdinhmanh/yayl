@@ -47,14 +47,13 @@ function icon(name: string) {
 }
 
 type SecondaryAction = {
-  key: string;
   action: "locate";
 };
 
 // The inline link is only for the installed game folder. Other per-state
 // actions live in the menu next to Play.
 function secondaryAction(state: GameState): SecondaryAction | null {
-  if (state === "install") return { key: "home.action.locateGame", action: "locate" };
+  if (state === "install") return { action: "locate" };
   return null;
 }
 
@@ -262,16 +261,19 @@ export default function Home({
           </div>
         </div>
         {secondary && (
-          <a
-            className="home-action-link"
-            href={fileUrl(installRoot)}
-            onClick={(event) => {
-              event.preventDefault();
-              onLocate();
-            }}
-          >
-            {t(secondary.key, vars)}
-          </a>
+          <div className="home-action-note">
+            <span>{t("home.action.installedPrefix")}</span>{" "}
+            <a
+              className="home-action-link"
+              href={fileUrl(installRoot)}
+              onClick={(event) => {
+                event.preventDefault();
+                onLocate();
+              }}
+            >
+              {t("home.action.locateGame")}
+            </a>
+          </div>
         )}
         {state === "ready" && errorCode && (
           <div className="home-error" role="alert">

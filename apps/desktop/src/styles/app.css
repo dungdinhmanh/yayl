@@ -163,6 +163,19 @@ body[data-game="stella"] .backdrop {
   transform: scale(1.02);
 }
 
+/* Opacity lives on the wrapper; art-in owns the media's own opacity. */
+.backdrop-custom {
+  position: absolute;
+  inset: 0;
+  opacity: var(--bg-opacity, 1);
+}
+
+.backdrop-tile {
+  background-position: center;
+  background-repeat: repeat;
+  background-size: auto;
+}
+
 body[data-game="stella"] .backdrop-art {
   object-position: center 32%;
 }
@@ -2182,6 +2195,43 @@ body[data-game="stella"] .backdrop-art {
   gap: 8px;
 }
 
+/* Clickable path box for the custom backdrop; long paths ellipsize. */
+.background-path {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: 0;
+  background: rgba(5, 8, 13, 0.52);
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+
+.background-path:hover {
+  border-color: var(--border-strong);
+}
+
+.background-path:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  background: rgba(5, 8, 13, 0.7);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
+}
+
+.background-path-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .setting-control.is-wide {
   width: 270px;
 }
@@ -2238,6 +2288,111 @@ body[data-game="stella"] .backdrop-art {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2398a2b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 11px center;
+}
+
+/* One listbox for every dropdown; native select metrics vary by platform. */
+.ui-select-native {
+  display: none;
+}
+
+.ui-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: 0;
+  background: rgba(5, 8, 13, 0.52);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 13.2px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+
+.ui-select-trigger:hover {
+  border-color: var(--border-strong);
+}
+
+.ui-select-trigger:focus-visible,
+.ui-select-trigger[aria-expanded="true"] {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  background: rgba(5, 8, 13, 0.7);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
+}
+
+.ui-select-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-caret {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform var(--dur-fast);
+}
+
+.ui-select-trigger[aria-expanded="true"] .ui-select-caret {
+  transform: rotate(180deg);
+}
+
+.ui-select-list {
+  position: fixed;
+  z-index: 90;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #0b0f17;
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  animation: ui-select-in 120ms var(--ease-out);
+}
+
+.ui-select-option {
+  padding: 8px 10px;
+  overflow: hidden;
+  border-radius: 7px;
+  color: var(--text-soft);
+  font-size: 13.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-select-option.is-active {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+}
+
+.ui-select-option[aria-selected="true"] {
+  color: var(--accent);
+}
+
+.ui-select-option.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@keyframes ui-select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .path-field {
@@ -4947,25 +5102,25 @@ body[data-layout="rail"] .backdrop-scrim {
   text-align: right;
 }
 
-/* Sits under the primary button, centered with it. Plain text link, no button chrome. */
-.home-action-link {
+/* Sits under the primary button, centered with it. Only the locate word is a link. */
+.home-action-note {
   width: 260px;
   margin-right: calc(var(--action-menu-size) + 10px);
   padding: 4px 0;
-  border: 0;
-  background: transparent;
   color: var(--muted);
   font-size: 13.2px;
   text-align: center;
-  text-decoration: none;
   white-space: nowrap;
-  transition: color var(--dur-fast);
+}
+
+.home-action-link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: filter var(--dur-fast);
 }
 
 .home-action-link:hover {
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  filter: brightness(1.18);
 }
 
 /* Install location dialog */
@@ -5456,7 +5611,7 @@ body[data-layout="rail"] .backdrop-scrim {
 .home-play-label {
   position: relative;
   z-index: 2;
-  max-width: calc(100% - 92px);
+  max-width: calc(100% - 12px);
   overflow: hidden;
   font-size: 18px;
   font-weight: 800;

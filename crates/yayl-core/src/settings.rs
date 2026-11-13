@@ -22,6 +22,20 @@ pub enum BackgroundMode {
     Solid,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackgroundFit {
+    /// Fill the window, cropping overflow.
+    #[default]
+    Cover,
+    /// Show the whole media with letterboxing.
+    Contain,
+    /// Natural size, centered.
+    Center,
+    /// Repeat the image or GIF from the top-left.
+    Tile,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     #[serde(default)]
@@ -52,6 +66,18 @@ pub struct Settings {
     /// Backdrop grain strength, 0-100.
     #[serde(default)]
     pub background_noise: u8,
+    /// Backdrop opacity percent, 20-100.
+    #[serde(default = "default_opacity")]
+    pub background_opacity: u8,
+    /// How custom media fills the window.
+    #[serde(default)]
+    pub background_fit: BackgroundFit,
+    /// Silence backdrop video audio.
+    #[serde(default = "default_true")]
+    pub background_muted: bool,
+    /// Restart backdrop video when it ends.
+    #[serde(default = "default_true")]
+    pub background_loop: bool,
     /// False only for a brand-new install.
     #[serde(default)]
     pub onboarding_complete: bool,
@@ -68,6 +94,10 @@ fn default_true() -> bool {
     true
 }
 
+fn default_opacity() -> u8 {
+    100
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
@@ -81,6 +111,10 @@ impl Default for Settings {
             background_path: None,
             background_blur: 0,
             background_noise: 0,
+            background_opacity: 100,
+            background_fit: BackgroundFit::default(),
+            background_muted: true,
+            background_loop: true,
             onboarding_complete: false,
             close_to_tray: true,
         }
@@ -141,6 +175,10 @@ mod tests {
         settings.background_path = Some(dir.path().join("wallpaper.mp4"));
         settings.background_blur = 12;
         settings.background_noise = 40;
+        settings.background_opacity = 70;
+        settings.background_fit = BackgroundFit::Contain;
+        settings.background_muted = false;
+        settings.background_loop = false;
         settings.onboarding_complete = true;
         settings.close_to_tray = false;
         settings.save(&path).unwrap();
@@ -161,6 +199,10 @@ mod tests {
         );
         assert_eq!(loaded.background_blur, 12);
         assert_eq!(loaded.background_noise, 40);
+        assert_eq!(loaded.background_opacity, 70);
+        assert_eq!(loaded.background_fit, BackgroundFit::Contain);
+        assert!(!loaded.background_muted);
+        assert!(!loaded.background_loop);
         assert!(loaded.onboarding_complete);
         assert!(!loaded.close_to_tray);
     }
@@ -177,6 +219,10 @@ mod tests {
         // Existing users are not sent through onboarding again.
         assert!(settings.onboarding_complete);
         assert!(settings.close_to_tray);
+        assert_eq!(settings.background_opacity, 100);
+        assert_eq!(settings.background_fit, BackgroundFit::Cover);
+        assert!(settings.background_muted);
+        assert!(settings.background_loop);
     }
 
     #[test]

@@ -174,13 +174,27 @@
                       </div>
                       <div class="setting-row" id="backgroundFileRow" hidden>
                         <div class="setting-copy">
-                          <div class="setting-label" data-i18n="settings.background.file">Tệp nền</div>
-                          <div class="setting-desc" id="backgroundFileName">Ảnh, GIF, MP4 hoặc WebM.</div>
+                          <div class="setting-label" data-i18n="settings.background.path">Đường dẫn</div>
+                          <div class="setting-desc" data-i18n="settings.background.path.desc">Bấm để chọn ảnh, GIF, MP4 hoặc WebM.</div>
+                        </div>
+                        <div class="setting-control is-wide">
+                          <div class="setting-actions">
+                            <button class="background-path" type="button" id="backgroundChoose" title="">
+                              <span class="background-path-text" id="backgroundPathText" data-i18n="settings.background.path.empty">Chưa chọn tệp</span>
+                            </button>
+                            <button class="btn btn-ghost btn-sm" type="button" id="backgroundRemove" data-i18n="settings.background.remove" hidden>Xóa</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="setting-row" id="backgroundOpacityRow" hidden>
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.background.opacity">Độ mờ đục</div>
+                          <div class="setting-desc" data-i18n="settings.background.opacity.desc">Độ đậm của nền tùy chỉnh.</div>
                         </div>
                         <div class="setting-control">
-                          <div class="setting-actions">
-                            <button class="btn btn-secondary btn-sm" type="button" id="backgroundChoose" data-i18n="settings.background.choose">Chọn tệp</button>
-                            <button class="btn btn-ghost btn-sm" type="button" id="backgroundRemove" data-i18n="settings.background.remove">Xóa</button>
+                          <div class="range-wrap">
+                            <input class="range" type="range" min="20" max="100" step="1" value="100" id="backgroundOpacityRange">
+                            <span class="range-value" id="backgroundOpacityValue">100%</span>
                           </div>
                         </div>
                       </div>
@@ -206,6 +220,44 @@
                             <input class="range" type="range" min="0" max="100" step="1" value="0" id="backgroundNoiseRange">
                             <span class="range-value" id="backgroundNoiseValue">0%</span>
                           </div>
+                        </div>
+                      </div>
+                      <div class="setting-row" id="backgroundFitRow" hidden>
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.background.fit">Kiểu hiển thị</div>
+                          <div class="setting-desc" data-i18n="settings.background.fit.desc">Cách nền lấp đầy cửa sổ.</div>
+                        </div>
+                        <div class="setting-control is-medium">
+                          <select class="select" id="backgroundFitSelect">
+                            <option value="cover" data-i18n="settings.background.fit.cover">Phủ kín</option>
+                            <option value="contain" data-i18n="settings.background.fit.contain">Vừa khung</option>
+                            <option value="center" data-i18n="settings.background.fit.center">Căn giữa</option>
+                            <option value="tile" data-i18n="settings.background.fit.tile">Lặp lại</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="setting-row" id="backgroundMutedRow" hidden>
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.background.muted">Tắt tiếng</div>
+                          <div class="setting-desc" data-i18n="settings.background.muted.desc">Tắt âm thanh của video nền.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="backgroundMutedToggle" checked>
+                            <span class="toggle-track"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="setting-row" id="backgroundLoopRow" hidden>
+                        <div class="setting-copy">
+                          <div class="setting-label" data-i18n="settings.background.loop">Lặp video</div>
+                          <div class="setting-desc" data-i18n="settings.background.loop.desc">Tự phát lại video nền khi kết thúc.</div>
+                        </div>
+                        <div class="setting-control">
+                          <label class="toggle">
+                            <input type="checkbox" id="backgroundLoopToggle" checked>
+                            <span class="toggle-track"></span>
+                          </label>
                         </div>
                       </div>
                     </div>
