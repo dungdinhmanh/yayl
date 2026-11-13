@@ -406,7 +406,7 @@ export async function saveAppearance(
   return { ...mockSettings };
 }
 
-let mockCustomVideo = false;
+let mockBackground: { url: string; label: string; video: boolean } | null = null;
 
 function pickBackgroundFile(): Promise<File | null> {
   return new Promise((resolve) => {
@@ -431,11 +431,14 @@ export async function chooseCustomBackground(): Promise<Settings | null> {
 
   const file = await pickBackgroundFile();
   if (!file) return null;
-  if (mockSettings.backgroundPath?.startsWith("blob:")) {
-    URL.revokeObjectURL(mockSettings.backgroundPath);
-  }
-  mockCustomVideo = file.type.startsWith("video/");
+  if (mockBackground) URL.revokeObjectURL(mockBackground.url);
   const url = URL.createObjectURL(file);
+  // The browser hides the real path, so show the cache path the copy stands for.
+  mockBackground = {
+    url,
+    label: `%APPDATA%\\yayl\\cache\\custom\\${file.name}`,
+    video: file.type.startsWith("video/"),
+  };
   mockSettings = { ...mockSettings, background: "custom", backgroundPath: url };
   return { ...mockSettings };
 }
@@ -443,8 +446,9 @@ export async function chooseCustomBackground(): Promise<Settings | null> {
 export async function clearCustomBackground(): Promise<Settings> {
   if (IS_TAURI) return invoke<Settings>("clear_custom_background");
 
-  if (mockSettings.backgroundPath?.startsWith("blob:")) {
-    URL.revokeObjectURL(mockSettings.backgroundPath);
+  if (mockBackground) {
+    URL.revokeObjectURL(mockBackground.url);
+    mockBackground = null;
   }
   mockSettings = {
     ...mockSettings,
@@ -461,8 +465,14 @@ export async function backgroundSrc(path: string): Promise<string> {
 }
 
 export function backgroundIsVideo(path: string): boolean {
-  if (path.startsWith("blob:")) return mockCustomVideo;
+  if (path.startsWith("blob:")) return mockBackground?.video ?? false;
   return /\.(mp4|webm)(?:[?#].*)?$/i.test(path);
+}
+
+/* The mock stores a blob URL, so show the cache path it stands for. */
+export function backgroundDisplayPath(path: string): string {
+  if (IS_TAURI || !path.startsWith("blob:")) return path;
+  return mockBackground?.label ?? path;
 }
 
 export async function saveWindowBehavior(closeToTray: boolean): Promise<Settings> {

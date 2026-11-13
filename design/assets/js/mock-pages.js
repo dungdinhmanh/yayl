@@ -327,7 +327,7 @@
     var pathButton = byId("backgroundChoose");
     if (pathText) {
       var pathLabel = labBackground.url
-        ? labBackground.name || appRef.t("settings.background.custom.chosen")
+        ? "%APPDATA%\\yayl\\cache\\custom\\" + (labBackground.name || "background")
         : appRef.t("settings.background.path.empty");
       pathText.textContent = pathLabel;
       if (pathButton) pathButton.title = pathLabel;

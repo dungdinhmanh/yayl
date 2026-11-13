@@ -4,6 +4,7 @@ import type { Lang } from "../App";
 import Select from "../components/Select";
 import {
   appInfo,
+  backgroundDisplayPath,
   backgroundIsVideo,
   chooseCustomBackground,
   chooseInstallFolder,
@@ -109,9 +110,7 @@ export default function Settings({
   const customPath = settings.backgroundPath;
   const isVideo = customPath ? backgroundIsVideo(customPath) : false;
   const customPathLabel = customPath
-    ? customPath.startsWith("blob:")
-      ? t("settings.background.custom.chosen")
-      : customPath
+    ? backgroundDisplayPath(customPath)
     : t("settings.background.path.empty");
 
   // Keep the draft in sync with the saved root, but do not clear the "saved"
@@ -449,7 +448,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.language")}</div>
-                    <div className="setting-desc">{t("settings.language.desc")}</div>
                   </div>
                   <div className="setting-control is-medium">
                     <Select
@@ -468,7 +466,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.motion")}</div>
-                    <div className="setting-desc">{t("settings.motion.desc")}</div>
                   </div>
                   <div className="setting-control">
                     <label className="toggle">
@@ -506,7 +503,6 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.path")}</div>
-                        <div className="setting-desc">{t("settings.background.path.desc")}</div>
                       </div>
                       <div className="setting-control is-wide">
                         <div className="setting-actions">
@@ -560,7 +556,6 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.blur")}</div>
-                        <div className="setting-desc">{t("settings.background.blur.desc")}</div>
                       </div>
                       <div className="setting-control">
                         <div className="range-wrap">
@@ -753,9 +748,9 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.game.path")}</div>
-                    <div className="setting-desc">
-                      {busy ? t("settings.game.path.locked") : t("settings.game.path.desc")}
-                    </div>
+                    {busy && (
+                      <div className="setting-desc">{t("settings.game.path.locked")}</div>
+                    )}
                   </div>
                   <div className="setting-control is-wide">
                     <div className="path-field">
@@ -865,7 +860,6 @@ export default function Settings({
                   <div className="setting-row">
                     <div className="setting-copy">
                       <div className="setting-label">{t("settings.network.url")}</div>
-                      <div className="setting-desc">{t("settings.network.url.desc")}</div>
                     </div>
                     <div className="setting-control is-medium">
                       <input
@@ -908,7 +902,6 @@ export default function Settings({
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.network.concurrency")}</div>
-                    <div className="setting-desc">{t("settings.network.concurrency.desc")}</div>
                   </div>
                   <div className="setting-control">
                     <div className="range-wrap">
@@ -947,15 +940,14 @@ export default function Settings({
             <div className="settings-section">
               <div className="settings-section-header">
                 <div className="settings-section-title">{t("settings.advanced.title")}</div>
-                <div className="settings-section-desc">{t("settings.advanced.desc")}</div>
               </div>
               <div className="settings-rows">
                 <div className="setting-row">
                   <div className="setting-copy">
                     <div className="setting-label">{t("settings.advanced.reset")}</div>
-                    <div className="setting-desc">
-                      {resetArmed ? t("settings.reset.text") : t("settings.advanced.reset.desc")}
-                    </div>
+                    {resetArmed && (
+                      <div className="setting-desc">{t("settings.reset.text")}</div>
+                    )}
                   </div>
                   <div className="setting-control">
                     {resetArmed ? (
@@ -1000,7 +992,6 @@ export default function Settings({
             <div className="settings-section">
               <div className="settings-section-header">
                 <div className="settings-section-title">{t("settings.about.title")}</div>
-                <div className="settings-section-desc">{t("settings.about.desc")}</div>
               </div>
               <div className="about-card">
                 <div className="about-mark">

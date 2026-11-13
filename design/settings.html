@@ -136,7 +136,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.language">Ngôn ngữ</div>
-                          <div class="setting-desc" data-i18n="settings.language.desc">Áp dụng ngay cho toàn bộ giao diện.</div>
                         </div>
                         <div class="setting-control is-medium">
                           <select class="select" id="languageSelect">
@@ -148,7 +147,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.motion">Hiệu ứng chuyển động</div>
-                          <div class="setting-desc" data-i18n="settings.motion.desc">Tắt để giảm tải GPU hoặc nếu bạn thích giao diện tĩnh.</div>
                         </div>
                         <div class="setting-control">
                           <label class="toggle">
@@ -172,7 +170,6 @@
                       <div class="setting-row" id="backgroundFileRow" hidden>
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.background.path">Đường dẫn</div>
-                          <div class="setting-desc" data-i18n="settings.background.path.desc">Bấm để chọn ảnh, GIF, MP4 hoặc WebM.</div>
                         </div>
                         <div class="setting-control is-wide">
                           <div class="setting-actions">
@@ -197,7 +194,6 @@
                       <div class="setting-row" id="backgroundBlurRow" hidden>
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.background.blur">Làm mờ</div>
-                          <div class="setting-desc" data-i18n="settings.background.blur.desc">Làm mờ nền để chữ dễ đọc hơn.</div>
                         </div>
                         <div class="setting-control">
                           <div class="range-wrap">
@@ -333,7 +329,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.game.path">Thư mục cài đặt</div>
-                          <div class="setting-desc" data-i18n="settings.game.path.desc">Thay đổi đường dẫn chỉ khi game không chạy.</div>
                         </div>
                         <div class="setting-control is-wide">
                           <div class="path-field">
@@ -382,7 +377,6 @@
                       <div class="setting-row" id="proxyCustom" hidden>
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.network.url">Địa chỉ proxy</div>
-                          <div class="setting-desc">http:// hoặc socks5://</div>
                         </div>
                         <div class="setting-control is-medium">
                           <input class="input" id="proxyUrl" type="text" data-i18n-placeholder="settings.network.url.placeholder" placeholder="http://127.0.0.1:7890">
@@ -391,7 +385,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.network.concurrency">Số kết nối</div>
-                          <div class="setting-desc" data-i18n="settings.network.concurrency.desc">10 là mặc định. Tăng có thể nhanh hơn nhưng dễ bị CDN giới hạn.</div>
                         </div>
                         <div class="setting-control">
                           <div class="range-wrap">
@@ -403,7 +396,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.network.bandwidth">Giới hạn băng thông</div>
-                          <div class="setting-desc" data-i18n="settings.network.bandwidth.desc">0 nghĩa là không giới hạn.</div>
                         </div>
                         <div class="setting-control">
                           <div class="range-wrap">
@@ -415,7 +407,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.network.cdn">Ưu tiên CDN</div>
-                          <div class="setting-desc" data-i18n="settings.network.cdn.desc">Tự động chuyển sang dự phòng khi lỗi.</div>
                         </div>
                         <div class="setting-control is-medium">
                           <select class="select" id="cdnSelect">
@@ -446,7 +437,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.advanced.logLevel">Mức log</div>
-                          <div class="setting-desc" data-i18n="settings.advanced.logLevel.desc">Log chi tiết hơn sẽ tốn dung lượng hơn.</div>
                         </div>
                         <div class="setting-control is-medium">
                           <select class="select" id="logLevel">
@@ -460,7 +450,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.advanced.openLogs">Mở thư mục log</div>
-                          <div class="setting-desc" data-i18n="settings.advanced.openLogs.desc">Log không chứa token hay chữ ký.</div>
                         </div>
                         <div class="setting-control">
                           <button class="btn btn-ghost btn-sm" type="button" id="openLogs" data-i18n="common.open">Mở</button>
@@ -469,7 +458,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.advanced.clearCache">Xóa cache</div>
-                          <div class="setting-desc" data-i18n="settings.advanced.clearCache.desc">Ảnh nền và metadata tải lại khi cần.</div>
                         </div>
                         <div class="setting-control">
                           <button class="btn btn-ghost btn-sm" type="button" id="clearCache" data-i18n="common.clear">Xóa</button>
@@ -478,7 +466,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.advanced.diagnostics">Xuất chẩn đoán</div>
-                          <div class="setting-desc" data-i18n="settings.advanced.diagnostics.desc">Gói zip không gồm thông tin đăng nhập.</div>
                         </div>
                         <div class="setting-control">
                           <button class="btn btn-secondary btn-sm" type="button" id="exportDiagnostics" data-i18n="common.export">Xuất</button>
@@ -487,7 +474,6 @@
                       <div class="setting-row">
                         <div class="setting-copy">
                           <div class="setting-label" data-i18n="settings.advanced.reset">Đặt lại cài đặt</div>
-                          <div class="setting-desc" data-i18n="settings.advanced.reset.desc">Không ảnh hưởng tới file game đã cài.</div>
                         </div>
                         <div class="setting-control">
                           <button class="btn btn-danger btn-sm" type="button" id="resetSettings" data-i18n="settings.advanced.resetAction">Đặt lại</button>
@@ -501,7 +487,6 @@
                   <div class="settings-section">
                     <div class="settings-section-header">
                       <div class="settings-section-title" data-i18n="settings.about.title">Về YAYL</div>
-                      <div class="settings-section-desc" data-i18n="settings.about.desc">Launcher nhẹ cho Arknights và Stella Sora.</div>
                     </div>
                     <div class="about-card">
                       <div class="about-mark">
