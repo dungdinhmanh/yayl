@@ -66,7 +66,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `apps/desktop/src-tauri/src/commands.rs` (`choose_custom_background`)
 - **Việc:** (a) kiểm tra dung lượng trước khi copy (**cần chốt mức**; ảnh nền từ server giới hạn 32 MiB ở `api.rs:525`, mp4 người dùng có thể cần cao hơn); (b) nếu `path == dest` thì bỏ qua copy (copy file lên chính nó có thể cắt cụt).
 - **Xong khi:** file quá lớn trả lỗi `invalid_input` có mã ổn định; chọn lại file đang nằm trong cache không làm mất dữ liệu.
-- Owner: ____ Trạng thái: ____
+- Owner: ____ Trạng thái: một phần ((b) xong, (a) chờ Q-07)
 
 ### T-08 Single instance
 - **Việc:** thêm `tauri-plugin-single-instance` 2.5.5; mở lần 2 thì focus cửa sổ cũ.
@@ -121,7 +121,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 ### T-17 Bỏ hardcode tên game
 - **File:** `apps/desktop/src/pages/Settings.tsx:888-889` (chip "Arknights EN", "Stella Sora EN")
 - **Việc:** lấy từ dữ liệu profile/`GAMES`.
-- Owner: ____ Trạng thái: ____
+- Owner: ____ Trạng thái: xong
 
 ### T-18 Tách `app.css`
 - **File:** `apps/desktop/src/styles/app.css` (6350 dòng)

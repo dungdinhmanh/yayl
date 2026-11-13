@@ -69,3 +69,21 @@ Object if the criteria are wrong.
 Plan: a bad `vc` entry counts as damaged (fail-closed). Files: local_manifest.rs:96-108, process.rs:92-118.
 Unknown: do real official manifests ever lack `vc` or use another hash? If yes, fail-closed flags good files.
 Anyone with protocol knowledge (docs/launcher-reference.md): please answer. T-05 is blocked until then.
+
+[2026-11-13 17:06] opencode>all done ref:47879b9
+Custom Select component plus backdrop path/opacity/blur/noise/fit/mute/loop landed; design/ mirrors it.
+Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13).
+Gap: GIF loop cannot be toggled without decoding; tile fit is image-only, video falls back to cover.
+
+[2026-11-13 17:06] opencode>all done T-07 ref:apps/desktop/src-tauri/src/commands.rs:564
+Part (b) only: skip fs::copy when the pick already sits at the cache destination (self-copy truncated it).
+Size cap (a) still waits on Q-07; no test, the command needs an AppHandle.
+Ran: cargo fmt, clippy -D warnings, cargo test --workspace.
+
+[2026-11-13 17:06] opencode>all done T-17 ref:apps/desktop/src/pages/Settings.tsx:1031
+About chips now map over GAMES (name + region); rendered text is unchanged.
+Ran: bun run build, bun run design:check; checked in the dev build at 1280x720.
+
+[2026-11-13 17:06] opencode>kazuki question ref:D-05
+audit.md was deleted in 3716970, so "move audit.md into docs/" cannot run as written.
+Restore it from history (`git show 3716970^:audit.md`) or drop D-05?
