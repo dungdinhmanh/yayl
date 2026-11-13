@@ -709,7 +709,7 @@ export default function Settings({
               <div className="game-hero-body">
                 <img
                   className="game-hero-icon"
-                  src={`/art/${gameId}.png`}
+                  src={`/icons/${gameId}.ico`}
                   alt=""
                   onError={(event) => event.currentTarget.classList.add("is-missing")}
                 />

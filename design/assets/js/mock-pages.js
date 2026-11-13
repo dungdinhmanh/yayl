@@ -444,7 +444,7 @@
     var heroArt = byId("settingsGameArt");
     if (heroArt) app.setArt(heroArt, app.current.game);
     var heroIcon = byId("settingsGameIcon");
-    if (heroIcon) app.setArt(heroIcon, app.current.game);
+    if (heroIcon) heroIcon.setAttribute("src", "assets/img/icons/" + app.current.game + ".ico");
     var heroName = byId("settingsGameName");
     if (heroName) heroName.textContent = game.name;
     var heroVersion = byId("settingsGameVersion");

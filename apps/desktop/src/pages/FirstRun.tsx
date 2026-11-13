@@ -314,7 +314,7 @@ export default function FirstRun({
                       >
                         <img
                           className="game-select-thumb"
-                          src={`/art/${profile.id}.png`}
+                          src={`/icons/${profile.id}.ico`}
                           alt=""
                           onError={(event) => event.currentTarget.classList.add("is-missing")}
                         />
@@ -502,11 +502,6 @@ export default function FirstRun({
             </section>
           )}
         </div>
-
-        <div className="onboarding-foot">
-          <span>{t("firstRun.footer")}</span>
-          <span className="onboarding-version"><span>v0.1.0</span><span>{t("app.launcher")}</span></span>
-        </div>
       </div>
 
       <div className="onboarding-visual">
@@ -518,54 +513,6 @@ export default function FirstRun({
           onError={(event) => event.currentTarget.classList.add("is-missing")}
         />
         <div className="onboarding-visual-scrim" />
-
-        <div className="onboarding-features">
-          <span className="onboarding-feature">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" />
-            </svg>
-            <span>{t("firstRun.feature.light")}</span>
-          </span>
-          <span className="onboarding-feature">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 3v12" />
-              <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
-              <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-            </svg>
-            <span>{t("firstRun.feature.fast")}</span>
-          </span>
-          <span className="onboarding-feature">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 3 5 6v5c0 4.4 2.9 8.4 7 10 4.1-1.6 7-5.6 7-10V6l-7-3Z" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-            <span>{t("firstRun.feature.private")}</span>
-          </span>
-        </div>
 
         <div className="onboarding-quote">
           <div className="onboarding-quote-mark">“</div>

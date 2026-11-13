@@ -2839,22 +2839,11 @@ body[data-game="stella"] .backdrop-art {
 
 .onboarding-actions .btn-primary {
   min-width: 150px;
+  box-shadow: none;
 }
 
-.onboarding-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--muted-3);
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.onboarding-version {
-  display: inline-flex;
-  gap: 6px;
-  align-items: baseline;
+.onboarding-actions .btn-primary:hover:not(:disabled) {
+  box-shadow: none;
 }
 
 .onboarding-visual {
@@ -2911,35 +2900,6 @@ body[data-game="stella"] .backdrop-art {
   text-transform: uppercase;
 }
 
-.onboarding-features {
-  position: absolute;
-  top: 34px;
-  right: 38px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  align-items: flex-end;
-}
-
-.onboarding-feature {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: rgba(5, 8, 13, 0.34);
-  color: var(--muted);
-  font-size: 12px;
-  backdrop-filter: blur(8px);
-}
-
-.onboarding-feature svg {
-  width: 11px;
-  height: 11px;
-  color: var(--accent);
-}
-
 /* Game selection cards */
 .game-select-list {
   display: flex;
@@ -2972,10 +2932,10 @@ body[data-game="stella"] .backdrop-art {
 }
 
 .game-select-thumb {
-  width: 34px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
-  border-radius: 7px;
+  border-radius: 10px;
   object-fit: cover;
   background: rgba(255, 255, 255, 0.06);
 }
