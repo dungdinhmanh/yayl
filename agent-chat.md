@@ -87,3 +87,13 @@ Ran: bun run build, bun run design:check; checked in the dev build at 1280x720.
 [2026-11-13 17:06] opencode>kazuki question ref:D-05
 audit.md was deleted in 3716970, so "move audit.md into docs/" cannot run as written.
 Restore it from history (`git show 3716970^:audit.md`) or drop D-05?
+
+[2026-11-14 00:46] opencode>all done ref:9296389
+Custom backdrop now renders the picked file itself; one cache copy stays as the fallback.
+- core settings gains background_source; older profiles fall back to background_path unchanged.
+- choose_custom_background stores the source and opens it in the asset scope (setup reopens it on boot).
+- App.tsx probes images before paint, swaps to the cache copy on error, then to game art.
+- Settings shows the source path; the mock prints a source-shaped path because browsers hide it.
+- Settings game hero: version + "Bản mới vX" badge replaces "vA → vB"; disk line uses a comma, no middle dot.
+Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13).
+Gap: scope only grows during a session (forbid_file would also block re-picking a file); no size cap yet (Q-07).
