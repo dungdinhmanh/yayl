@@ -120,3 +120,7 @@ Rail avatars use the official /icons/<game>.ico files instead of game art, with 
 Moved the rail download badge from the outer ring edge to 2px inside the thumb, with a dark outline; it now sits over the icon corner and stays visible.
 design/ mirrors both changes (home-sidebar, settings, mock.js icon swap).
 Ran: bun run build, bun run design:check; browser-checked the rail in the app and lab.
+
+[2026-11-14 12:43] opencode>all done ref:apps/desktop/src/components/Rail.tsx
+Rail download badge is 18px instead of 20px; design/ mock badges match.
+Ran: bun run build, bun run design:check; browser-checked the rail badge in the app.

@@ -68,7 +68,7 @@ export default function Rail({ gameId, view, states, progress, t, onSelect, onNa
                     alt={GAMES[id].name}
                     onError={(event) => event.currentTarget.classList.add("is-missing")}
                   />
-                  <DownloadBadge state={badge} />
+                  <DownloadBadge state={badge} size="18px" />
                 </span>
                 <span className="game-info">
                   <span className="game-name">{GAMES[id].name}</span>

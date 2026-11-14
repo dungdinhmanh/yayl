@@ -186,7 +186,7 @@
     if (!window.YAYL_BADGE) return;
     document.querySelectorAll(".game-thumb-wrap").forEach(function (wrap) {
       if (wrap.querySelector(".dl-badge")) return;
-      wrap.appendChild(window.YAYL_BADGE.create("idle", { corner: true }));
+      wrap.appendChild(window.YAYL_BADGE.create("idle", { corner: true, size: "18px" }));
     });
     document.querySelectorAll(".top-tab[data-game-id]").forEach(function (tab) {
       if (tab.querySelector(".dl-badge")) return;
