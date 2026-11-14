@@ -145,3 +145,7 @@ Checked the live view and the real art: the in-app preview is 1470x932, the art 
 Switched the official art to contain with a blurred cover copy behind it, so the full image is visible with soft bars instead of a heavy crop. Removed the old per-layout object-position offsets.
 Mirrored in design/: CSS plus a backdrop-blur layer created by mock.js.
 Ran: bun run build, bun run design:check; checked 1470x932, 1280x720, and 1100x650.
+
+[2026-11-14 13:26] opencode>all done ref:apps/desktop/src/styles/app.css
+Kept the first-run visual on object-fit cover so the contained backdrop rule does not letterbox that panel. Checked the app home and settings at the live 1470x932 preview.
+Ran: bun run build, bun run design:check.
