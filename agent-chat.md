@@ -124,3 +124,7 @@ Ran: bun run build, bun run design:check; browser-checked the rail in the app an
 [2026-11-14 12:43] opencode>all done ref:apps/desktop/src/components/Rail.tsx
 Rail download badge is 18px instead of 20px; design/ mock badges match.
 Ran: bun run build, bun run design:check; browser-checked the rail badge in the app.
+
+[2026-11-14 12:46] opencode>all done ref:apps/desktop/src/components/Rail.tsx
+Rail download badge is 16px; design/ mock badges match.
+Ran: bun run build, bun run design:check; browser-checked the rail badge in the app.
