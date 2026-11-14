@@ -202,6 +202,19 @@
       img.classList.remove("is-missing");
       img.setAttribute("src", next);
     }
+    if (img.hasAttribute("data-active-art")) {
+      var backdrop = img.closest(".backdrop");
+      if (backdrop) {
+        var blur = backdrop.querySelector(".backdrop-blur");
+        if (!blur) {
+          blur = document.createElement("div");
+          blur.className = "backdrop-blur";
+          blur.setAttribute("aria-hidden", "true");
+          backdrop.insertBefore(blur, img);
+        }
+        blur.style.backgroundImage = 'url("' + next + '")';
+      }
+    }
     wireImage(img);
   }
 

@@ -142,13 +142,25 @@ body[data-game="stella"] .backdrop {
     linear-gradient(135deg, #171a2e 0%, #090b13 48%, #05070b 100%);
 }
 
+/* A blurred cover copy fills the bars left by the contained art. */
+.backdrop-blur {
+  position: absolute;
+  inset: -6%;
+  background-position: center;
+  background-size: cover;
+  filter: blur(24px) saturate(1.05);
+  transform: scale(1.03);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .backdrop-art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 38%;
+  object-fit: contain;
+  object-position: center;
   filter: saturate(1.04) contrast(1.03);
   animation: art-in 900ms var(--ease-out) both;
 }
@@ -173,10 +185,6 @@ body[data-game="stella"] .backdrop {
   background-position: center;
   background-repeat: repeat;
   background-size: auto;
-}
-
-body[data-game="stella"] .backdrop-art {
-  object-position: center 32%;
 }
 
 .backdrop-scrim {
@@ -5943,10 +5951,6 @@ body[data-layout="rail"] .backdrop-scrim {
   text-align: center;
 }
 
-body[data-layout="rail"] .backdrop-art {
-  object-position: 0% 26%;
-}
-
 body[data-layout="rail"] .game-card[data-game-id="arknights"] .game-thumb {
   object-position: 72% 24%;
 }
@@ -5960,10 +5964,6 @@ body[data-page="download"] .backdrop-scrim {
   background:
     linear-gradient(180deg, rgba(4, 6, 10, 0.92) 0%, rgba(4, 6, 10, 0.8) 34%, rgba(4, 6, 10, 0.72) 100%),
     radial-gradient(120% 90% at 78% 10%, transparent 0%, rgba(4, 6, 10, 0.5) 100%);
-}
-
-body[data-layout="topbar"] .backdrop-art {
-  object-position: 0% 28%;
 }
 
 /* Keep the lab launcher away from the launcher's own bottom-right actions. */
@@ -6564,7 +6564,8 @@ body[data-layout="topbar"] .backdrop-art {
    Settings and first-run runtime states
    -------------------------------------------------------------------------- */
 
-body[data-background="solid"] .backdrop-art {
+body[data-background="solid"] .backdrop-art,
+body[data-background="solid"] .backdrop-blur {
   display: none;
 }
 

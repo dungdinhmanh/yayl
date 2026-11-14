@@ -661,6 +661,8 @@ export default function App() {
     }
   };
 
+  const artSrc = backgrounds[gameId] || `/art/${gameId}.png`;
+
   return (
     <div
       className="app"
@@ -713,21 +715,28 @@ export default function App() {
             )}
           </div>
         ) : (
-          <img
-            className="backdrop-art"
-            data-active-art
-            key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
-            src={backgrounds[gameId] || `/art/${gameId}.png`}
-            alt=""
-            onError={(event) => {
-              if (backgrounds[gameId]) {
-                // A verified cache file can still disappear; fall back once.
-                setBackgrounds((current) => ({ ...current, [gameId]: null }));
-                return;
-              }
-              event.currentTarget.classList.add("is-missing");
-            }}
-          />
+          <>
+            <div
+              className="backdrop-blur"
+              aria-hidden="true"
+              style={{ backgroundImage: `url("${artSrc}")` }}
+            />
+            <img
+              className="backdrop-art"
+              data-active-art
+              key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
+              src={artSrc}
+              alt=""
+              onError={(event) => {
+                if (backgrounds[gameId]) {
+                  // A verified cache file can still disappear; fall back once.
+                  setBackgrounds((current) => ({ ...current, [gameId]: null }));
+                  return;
+                }
+                event.currentTarget.classList.add("is-missing");
+              }}
+            />
+          </>
         )}
         <div className="backdrop-scrim" />
         <div className="backdrop-grain" />

@@ -139,3 +139,9 @@ Ran: bun run build, bun run design:check.
 Checked the official base/config background art for Stella: 1280x734 PNG, CRC-64 matches 11498888707738615662. Exported it to ~/Downloads/stella-launcher-background.png.
 Removed the 2% inset, 104% size, and 1.01 resting scale from .backdrop-art, and made art-in end at scale(1). The art now uses a plain cover with no extra zoom; custom media keeps its own 6% overscan for blur.
 Ran: bun run build, bun run design:check; browser-checked home at 1280x720 and 1100x650.
+
+[2026-11-14 13:20] opencode>all done ref:apps/desktop/src/App.tsx
+Checked the live view and the real art: the in-app preview is 1470x932, the art area is 1394x932, and the API image is 1280x734. Cover was scaling 1.27x and cropping 232px of width.
+Switched the official art to contain with a blurred cover copy behind it, so the full image is visible with soft bars instead of a heavy crop. Removed the old per-layout object-position offsets.
+Mirrored in design/: CSS plus a backdrop-blur layer created by mock.js.
+Ran: bun run build, bun run design:check; checked 1470x932, 1280x720, and 1100x650.
