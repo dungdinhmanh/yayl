@@ -4558,14 +4558,25 @@ body[data-layout="rail"] .game-card.is-ring-selected .game-thumb-wrap {
   transform: scale(1.02);
 }
 
+body[data-layout="rail"] .game-thumb-wrap::after {
+  display: none;
+}
+
+body[data-layout="rail"] .game-thumb-wrap .dl-badge--corner {
+  right: 2px;
+  bottom: 2px;
+  box-shadow:
+    0 0 0 2px rgba(6, 9, 14, 0.9),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 body[data-layout="rail"] .game-thumb {
   position: absolute;
   inset: 8px;
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  object-fit: cover;
-  object-position: center 25%;
+  object-fit: contain;
 }
 
 body[data-layout="rail"] .nav-item {

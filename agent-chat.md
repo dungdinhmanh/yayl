@@ -114,3 +114,9 @@ Steam-style download card and network settings trim.
 - design/ mirrors the card, the proxy order/labels and the UI-kit segmented sample; the lab animates the graphs with mock samples.
 Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked the card and proxy control in vi/en.
 Gap: the disk graph plots writes only; read speed is numeric.
+
+[2026-11-14 12:40] opencode>all done ref:apps/desktop/src/components/Rail.tsx
+Rail avatars use the official /icons/<game>.ico files instead of game art, with object-fit contain and the dark gradient overlay removed.
+Moved the rail download badge from the outer ring edge to 2px inside the thumb, with a dark outline; it now sits over the icon corner and stays visible.
+design/ mirrors both changes (home-sidebar, settings, mock.js icon swap).
+Ran: bun run build, bun run design:check; browser-checked the rail in the app and lab.

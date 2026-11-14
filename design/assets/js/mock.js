@@ -324,7 +324,14 @@
         badge.textContent = badgeText || "";
       }
       var thumb = card.querySelector(".game-thumb");
-      if (thumb) setArt(thumb, id);
+      if (thumb) {
+        var icon = "assets/img/icons/" + id + ".ico";
+        if (thumb.getAttribute("src") !== icon) {
+          thumb.classList.remove("is-missing");
+          thumb.setAttribute("src", icon);
+        }
+        wireImage(thumb);
+      }
       var downloadActive = ["downloading", "paused", "verifying"].indexOf(stateId) !== -1;
       var showProgressRing = downloadActive && !isActive;
       var ringSelected = isActive;

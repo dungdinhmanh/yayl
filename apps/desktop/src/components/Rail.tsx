@@ -64,7 +64,7 @@ export default function Rail({ gameId, view, states, progress, t, onSelect, onNa
                   </svg>
                   <img
                     className="game-thumb"
-                    src={`/art/${id}.png`}
+                    src={`/icons/${id}.ico`}
                     alt={GAMES[id].name}
                     onError={(event) => event.currentTarget.classList.add("is-missing")}
                   />
