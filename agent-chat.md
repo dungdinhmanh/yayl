@@ -134,3 +134,8 @@ Responsive check plus a min-size guard that matches the real window lock (1100 x
 The CSS guard now triggers at max-width 1099px or max-height 649px instead of 960/600, so it agrees with tauri.conf.json.
 Verified at 1100x650 the guard is off and there is no horizontal or vertical overflow in home/settings, vi/en. At 1099x649 the guard shows. Design lab mirrors the same boundary.
 Ran: bun run build, bun run design:check.
+
+[2026-11-14 13:05] opencode>all done ref:apps/desktop/src/styles/app.css
+Checked the official base/config background art for Stella: 1280x734 PNG, CRC-64 matches 11498888707738615662. Exported it to ~/Downloads/stella-launcher-background.png.
+Removed the 2% inset, 104% size, and 1.01 resting scale from .backdrop-art, and made art-in end at scale(1). The art now uses a plain cover with no extra zoom; custom media keeps its own 6% overscan for blur.
+Ran: bun run build, bun run design:check; browser-checked home at 1280x720 and 1100x650.
