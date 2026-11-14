@@ -850,6 +850,15 @@ export default function App() {
                   t={t}
                   installRoot={roots[gameId]}
                   progress={live[gameId]?.progress ?? null}
+                  download={
+                    live[gameId]
+                      ? {
+                          speed: live[gameId].speed,
+                          done: live[gameId].bytesDone,
+                          total: live[gameId].bytesTotal,
+                        }
+                      : null
+                  }
                   errorCode={errors[gameId] ?? null}
                   playtime={playtimes[gameId]}
                   news={news[gameId]}

@@ -5016,6 +5016,162 @@ body[data-layout="rail"] .backdrop-scrim {
   gap: 10px;
 }
 
+.home-play-wrap {
+  position: relative;
+  display: flex;
+}
+
+/* Steam-style throughput card, revealed while the download button is hovered. */
+.download-monitor {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 14px);
+  z-index: 30;
+  width: 340px;
+  padding: 14px 16px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(8, 12, 19, 0.94);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.985);
+  transform-origin: bottom right;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+/* Bridge the gap so moving up from the button keeps the card open. */
+.download-monitor::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: 16px;
+}
+
+.home-play-wrap:hover .download-monitor,
+.home-play-wrap:focus-within .download-monitor {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.dm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dm-title {
+  color: var(--muted-3);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dm-pct {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+
+.dm-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dm-label {
+  color: var(--muted-3);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dm-value {
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.dm-io {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.dm-io em {
+  margin-right: 4px;
+  color: var(--muted-3);
+  font-style: normal;
+}
+
+.dm-graph {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin: 6px 0 10px;
+  overflow: visible;
+}
+
+.dm-graph polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.dm-graph polygon {
+  fill: var(--accent);
+  opacity: 0.14;
+}
+
+.dm-graph.is-disk polyline {
+  stroke: var(--success);
+}
+
+.dm-graph.is-disk polygon {
+  fill: var(--success);
+  opacity: 0.12;
+}
+
+.dm-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dm-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.dm-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .download-monitor {
+    transition: none;
+  }
+}
+
 /* Action menu: same height as the play button, opens upwards. */
 .home-menu {
   position: relative;

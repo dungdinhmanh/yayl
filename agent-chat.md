@@ -105,3 +105,12 @@ Official icons come from the extracted launcher resources (A9_extracted/resource
 - First-run footer copy, LAUNCHER span, feature row and their keys/CSS are gone; primary button has no glow.
 Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked first-run and settings in vi.
 Gap: design/assets/img/icons stays local (gitignored); the app ships the two .ico files (391 KB total).
+
+[2026-11-14 12:33] opencode>all done ref:apps/desktop/src/components/DownloadMonitor.tsx
+Steam-style download card and network settings trim.
+- Hovering Play while downloading reveals network speed/graph and disk read/write speed/graph; samples once per second, keeps 48 points.
+- Disk numbers use per-process cumulative counters (GetProcessIoCounters on Windows, /proc/self/io on Linux) via a new io_stats command.
+- Proxy is now three modes ordered no proxy, system, custom. Download order row is gone; the saved value still defaults to smallest_first.
+- design/ mirrors the card, the proxy order/labels and the UI-kit segmented sample; the lab animates the graphs with mock samples.
+Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked the card and proxy control in vi/en.
+Gap: the disk graph plots writes only; read speed is numeric.

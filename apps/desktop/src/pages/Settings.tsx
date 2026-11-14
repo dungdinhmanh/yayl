@@ -332,7 +332,6 @@ export default function Settings({
 
   const saveNetwork = (overrides?: {
     mode?: ProxyMode;
-    order?: DownloadOrder;
     concurrency?: number;
   }) => {
     const mode = overrides?.mode ?? proxyMode;
@@ -341,7 +340,7 @@ export default function Settings({
         mode,
         url: mode === "manual" ? proxyUrl.trim() || null : null,
         noProxy: mode === "manual" ? proxyNoProxy.trim() || null : null,
-        downloadOrder: overrides?.order ?? order,
+        downloadOrder: order,
         concurrency: overrides?.concurrency ?? concurrency,
       })
     );
@@ -843,7 +842,7 @@ export default function Settings({
                   </div>
                   <div className="setting-control">
                     <div className="segmented" role="group" aria-label={t("settings.network.proxy")}>
-                      {(["system", "direct", "manual"] as ProxyMode[]).map((mode) => (
+                      {(["direct", "system", "manual"] as ProxyMode[]).map((mode) => (
                         <button
                           key={mode}
                           className={proxyMode === mode ? "is-active" : ""}
@@ -879,27 +878,6 @@ export default function Settings({
                     </div>
                   </div>
                 )}
-
-                <div className="setting-row">
-                  <div className="setting-copy">
-                    <div className="setting-label">{t("settings.network.order")}</div>
-                  </div>
-                  <div className="setting-control is-medium">
-                    <Select
-                      label={t("settings.network.order")}
-                      value={order}
-                      options={[
-                        { value: "smallest_first", label: t("settings.network.order.smallest") },
-                        { value: "largest_first", label: t("settings.network.order.largest") },
-                        { value: "manifest", label: t("settings.network.order.manifest") },
-                      ]}
-                      onChange={(value) => {
-                        setOrder(value);
-                        saveNetwork({ order: value });
-                      }}
-                    />
-                  </div>
-                </div>
 
                 <div className="setting-row">
                   <div className="setting-copy">

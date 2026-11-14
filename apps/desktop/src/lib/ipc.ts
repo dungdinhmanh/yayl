@@ -62,6 +62,11 @@ export interface DownloadProgress {
   detail?: string;
 }
 
+export interface IoStats {
+  read: number;
+  write: number;
+}
+
 export type ProxyMode = "direct" | "system" | "manual";
 export type DownloadOrder = "smallest_first" | "largest_first" | "manifest";
 export type BackgroundMode = "art" | "custom" | "solid";
@@ -707,6 +712,20 @@ export async function onDownloadProgress(
   if (!IS_TAURI) return () => undefined;
   const { listen } = await import("@tauri-apps/api/event");
   return listen<DownloadProgress>("download-progress", (event) => handler(event.payload));
+}
+
+/* Cumulative disk I/O of this process; the download monitor takes deltas. */
+let mockIo: IoStats = { read: 0, write: 0 };
+export async function ioStats(): Promise<IoStats> {
+  if (!IS_TAURI) {
+    /* Dev-only: keep the monitor moving without a backend. */
+    mockIo = {
+      read: mockIo.read + Math.random() * 900_000,
+      write: mockIo.write + (9 + Math.random() * 4) * 1024 * 1024,
+    };
+    return mockIo;
+  }
+  return invoke<IoStats>("io_stats");
 }
 
 export async function windowMinimize(): Promise<void> {

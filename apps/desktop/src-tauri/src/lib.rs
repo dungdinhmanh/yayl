@@ -112,6 +112,7 @@ pub fn run() {
             commands::complete_onboarding,
             commands::reset_settings,
             commands::game_profiles,
+            commands::io_stats,
             commands::app_info,
             commands::playtime,
             commands::launch_game,

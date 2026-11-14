@@ -343,6 +343,23 @@ pub fn game_profiles(app: AppHandle) -> Result<GameProfilesView, CommandError> {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct IoStatsView {
+    pub read: u64,
+    pub write: u64,
+}
+
+/// Cumulative disk I/O of this process; the download monitor samples it.
+#[tauri::command]
+pub fn io_stats() -> IoStatsView {
+    let io = yayl_core::sys::process_io();
+    IoStatsView {
+        read: io.read,
+        write: io.write,
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppInfoView {
     pub version: String,
     pub debug: bool,

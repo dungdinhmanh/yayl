@@ -114,10 +114,42 @@
 
             <div class="home-actions">
               <div class="home-action-group">
-                <button class="home-play" type="button" id="primaryAction">
-                  <span class="home-play-icon" data-button-icon></span>
-                  <span class="home-play-label" data-button-label>Chơi</span>
-                </button>
+                <div class="home-play-wrap">
+                  <button class="home-play" type="button" id="primaryAction">
+                    <span class="home-play-icon" data-button-icon></span>
+                    <span class="home-play-label" data-button-label>Chơi</span>
+                  </button>
+                  <div class="download-monitor" data-download-monitor hidden aria-hidden="true">
+                    <div class="dm-head">
+                      <span class="dm-title" data-i18n="download.monitor.title">Đang tải</span>
+                      <span class="dm-pct" data-dm-pct>42%</span>
+                    </div>
+                    <div class="dm-row">
+                      <span class="dm-label" data-i18n="download.monitor.network">Mạng</span>
+                      <span class="dm-value" data-dm-net>12.4 MB/s</span>
+                    </div>
+                    <svg class="dm-graph" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+                      <polygon data-dm-net-area></polygon>
+                      <polyline data-dm-net-line></polyline>
+                    </svg>
+                    <div class="dm-row">
+                      <span class="dm-label" data-i18n="download.monitor.disk">Ổ cứng</span>
+                      <span class="dm-value dm-io">
+                        <span><em data-i18n="download.monitor.read">Đọc</em><span data-dm-read>0 KB/s</span></span>
+                        <span><em data-i18n="download.monitor.write">Ghi</em><span data-dm-write>0 KB/s</span></span>
+                      </span>
+                    </div>
+                    <svg class="dm-graph is-disk" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+                      <polygon data-dm-disk-area></polygon>
+                      <polyline data-dm-disk-line></polyline>
+                    </svg>
+                    <div class="dm-track"><span data-dm-bar></span></div>
+                    <div class="dm-meta">
+                      <span data-dm-size>8.4 GB / 20.1 GB</span>
+                      <span data-dm-eta>Còn lại 08:12</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="home-menu" id="homeMenu">
                   <button class="home-menu-btn" type="button" id="homeMenuBtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="home.menu.label" aria-label="Menu">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>

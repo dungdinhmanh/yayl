@@ -3,6 +3,7 @@ import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
+import DownloadMonitor from "../components/DownloadMonitor";
 import { fileUrl, isTauri, type NewsFeed, type PlaytimeEntry } from "../lib/ipc";
 import type { Lang } from "../App";
 
@@ -13,6 +14,7 @@ interface Props {
   t: (key: string, vars?: Record<string, string | number>) => string;
   installRoot: string;
   progress?: number | null;
+  download?: { speed: number; done: number; total: number } | null;
   errorCode?: string | null;
   playtime?: PlaytimeEntry | null;
   news?: NewsFeed | null;
@@ -94,6 +96,7 @@ export default function Home({
   t,
   installRoot,
   progress,
+  download,
   errorCode,
   playtime,
   news,
@@ -116,6 +119,16 @@ export default function Home({
   const stateMenu = state === "update" && updateRequired ? undefined : STATE_MENU[state];
   const percent = Math.round(progress ?? meta.progress ?? 0);
   const canCheck = CHECK_STATES.includes(state);
+  // Browser dev mode has no backend, so it shows a steady sample while downloading.
+  const monitor =
+    download ??
+    (!live && state === "downloading"
+      ? {
+          speed: 12.4 * 1024 * 1024,
+          done: Math.round((game.downloadBytes * percent) / 100),
+          total: game.downloadBytes,
+        }
+      : null);
   // The lab keeps the static sample history; the real app shows the stored
   // playtime or an explicit "no data" label instead of inventing hours.
   const playtimeText = playtime
@@ -173,30 +186,41 @@ export default function Home({
 
       <div className="home-actions">
         <div className="home-action-group">
-          <button
-            className={"home-play is-" + state}
-            type="button"
-            disabled={Boolean((meta as { disabled?: boolean }).disabled)}
-            onClick={() => {
-              if (state === "install" || state === "update") onInstall();
-              else if (state === "downloading") onPause();
-              else if (state === "paused") onResume();
-              else if (state === "ready" || state === "offline") onPlay();
-              else if (state === "error") onRepair();
-            }}
-          >
-            {DOWNLOAD_STATES.includes(state) && (
-              <BubbleProgress progress={Math.min(1, Math.max(0, percent / 100))} />
-            )}
-            <span className="home-play-icon">
-              {state === "install" ? (
-                <DownloadBadge state="downloading" corner={false} size="30px" />
-              ) : (
-                icon(meta.primaryIcon)
+          <div className="home-play-wrap">
+            <button
+              className={"home-play is-" + state}
+              type="button"
+              disabled={Boolean((meta as { disabled?: boolean }).disabled)}
+              onClick={() => {
+                if (state === "install" || state === "update") onInstall();
+                else if (state === "downloading") onPause();
+                else if (state === "paused") onResume();
+                else if (state === "ready" || state === "offline") onPlay();
+                else if (state === "error") onRepair();
+              }}
+            >
+              {DOWNLOAD_STATES.includes(state) && (
+                <BubbleProgress progress={Math.min(1, Math.max(0, percent / 100))} />
               )}
-            </span>
-            <span className="home-play-label">{t(meta.primary, vars)}</span>
-          </button>
+              <span className="home-play-icon">
+                {state === "install" ? (
+                  <DownloadBadge state="downloading" corner={false} size="30px" />
+                ) : (
+                  icon(meta.primaryIcon)
+                )}
+              </span>
+              <span className="home-play-label">{t(meta.primary, vars)}</span>
+            </button>
+            {state === "downloading" && monitor && (
+              <DownloadMonitor
+                t={t}
+                speed={monitor.speed}
+                done={monitor.done}
+                total={monitor.total}
+                percent={percent}
+              />
+            )}
+          </div>
 
           <div className="home-menu" ref={menuRef}>
             <button

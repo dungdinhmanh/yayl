@@ -1580,6 +1580,93 @@
       .join("");
   }
 
+  /* Steam-style throughput card. The lab has no backend, so the samples are mocked. */
+  var monitor = { net: [], disk: [], timer: null };
+
+  function formatRate(bytes) {
+    if (!isFinite(bytes) || bytes <= 0) return "0 KB/s";
+    if (bytes < 1024) return Math.round(bytes) + " B/s";
+    var units = ["KB/s", "MB/s", "GB/s"];
+    var value = bytes / 1024;
+    var unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit += 1;
+    }
+    return value.toFixed(1) + " " + units[unit];
+  }
+
+  function drawGraph(line, area, values) {
+    if (!line || !area) return;
+    var width = 100;
+    var height = 30;
+    var peak = Math.max.apply(null, [1].concat(values));
+    var points = values.map(function (value, index) {
+      var x = values.length > 1 ? (index * width) / (values.length - 1) : width;
+      var y = height - 3 - (value / peak) * (height - 6);
+      return x.toFixed(2) + "," + y.toFixed(2);
+    });
+    var path = points.length > 1 ? points.join(" ") : "0," + (height - 3) + " " + width + "," + (height - 3);
+    line.setAttribute("points", path);
+    area.setAttribute("points", "0," + height + " " + path + " " + width + "," + height);
+  }
+
+  function sampleMonitor() {
+    var game = app.game();
+    var meta = app.meta();
+    var percent = meta.progress || 42;
+    var total = game.downloadBytes;
+    var done = (total * percent) / 100;
+    var net = (11 + Math.random() * 2.8) * 1024 * 1024;
+    var write = (9 + Math.random() * 3) * 1024 * 1024;
+    var read = Math.random() * 900000;
+
+    monitor.net = monitor.net.concat([net]).slice(-48);
+    monitor.disk = monitor.disk.concat([write]).slice(-48);
+
+    setText("[data-dm-pct]", percent + "%");
+    setText("[data-dm-net]", formatRate(net));
+    setText("[data-dm-read]", formatRate(read));
+    setText("[data-dm-write]", formatRate(write));
+    setText("[data-dm-size]", formatBytes(done) + " / " + formatBytes(total));
+    var bar = document.querySelector("[data-dm-bar]");
+    if (bar) bar.style.width = percent + "%";
+    var eta = document.querySelector("[data-dm-eta]");
+    if (eta) {
+      var seconds = Math.max(0, Math.round((total - done) / net));
+      var tail = Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0");
+      eta.textContent = app.t("download.monitor.eta") + " " + tail;
+    }
+    drawGraph(
+      document.querySelector("[data-dm-net-line]"),
+      document.querySelector("[data-dm-net-area]"),
+      monitor.net
+    );
+    drawGraph(
+      document.querySelector("[data-dm-disk-line]"),
+      document.querySelector("[data-dm-disk-area]"),
+      monitor.disk
+    );
+  }
+
+  function renderMonitor(state) {
+    var card = document.querySelector("[data-download-monitor]");
+    if (!card) return;
+    var active = state === "downloading";
+    card.hidden = !active;
+    if (!active) {
+      if (monitor.timer) {
+        clearInterval(monitor.timer);
+        monitor.timer = null;
+      }
+      monitor.net = [];
+      monitor.disk = [];
+      return;
+    }
+    sampleMonitor();
+    if (!monitor.timer) monitor.timer = setInterval(sampleMonitor, 1000);
+  }
+
   function renderHome() {
     var game = app.game();
     var state = app.current.state;
@@ -1642,6 +1729,7 @@
       item.hidden = stateMenuActions[state] !== item.getAttribute("data-home-action");
     });
 
+    renderMonitor(state);
     renderNews();
   }
 
