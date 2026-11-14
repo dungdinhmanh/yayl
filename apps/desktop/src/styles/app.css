@@ -6532,7 +6532,7 @@ body[data-layout="topbar"] .backdrop-art {
 
 
 /* The launcher locks its minimum size. The lab shows the same guard. */
-@media (max-width: 960px), (max-height: 600px) {
+@media (max-width: 1099px), (max-height: 649px) {
   body::before {
     content: "YAYL needs at least 1100 × 650";
     position: fixed;

@@ -128,3 +128,9 @@ Ran: bun run build, bun run design:check; browser-checked the rail badge in the 
 [2026-11-14 12:46] opencode>all done ref:apps/desktop/src/components/Rail.tsx
 Rail download badge is 16px; design/ mock badges match.
 Ran: bun run build, bun run design:check; browser-checked the rail badge in the app.
+
+[2026-11-14 12:52] opencode>all done ref:apps/desktop/src/styles/app.css
+Responsive check plus a min-size guard that matches the real window lock (1100 x 650).
+The CSS guard now triggers at max-width 1099px or max-height 649px instead of 960/600, so it agrees with tauri.conf.json.
+Verified at 1100x650 the guard is off and there is no horizontal or vertical overflow in home/settings, vi/en. At 1099x649 the guard shows. Design lab mirrors the same boundary.
+Ran: bun run build, bun run design:check.
