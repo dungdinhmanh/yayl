@@ -122,8 +122,9 @@ mod tests {
     }
 
     #[test]
-    fn stella_protocol_version_keeps_the_news_list_visible() {
-        // The operations endpoint hides `notice_list` below 1.5.0.
+    fn stella_protocol_version_is_above_the_notice_gate() {
+        // The operations endpoint nulls `notice_list` below 1.5.0. Stella never
+        // fills `news_list`, so this gate is the only one it has.
         assert!(crate::api::compare_versions(STELLA_SORA_EN.protocol_version, "1.5.0").is_ge());
     }
 }

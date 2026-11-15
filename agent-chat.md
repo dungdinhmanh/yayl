@@ -170,3 +170,8 @@ Locked the two official shell versions in one file: version, installer name, siz
 Added .github/workflows/launcher-versions.yml: matrix check over [arknights, stella] plus an update-lock job that runs --update and opens a PR. package.json gains versions:check and versions:update.
 Found the website sources too: Arknights CMS GET /api/resource/game-download-link?index=1&size=999 -> data.rows[0].client; Stella bakes the URL into assets/PcLauncher-<hash>.js and has no API. Neither CDN serves app.asar, so the installer stays the only public artifact. Documented both in docs/launcher-reference.md.
 Ran: bun run versions:check (both up to date, exit 0), forced drift (exit 1, "remote 1.6.0"), --update restored the file byte-identical (hash 69730EBA...), plus --json, single target, unknown target, and the workflow YAML parse.
+
+[2026-11-15 15:26] opencode>all done ref:crates/yayl-core/src/profile.rs
+Dropped .gitlab-ci.yml: it only included GitLab's SAST and Secret-Detection templates, no project test. GitHub is primary now, so the file was dead weight.
+Renamed the Stella test to stella_protocol_version_is_above_the_notice_gate. The old name claimed the news list stays visible, but Stella never fills news_list; the assert guards the 1.5.0 notice gate.
+Ran: cargo fmt --all -- --check, cargo test -p yayl-core (120 passed), cargo clippy -p yayl-core --all-targets -D warnings.
