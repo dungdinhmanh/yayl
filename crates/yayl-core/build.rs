@@ -2,7 +2,8 @@
 //!
 //! That file is refreshed by `scripts/check-launcher-versions.mjs` from the
 //! public update feed and, with `--extract`, from the published installer, so
-//! the values below never need a code change.
+//! the values below never need a code change. The output lands in `OUT_DIR`:
+//! it is rebuilt from the lock on every fresh build and never committed.
 
 use std::env;
 use std::fmt::Write as _;
@@ -29,14 +30,9 @@ fn main() {
     for (id, prefix) in LAUNCHERS {
         let version = field(&lock, id, "version");
         let salt = field(&lock, id, "authSalt");
-        let api_base = field(&lock, id, "apiBase");
         assert!(
             salt.len() == 32 && salt.chars().all(|c| c.is_ascii_hexdigit()),
             "launcher-versions.lock.json: {id}.authSalt must be 32 hex characters"
-        );
-        assert!(
-            api_base.starts_with("https://api-launcher-"),
-            "launcher-versions.lock.json: {id}.apiBase is not an api-launcher host"
         );
         writeln!(
             generated,
@@ -45,25 +41,22 @@ fn main() {
         .expect("write generated constants");
         writeln!(generated, "pub const {prefix}_AUTH_SALT: &str = {salt:?};")
             .expect("write generated constants");
-        writeln!(
-            generated,
-            "pub const {prefix}_API_BASE: &str = {api_base:?};"
-        )
-        .expect("write generated constants");
     }
 
-    // The official hosts differ only in the region code, and only the EN
-    // launcher is extracted, so JP and KR are derived from the EN host.
+    // Both EN launchers share one host, and the regions differ only in the
+    // region code, so a single host is emitted and JP/KR are derived from it.
     let en = field(&lock, "arknights", "apiBase");
     assert_eq!(
         en,
         field(&lock, "stella", "apiBase"),
-        "launcher-versions.lock.json: the EN launchers disagree on the API host, which JP/KR are derived from"
+        "launcher-versions.lock.json: the EN launchers disagree on the API host"
     );
     assert!(
         en.contains("-en."),
         "launcher-versions.lock.json: arknights.apiBase has no -en. region code"
     );
+    writeln!(generated, "pub const API_HOST_EN: &str = {en:?};")
+        .expect("write generated constants");
     for (code, name) in [("jp", "JP"), ("kr", "KR")] {
         let host = en.replace("-en.", &format!("-{code}."));
         writeln!(generated, "pub const API_HOST_{name}: &str = {host:?};")

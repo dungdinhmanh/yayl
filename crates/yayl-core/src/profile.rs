@@ -22,7 +22,7 @@ pub struct GameProfile {
 pub const ARKNIGHTS_EN: GameProfile = GameProfile {
     id: "arknights",
     game_tag: "Arknights_EN",
-    api_base: ARKNIGHTS_API_BASE,
+    api_base: API_HOST_EN,
     auth_salt: ARKNIGHTS_AUTH_SALT,
     protocol_version: ARKNIGHTS_PROTOCOL_VERSION,
     install_dir: "Arknights_EN",
@@ -32,7 +32,7 @@ pub const ARKNIGHTS_EN: GameProfile = GameProfile {
 pub const STELLA_SORA_EN: GameProfile = GameProfile {
     id: "stella",
     game_tag: "StellaSora_EN",
-    api_base: STELLA_API_BASE,
+    api_base: API_HOST_EN,
     auth_salt: STELLA_AUTH_SALT,
     protocol_version: STELLA_PROTOCOL_VERSION,
     install_dir: "StellaSora_EN",
@@ -140,5 +140,14 @@ mod tests {
             assert_eq!(profile.auth_salt, STELLA_SORA_EN.auth_salt);
             assert_eq!(profile.protocol_version, STELLA_SORA_EN.protocol_version);
         }
+        assert_eq!(ARKNIGHTS_EN.api_base, STELLA_SORA_EN.api_base);
+        assert_eq!(
+            ARKNIGHTS_JP.api_base,
+            ARKNIGHTS_EN.api_base.replace("-en.", "-jp.")
+        );
+        assert_eq!(
+            ARKNIGHTS_KR.api_base,
+            ARKNIGHTS_EN.api_base.replace("-en.", "-kr.")
+        );
     }
 }

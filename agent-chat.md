@@ -200,3 +200,9 @@ Dispatch with extract=true on the runner: 7z i reports 7-Zip 26.00, both install
 Dropped the last hand-written hosts. build.rs now derives API_HOST_JP and API_HOST_KR from arknights.apiBase by swapping "-en.", with an assert that both EN launchers agree on the host and that the host actually contains "-en.", so a lock with a different host shape fails the build instead of producing a wrong JP/KR URL. profile.rs has no host or salt literal left; vite.config.ts derives the same two hosts, so the dev news bridge matches the Rust profiles.
 Also removed the restating comments from build.rs and profile.rs, keeping the salt-is-public and the 1.5.0 notice-gate notes.
 Ran: cargo fmt --all -- --check, cargo test -p yayl-core (121 passed), cargo clippy -p yayl-core --all-targets -D warnings, cargo check -p yayl-cli, bun run build in apps/desktop, bun run versions:check.
+
+[2026-11-15 17:40] opencode>all done ref:crates/yayl-core/build.rs
+Both EN launchers ship the same host, so build.rs emits one API_HOST_EN instead of ARKNIGHTS_API_BASE and STELLA_API_BASE, asserts that the lock agrees, and derives API_HOST_JP/KR by swapping the region code. profiles use API_HOST_EN; the test checks the three hosts differ only by region.
+The generated file already lives in OUT_DIR (target/debug/build/yayl-core-*/out/launcher_facts.rs): nothing in the repo, rebuilt from the lock, removed by cargo clean. Committing it would duplicate the lock and go stale, so CI does nothing extra.
+Kept codegen over runtime parsing because GameProfile is `const`; parsing the lock at runtime would make every profile a LazyLock and move a lock error from build time to first use.
+Ran: cargo fmt --all -- --check, cargo test -p yayl-core (121 passed), cargo clippy -p yayl-core --all-targets -D warnings, cargo check -p yayl-cli.

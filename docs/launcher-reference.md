@@ -51,7 +51,7 @@ Requests carry a signed envelope:
 DE7108E9B2842FD460F4777702727869
 ```
 
-The salt is a public protocol constant, not a secret. Both extracted EN launchers ship the same value (`A9_extracted/out/main/index.js:891,20046`; `SS_extracted/out/main/index.js:894,19753`), and the EN, JP and KR hosts all accept it. YAYL keeps one shared `AUTH_SALT` constant and still stores it per profile, so a region that ships a different value only needs that entry changed. `LauncherApi` passes the profile salt into `auth_header`.
+The salt is a public protocol constant, not a secret. Both extracted EN launchers ship the same value (`A9_extracted/out/main/index.js:891,20046`; `SS_extracted/out/main/index.js:894,19753`), and the EN, JP and KR hosts all accept it. Each profile carries its own salt, filled from `launcher-versions.lock.json`, so a launcher that ships a different value only needs that lock entry changed. `LauncherApi` passes the profile salt into `auth_header`.
 
 `data` is the serialized request payload used for the signature. Keep the exact serialization order stable.
 
@@ -256,10 +256,11 @@ check needs no Windows runner. CI installs the distro package, `7zip`;
 three data errors on the outer installer, which the script counts as a failure.
 
 **Feeding the build.** `crates/yayl-core/build.rs` turns the lock into
-`ARKNIGHTS_*` and `STELLA_*` constants, and `profile.rs` uses them for
-`protocol_version`, `auth_salt` and `api_base`. The JP and KR hosts are derived
-from the EN host (only the region code changes), so no host is written by hand;
-they reuse the EN version and salt because one salt is accepted by all three
+`ARKNIGHTS_*`/`STELLA_*` version and salt constants plus one `API_HOST_EN`, and
+`profile.rs` uses them for `protocol_version`, `auth_salt` and `api_base`. Both
+EN launchers share that host (the build fails if the lock disagrees), and JP/KR
+are derived from it by swapping the region code, so no host is written by hand.
+Regions reuse the EN version and salt because one salt is accepted by all three
 hosts. A launcher update is one file plus a rebuild.
 
 The `Launcher versions` workflow runs the check per launcher in a matrix on a
