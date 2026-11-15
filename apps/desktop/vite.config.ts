@@ -9,13 +9,12 @@ const lock = JSON.parse(
   readFileSync(new URL("../../launcher-versions.lock.json", import.meta.url), "utf8"),
 ) as { launchers: Record<"arknights" | "stella", { version: string; authSalt: string; apiBase: string }> };
 
-/* Version, salt and the EN host come from the lock file that `build.rs` also
-   reads, so this bridge cannot drift from the Rust profiles. JP and KR hosts
-   only exist here and in `crates/yayl-core/src/profile.rs`. */
+/* Version, salt and hosts come from the lock file that `build.rs` also reads,
+   so this bridge cannot drift from the Rust profiles. */
 const AUTH_SALT = lock.launchers.arknights.authSalt;
 const EN_API = lock.launchers.arknights.apiBase;
-const JP_API = "https://api-launcher-jp.yo-star.com";
-const KR_API = "https://api-launcher-kr.yo-star.com";
+const JP_API = EN_API.replace("-en.", "-jp.");
+const KR_API = EN_API.replace("-en.", "-kr.");
 const GAMES: Record<string, { tag: string; version: string; api: string }> = {
   arknights: { tag: "Arknights_EN", version: lock.launchers.arknights.version, api: EN_API },
   "arknights-jp": { tag: "Arknights_JP", version: lock.launchers.arknights.version, api: JP_API },

@@ -257,9 +257,10 @@ three data errors on the outer installer, which the script counts as a failure.
 
 **Feeding the build.** `crates/yayl-core/build.rs` turns the lock into
 `ARKNIGHTS_*` and `STELLA_*` constants, and `profile.rs` uses them for
-`protocol_version`, `auth_salt` and the EN `api_base`. A launcher update is one
-file plus a rebuild. JP and KR profiles reuse the EN version and salt because
-one salt is accepted by all three hosts.
+`protocol_version`, `auth_salt` and `api_base`. The JP and KR hosts are derived
+from the EN host (only the region code changes), so no host is written by hand;
+they reuse the EN version and salt because one salt is accepted by all three
+hosts. A launcher update is one file plus a rebuild.
 
 The `Launcher versions` workflow runs the check per launcher in a matrix on a
 schedule. When a feed moves it downloads the installers, refreshes the lock and

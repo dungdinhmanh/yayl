@@ -2,18 +2,8 @@
 
 use std::path::{Path, PathBuf};
 
-// Protocol version, auth salt and EN API host, generated from the lock file.
-//
-// `launcher-versions.lock.json` is the single place a launcher update touches;
-// `build.rs` turns it into constants, so the version the API gates on and the
-// salt used to sign requests can never drift from the shipped launcher.
+// Protocol version, auth salt and hosts, generated from the lock file.
 include!(concat!(env!("OUT_DIR"), "/launcher_facts.rs"));
-
-/// Region hosts. Only the EN launchers have been extracted, so JP and KR hosts
-/// stay here; they reuse the EN version and salt because one salt is accepted by
-/// all three hosts.
-const API_HOST_JP: &str = "https://api-launcher-jp.yo-star.com";
-const API_HOST_KR: &str = "https://api-launcher-kr.yo-star.com";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameProfile {

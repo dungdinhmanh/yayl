@@ -1,15 +1,14 @@
-//! Turns `launcher-versions.lock.json` into Rust constants, so the protocol
-//! version, auth salt and EN API host have exactly one source of truth.
+//! Generates the protocol facts from `launcher-versions.lock.json`.
 //!
-//! The lock file is refreshed by `scripts/check-launcher-versions.mjs`, which
-//! reads the public update feed and, with `--extract`, the published installer.
+//! That file is refreshed by `scripts/check-launcher-versions.mjs` from the
+//! public update feed and, with `--extract`, from the published installer, so
+//! the values below never need a code change.
 
 use std::env;
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// Lock key and generated constant prefix for each extracted launcher.
 const LAUNCHERS: [(&str, &str); 2] = [("arknights", "ARKNIGHTS"), ("stella", "STELLA")];
 
 fn main() {
@@ -36,8 +35,8 @@ fn main() {
             "launcher-versions.lock.json: {id}.authSalt must be 32 hex characters"
         );
         assert!(
-            api_base.starts_with("https://"),
-            "launcher-versions.lock.json: {id}.apiBase must be an https URL"
+            api_base.starts_with("https://api-launcher-"),
+            "launcher-versions.lock.json: {id}.apiBase is not an api-launcher host"
         );
         writeln!(
             generated,
@@ -51,6 +50,24 @@ fn main() {
             "pub const {prefix}_API_BASE: &str = {api_base:?};"
         )
         .expect("write generated constants");
+    }
+
+    // The official hosts differ only in the region code, and only the EN
+    // launcher is extracted, so JP and KR are derived from the EN host.
+    let en = field(&lock, "arknights", "apiBase");
+    assert_eq!(
+        en,
+        field(&lock, "stella", "apiBase"),
+        "launcher-versions.lock.json: the EN launchers disagree on the API host, which JP/KR are derived from"
+    );
+    assert!(
+        en.contains("-en."),
+        "launcher-versions.lock.json: arknights.apiBase has no -en. region code"
+    );
+    for (code, name) in [("jp", "JP"), ("kr", "KR")] {
+        let host = en.replace("-en.", &format!("-{code}."));
+        writeln!(generated, "pub const API_HOST_{name}: &str = {host:?};")
+            .expect("write generated constants");
     }
 
     let out = Path::new(&env::var("OUT_DIR").expect("OUT_DIR")).join("launcher_facts.rs");

@@ -195,3 +195,8 @@ Verified by pushing a deliberately wrong stella version: the job downloaded only
 Was wrong to download 7-Zip from 7-zip.org: Ubuntu's p7zip-full is only a transitional package that pulls `7zip`, so the distro package is the same 23.01 and needs no unsigned download. CI now installs it with apt.
 Measured p7zip 16.02 (Debian, extracted by hand) against the Stella installer: it produces the correct app.asar (sha256 393B13B5...) but exits 2 with three data errors on the outer NSIS payload, so the script would refuse it anyway.
 Dispatch with extract=true on the runner: 7z i reports 7-Zip 26.00, both installers download, both salts read, lock unchanged.
+
+[2026-11-15 17:20] opencode>all done ref:crates/yayl-core/src/profile.rs
+Dropped the last hand-written hosts. build.rs now derives API_HOST_JP and API_HOST_KR from arknights.apiBase by swapping "-en.", with an assert that both EN launchers agree on the host and that the host actually contains "-en.", so a lock with a different host shape fails the build instead of producing a wrong JP/KR URL. profile.rs has no host or salt literal left; vite.config.ts derives the same two hosts, so the dev news bridge matches the Rust profiles.
+Also removed the restating comments from build.rs and profile.rs, keeping the salt-is-public and the 1.5.0 notice-gate notes.
+Ran: cargo fmt --all -- --check, cargo test -p yayl-core (121 passed), cargo clippy -p yayl-core --all-targets -D warnings, cargo check -p yayl-cli, bun run build in apps/desktop, bun run versions:check.
