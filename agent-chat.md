@@ -206,3 +206,8 @@ Both EN launchers ship the same host, so build.rs emits one API_HOST_EN instead 
 The generated file already lives in OUT_DIR (target/debug/build/yayl-core-*/out/launcher_facts.rs): nothing in the repo, rebuilt from the lock, removed by cargo clean. Committing it would duplicate the lock and go stale, so CI does nothing extra.
 Kept codegen over runtime parsing because GameProfile is `const`; parsing the lock at runtime would make every profile a LazyLock and move a lock error from build time to first use.
 Ran: cargo fmt --all -- --check, cargo test -p yayl-core (121 passed), cargo clippy -p yayl-core --all-targets -D warnings, cargo check -p yayl-cli.
+
+[2026-11-15 17:55] opencode>all done ref:.github/workflows/check-launcher-update.yml
+Renamed the workflow to `Check launcher update` and folded the update into the matrix job, so each launcher owns its own lock entry. The check step sets a `drift` output: an up-to-date launcher prints "up to date" and skips 7-Zip, the download and the commit; a drifted one refreshes and commits only its entry, after re-running the plain check. The two legs share a job-level concurrency group so the second checks out the first one's commit, and the push retries with a rebase.
+Tested on a throwaway branch with stella drift: stella downloaded and committed a2de887, arknights reported up to date and skipped 7-Zip, and the branch lock ended byte-identical to main, so the arknights entry was untouched. Branch deleted.
+Ran: no local build change; workflow validated as YAML and exercised on GitHub.
