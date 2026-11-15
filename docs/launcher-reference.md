@@ -263,11 +263,13 @@ are derived from it by swapping the region code, so no host is written by hand.
 Regions reuse the EN version and salt because one salt is accepted by all three
 hosts. A launcher update is one file plus a rebuild.
 
-The `Launcher versions` workflow runs the check per launcher in a matrix on a
-schedule. When a feed moves it downloads the installers, refreshes the lock and
-commits the result to the default branch; the job re-runs the plain check before
-committing, so a lock that does not satisfy the feed never lands. Dispatching it
-with `extract: true` re-reads both installers even when no version moved.
+The `Check launcher update` workflow runs one job per launcher on a schedule.
+Each job owns only its own lock entry: when the feed matches, it prints
+`up to date` and exits without installing 7-Zip or downloading anything. When
+its feed moves, it downloads that installer, rewrites that entry, re-runs the
+plain check and commits only `launcher-versions.lock.json`, so a lock that does
+not satisfy the feed never lands. Dispatching it with `extract: true` re-reads
+the installers even when no version moved.
 
 ### Live versions observed
 

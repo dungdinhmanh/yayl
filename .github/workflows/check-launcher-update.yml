@@ -1,0 +1,98 @@
+name: Check launcher update
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      extract:
+        description: "Unpack the installer even when its version is unchanged"
+        type: boolean
+        default: false
+  push:
+    paths:
+      - launcher-versions.lock.json
+      - scripts/check-launcher-versions.mjs
+      - scripts/launcher-facts.mjs
+      - .github/workflows/check-launcher-update.yml
+
+concurrency:
+  group: check-launcher-update
+  cancel-in-progress: false
+
+jobs:
+  launcher:
+    name: ${{ matrix.launcher }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        launcher: [arknights, stella]
+    # One lock file, two writers: run the legs in turn so the second one checks
+    # out the commit the first one pushed.
+    concurrency:
+      group: launcher-lock-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Compare ${{ matrix.launcher }} with its published installer
+        id: check
+        run: |
+          set +e
+          bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
+          status=$?
+          set -e
+          if [ "$status" -gt 1 ]; then
+            exit "$status"
+          fi
+          if [ "$status" -eq 0 ] && [ "${{ inputs.extract }}" != "true" ]; then
+            echo "::notice::${{ matrix.launcher }} is up to date"
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Ubuntu ships 7-Zip as `7zip` (p7zip-full is a transitional package that
+      # pulls it). Signed, cached, and no download from a project page.
+      - name: Install 7-Zip
+        if: steps.check.outputs.drift == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq 7zip
+          7z i | head -2
+
+      # --all re-reads the installer even when only the bytes were forced; the
+      # script still rewrites nothing but this launcher's entry.
+      - name: Refresh the lock
+        if: steps.check.outputs.drift == 'true'
+        run: |
+          bun scripts/check-launcher-versions.mjs --update --extract --all ${{ matrix.launcher }}
+          # Prove the rewritten entry satisfies the feed before committing it.
+          bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
+
+      - name: Commit
+        if: steps.check.outputs.drift == 'true'
+        run: |
+          if git diff --quiet -- launcher-versions.lock.json; then
+            echo "the lock already matches the published installer"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add launcher-versions.lock.json
+          git commit -m "chore(deps): refresh ${{ matrix.launcher }} in the launcher lock" \
+            -m "Read from the published installer: version, size, sha512, auth salt and API host. The build takes the protocol version and salt from this file."
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            git pull --rebase origin "$GITHUB_REF_NAME"
+          done
+          exit 1
