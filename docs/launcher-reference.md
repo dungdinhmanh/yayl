@@ -250,9 +250,10 @@ feed's size and sha512.
 **One OS is enough.** Stella 1.6.0 was unpacked on Windows (7-Zip 21.04) and on
 Debian (7-Zip 23.01); both produced the same `app.asar`, sha256
 `393B13B5353C8DD544FC92EFAE29A71D28CA897C0EA0217F08443E9F81D23DAB`, so the
-check needs no Windows runner. CI downloads the standalone Linux build of
-7-Zip instead of using the distro package, so the runner runs the tested
-version.
+check needs no Windows runner. CI installs the distro package, `7zip`;
+`p7zip-full` is only a transitional name for it on Ubuntu 24.04. The old p7zip
+16.02 was measured as well: it yields the same asar but exits non-zero with
+three data errors on the outer installer, which the script counts as a failure.
 
 **Feeding the build.** `crates/yayl-core/build.rs` turns the lock into
 `ARKNIGHTS_*` and `STELLA_*` constants, and `profile.rs` uses them for
