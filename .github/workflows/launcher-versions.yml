@@ -1,0 +1,61 @@
+name: Launcher versions
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - launcher-versions.lock.json
+      - scripts/check-launcher-versions.mjs
+      - .github/workflows/launcher-versions.yml
+
+concurrency:
+  group: launcher-versions
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: check ${{ matrix.launcher }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        launcher: [arknights, stella]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Compare ${{ matrix.launcher }} with the lock file
+        run: bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
+
+  update-lock:
+    name: update lock
+    needs: check
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Refresh the lock
+        run: bun scripts/check-launcher-versions.mjs --update
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/launcher-versions
+          delete-branch: true
+          commit-message: "chore(deps): refresh the launcher version lock"
+          title: "chore(deps): refresh the launcher version lock"
+          body: |
+            The official launcher feed no longer matches `launcher-versions.lock.json`.
+
+            This PR only changes the version, file name, size and sha512 of the
+            launchers that moved. Review before merging; the next extraction
+            should use the new installer.

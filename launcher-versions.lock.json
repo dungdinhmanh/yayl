@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-15",
+  "launchers": {
+    "arknights": {
+      "name": "Arknights EN",
+      "gameTag": "Arknights_EN",
+      "feed": "https://launcher-pkg-ark-en.yo-star.com/install_pkg/game_launcher/Arknights_EN",
+      "version": "1.8.1",
+      "file": "Arknights_EN_Gamelauncher-1.8.1-setup.exe",
+      "size": 179211112,
+      "sha512": "XjdF3uaOL2N3f14bwhdNAb1TJ/sR8TihFplyWZCfrIvbpkxmGVhfTUPKD5hDSiDtgNZRZ5kyC6lIT1u0nNlgAw=="
+    },
+    "stella": {
+      "name": "Stella Sora EN",
+      "gameTag": "StellaSora_EN",
+      "feed": "https://launcher-pkg-ss-en.yo-star.com/install_pkg/game_launcher/StellaSora_EN",
+      "version": "1.6.0",
+      "file": "StellaSora_EN_Gamelauncher-1.6.0-setup.exe",
+      "size": 177986936,
+      "sha512": "lE34CNxSuCENpkgqFPAAGqaWNNhocM7ghNO68grWBHIDKfEbTGdOSw473SY9Rem+wIcnVanUqItXsBnGXNmMvg=="
+    }
+  }
+}
