@@ -186,3 +186,7 @@ Ran: bun run versions:check, forced extract of both installers (salt read, no dr
 [2026-11-15 16:25] opencode>all done ref:.github/workflows/launcher-versions.yml
 Dispatching the workflow with extract=true proved the Linux path: ubuntu downloaded both installers, read both salts, and left the lock untouched, so the check needs no Windows runner.
 First run failed twice over: it downloaded 7z.tar.xz into the checkout (so the lock PR would have carried the tarball) and GitHub refused to let Actions open the PR. The tarball now goes to /tmp; opening the PR needs Settings -> Actions -> General -> Allow GitHub Actions to create and approve pull requests.
+
+[2026-11-15 16:42] opencode>all done ref:.github/workflows/launcher-versions.yml
+Switched the lock refresh from a pull request to a direct commit. The lock is generated from the installers, so a PR only added a manual merge; drift now passes the check job with a notice, and the update job writes, re-runs the plain check to prove the result, and commits to main. The "allow Actions to create PRs" setting is no longer needed.
+Verified by pushing a deliberately wrong stella version: the job downloaded only stella, rewrote 1.6.0, re-checked, and committed c01d167. Only a feed that cannot be read still fails the check job.
