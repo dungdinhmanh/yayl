@@ -54,10 +54,11 @@ jobs:
           bun-version: 1.4.2
 
       # The standalone build, not apt's p7zip: same binary on every runner.
+      # Download outside the checkout so the tarball can never reach the PR.
       - name: Install 7-Zip
         run: |
-          curl -sSfL -o 7z.tar.xz https://www.7-zip.org/a/7z2301-linux-x64.tar.xz
-          sudo tar -xJf 7z.tar.xz -C /usr/local/bin 7zz
+          curl -sSfL -o /tmp/7z.tar.xz https://www.7-zip.org/a/7z2301-linux-x64.tar.xz
+          sudo tar -xJf /tmp/7z.tar.xz -C /usr/local/bin 7zz
 
       - name: Refresh the lock
         run: |
