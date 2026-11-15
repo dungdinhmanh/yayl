@@ -5,6 +5,7 @@ Shared log for agents. Tasks live in TODO.md (IDs: T-, D-, M-). Owner: kazuki.
 LOAD ONLY: this header, "Open threads", and the last 40 lines. Never load the whole file.
 
 ## Rules
+
 1. Append at the bottom only. Do not edit old entries. Fix = new `correction` entry. Only the "Open threads" table may be edited.
 2. `git pull --rebase` before writing. On merge conflict keep both sides.
 3. Claim before editing code: `claim T-xx`. End with `done T-xx` or `release T-xx`.
@@ -15,28 +16,32 @@ LOAD ONLY: this header, "Open threads", and the last 40 lines. Never load the wh
 8. Max 5 lines per entry. Cite `path:line`. Do not paste logs.
 
 ## Entry format
+
 `[YYYY-MM-DD HH:MM] from>to type ref`, then 1-5 lines. Time: `date -u +"%F %H:%M"`.
+
 - type: status claim release done question answer proposal objection decision blocker handoff correction
 - to: all | kazuki | agent name
 - ref: T-05, path:line, or re:<time><from>
 
 ## Open threads
+
 | id | topic | waiting on |
 |---|---|---|
 | Q-05 | T-05: is a bad `vc` always a corrupt file? | agent who knows the protocol |
-| Q-07 | T-07: size cap for custom background | kazuki |
 | Q-10 | T-10: drop custom proxy code? | agent with Windows |
 | Q-12 | T-12: hooks or Zustand? | all |
 
 Close a thread: delete its row and add a `decision` entry.
 
 ## Archive
+
 If the log passes 200 lines, move closed threads' entries to docs/agent-chat-archive.md. Do not load the archive unless asked.
 
 ## Log
 
 [2026-11-13 08:40] kazuki>all decision ref:TODO.md
 Decided (recorded by claude from chat):
+
 - Keep custom CRC-64. Bench 32 MiB: ours 1953 MiB/s, crate `crc` 3.4.0 476 MiB/s.
 - Keep design/.
 - No CI for now.
@@ -90,6 +95,7 @@ Restore it from history (`git show 3716970^:audit.md`) or drop D-05?
 
 [2026-11-14 00:46] opencode>all done ref:9296389
 Custom backdrop now renders the picked file itself; one cache copy stays as the fallback.
+
 - core settings gains background_source; older profiles fall back to background_path unchanged.
 - choose_custom_background stores the source and opens it in the asset scope (setup reopens it on boot).
 - App.tsx probes images before paint, swaps to the cache copy on error, then to game art.
@@ -100,6 +106,7 @@ Gap: scope only grows during a session (forbid_file would also block re-picking 
 
 [2026-11-14 01:25] opencode>all done ref:1ed7ee0
 Official icons come from the extracted launcher resources (A9_extracted/resources/build.ico, stella-sora-en/app/resources/build.ico), copied to apps/desktop/public/icons/<game>.ico.
+
 - No icon extraction code: the previous game_icon command and its windows-sys dependency were removed.
 - FirstRun and the settings hero render /icons/<game>.ico; thumbs are 40x40 squares.
 - First-run footer copy, LAUNCHER span, feature row and their keys/CSS are gone; primary button has no glow.
@@ -108,6 +115,7 @@ Gap: design/assets/img/icons stays local (gitignored); the app ships the two .ic
 
 [2026-11-14 12:33] opencode>all done ref:apps/desktop/src/components/DownloadMonitor.tsx
 Steam-style download card and network settings trim.
+
 - Hovering Play while downloading reveals network speed/graph and disk read/write speed/graph; samples once per second, keeps 48 points.
 - Disk numbers use per-process cumulative counters (GetProcessIoCounters on Windows, /proc/self/io on Linux) via a new io_stats command.
 - Proxy is now three modes ordered no proxy, system, custom. Download order row is gone; the saved value still defaults to smallest_first.
@@ -211,3 +219,13 @@ Ran: cargo fmt --all -- --check, cargo test -p yayl-core (121 passed), cargo cli
 Renamed the workflow to `Check launcher update` and folded the update into the matrix job, so each launcher owns its own lock entry. The check step sets a `drift` output: an up-to-date launcher prints "up to date" and skips 7-Zip, the download and the commit; a drifted one refreshes and commits only its entry, after re-running the plain check. The two legs share a job-level concurrency group so the second checks out the first one's commit, and the push retries with a rebase.
 Tested on a throwaway branch with stella drift: stella downloaded and committed a2de887, arknights reported up to date and skipped 7-Zip, and the branch lock ended byte-identical to main, so the arknights entry was untouched. Branch deleted.
 Ran: no local build change; workflow validated as YAML and exercised on GitHub.
+
+[2026-11-15 10:07] kazuki>all decision Q-07 ref:T-07
+Custom background: always load the original first. Cache only a lighter copy as fallback if the user deletes or moves the original (images and video). Server backgrounds are small (32 MiB cap exists), no change.
+Replaces T-07(a): no size cap on the original. The full-size tokio::fs::copy in choose_custom_background becomes a light cache: image downscaled to <=1920px JPEG, video poster frame only, no transcoding. Cap on the cache size only.
+
+[2026-11-15 10:08] opencode>all done ref:apps/desktop/src-tauri/src/commands.rs:644
+Offline start: fetch_news/fetch_social cache the last good response under `<data>/yayl/cache/{news,social}/<game>.json` and return it on failure (crates/yayl-core/src/cache.rs:13); App.tsx:472 refetches news/social/background when `online` fires.
+Placeholder banner art is gone: the three SVGs are deleted from apps/desktop/public/news and design/assets/img/news; mock banners draw their copy on a CSS gradient and a live banner whose image fails is dropped (NewsWidget.tsx:123).
+Ran: cargo fmt --check, test -p yayl-core (124), clippy -D warnings, check -p yayl-desktop, bun run build, design:check, versions:check.
+Not run: the app on a real offline network. No TODO id existed for this task, so there is no claim entry.

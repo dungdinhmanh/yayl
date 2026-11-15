@@ -1282,7 +1282,7 @@
         .map(function (item, index) {
           return (
             '<div class="banner-slide' + (index === 0 ? " is-active" : "") + '" data-banner-index="' + index + '">' +
-            '<img src="' + item.image + '" alt="">' +
+            (item.image ? '<img src="' + item.image + '" alt="">' : "") +
             '<div class="banner-copy"><div class="banner-kicker" data-banner-kicker></div><div class="banner-title" data-banner-title></div></div>' +
             "</div>"
           );

@@ -5,6 +5,7 @@
 
 pub mod api;
 pub mod background;
+pub mod cache;
 pub mod checksum;
 pub mod crc64;
 pub mod disk;

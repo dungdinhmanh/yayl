@@ -641,27 +641,60 @@ pub async fn clear_custom_background(app: AppHandle) -> Result<SettingsView, Com
     Ok(settings.into())
 }
 
+fn metadata_cache(app: &AppHandle, kind: &str, game: &str) -> Result<PathBuf, CommandError> {
+    Ok(app
+        .path()
+        .data_dir()
+        .map_err(|error| CommandError::new("io", error.to_string()))?
+        .join("yayl")
+        .join("cache")
+        .join(kind)
+        .join(format!("{game}.json")))
+}
+
+/// News for the profile, falling back to the last successful response so an
+/// offline start still shows the previous feed.
 #[tauri::command]
 pub async fn fetch_news(
     app: AppHandle,
     game: String,
 ) -> Result<yayl_core::api::NewsFeed, CommandError> {
     let profile = profile(&game)?;
+    let path = metadata_cache(&app, "news", profile.id)?;
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
     let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
-    Ok(api.news().await?)
+    match api.news().await {
+        Ok(feed) => {
+            let _ = yayl_core::cache::store(&path, &feed);
+            Ok(feed)
+        }
+        Err(error) => match yayl_core::cache::load(&path) {
+            Some(feed) => Ok(feed),
+            None => Err(error.into()),
+        },
+    }
 }
 
-/// Official social channels; URLs are validated in the core.
+/// Official social channels; URLs are validated in the core and cached like news.
 #[tauri::command]
 pub async fn fetch_social(
     app: AppHandle,
     game: String,
 ) -> Result<Vec<yayl_core::api::SocialLink>, CommandError> {
     let profile = profile(&game)?;
+    let path = metadata_cache(&app, "social", profile.id)?;
     let client = yayl_core::proxy::build_client(&settings::load(&app)?.proxy)?;
     let api = yayl_core::api::LauncherApi::with_client(&profile, profile.protocol_version, client)?;
-    Ok(api.social().await?)
+    match api.social().await {
+        Ok(links) => {
+            let _ = yayl_core::cache::store(&path, &links);
+            Ok(links)
+        }
+        Err(error) => match yayl_core::cache::load(&path) {
+            Some(links) => Ok(links),
+            None => Err(error.into()),
+        },
+    }
 }
 
 fn background_dir(app: &AppHandle, game: &str) -> Result<PathBuf, CommandError> {

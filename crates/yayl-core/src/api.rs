@@ -155,7 +155,7 @@ pub struct SocialChannel {
     pub qr_img: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct SocialLink {
     pub channel: String,
     pub url: String,
@@ -280,26 +280,26 @@ pub struct OperationsResource {
     pub notice_list: Option<Vec<NoticeSection>>,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct NewsFeed {
     pub banners: Vec<NewsBanner>,
     pub sections: Vec<NewsSectionView>,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct NewsBanner {
     pub image: String,
     pub url: String,
     pub remark: String,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct NewsSectionView {
     pub label: String,
     pub items: Vec<NewsItemView>,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct NewsItemView {
     pub title: String,
     pub url: String,

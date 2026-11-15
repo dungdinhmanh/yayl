@@ -23,8 +23,14 @@ type TabView = {
   items: { title: string; date: string; url: string }[];
 };
 
-function asset(path: string) {
-  return "/news/" + path.split("/").pop();
+function mockBanners(lang: Lang): BannerView[] {
+  return NEWS.banners.map((item) => ({
+    id: item.id,
+    image: "",
+    kicker: item.kicker[lang],
+    title: item.title[lang],
+    url: "",
+  }));
 }
 
 /* The feed is untrusted input: only parsed https URLs are used. */
@@ -57,16 +63,6 @@ const SECTION_KEYS: Record<string, string> = {
 function sectionLabel(label: string, t: Props["t"]): string {
   const key = SECTION_KEYS[label.trim().toLowerCase()];
   return key ? t(key) : label;
-}
-
-function mockBanners(lang: Lang): BannerView[] {
-  return NEWS.banners.map((item) => ({
-    id: item.id,
-    image: asset(item.image),
-    kicker: item.kicker[lang],
-    title: item.title[lang],
-    url: "",
-  }));
 }
 
 function mockTabs(lang: Lang): TabView[] {
@@ -119,27 +115,42 @@ export default function NewsWidget({ lang, t, news }: Props) {
 
   const [banner, setBanner] = useState(0);
   const [tabId, setTabId] = useState(() => data.tabs[0]?.id ?? "");
+  const [broken, setBroken] = useState<ReadonlySet<string>>(() => new Set());
+
+  /* A slide is worth showing when it has art or copy. Live banners carry no
+     copy, so one whose image fails (an offline start) is dropped rather than
+     left as an empty frame. */
+  const slides = useMemo(
+    () =>
+      data.banners.filter((item) =>
+        item.image === "" ? Boolean(item.kicker || item.title) : !broken.has(item.id)
+      ),
+    [data.banners, broken]
+  );
 
   // A new feed starts from the first banner and first tab.
   useEffect(() => {
     setBanner(0);
     setTabId(data.tabs[0]?.id ?? "");
+    setBroken(new Set());
   }, [live, news, data.tabs]);
+
+  useEffect(() => {
+    if (banner >= slides.length) setBanner(0);
+  }, [banner, slides.length]);
 
   // A timeout keyed on the current slide: manual navigation restarts autoplay.
   useEffect(() => {
-    if (data.banners.length < 2) return;
+    if (slides.length < 2) return;
     const timer = window.setTimeout(() => {
-      setBanner((current) => (current + 1) % data.banners.length);
+      setBanner((current) => (current + 1) % slides.length);
     }, 6000);
     return () => window.clearTimeout(timer);
-  }, [banner, data.banners.length]);
+  }, [banner, slides.length]);
 
   const step = (delta: number) => {
-    if (data.banners.length === 0) return;
-    setBanner(
-      (current) => (current + delta + data.banners.length) % data.banners.length
-    );
+    if (slides.length === 0) return;
+    setBanner((current) => (current + delta + slides.length) % slides.length);
   };
 
   const tab = data.tabs.find((item) => item.id === tabId) ?? data.tabs[0];
@@ -158,19 +169,23 @@ export default function NewsWidget({ lang, t, news }: Props) {
         <div className="banner-card news-placeholder">
           <span>{t("news.unavailable")}</span>
         </div>
-      ) : (
+      ) : slides.length > 0 ? (
         <div className="banner-card">
-          {data.banners.map((item, index) => (
+          {slides.map((item, index) => (
             <div
               key={item.id}
               className={"banner-slide" + (index === banner ? " is-active" : "")}
               aria-hidden={index !== banner}
             >
-              <img
-                src={item.image}
-                alt=""
-                onError={(event) => event.currentTarget.classList.add("is-missing")}
-              />
+              {item.image !== "" && (
+                <img
+                  src={item.image}
+                  alt=""
+                  onError={() =>
+                    setBroken((current) => new Set(current).add(item.id))
+                  }
+                />
+              )}
               {(item.kicker || item.title) && (
                 <div className="banner-copy">
                   {item.kicker && <div className="banner-kicker">{item.kicker}</div>}
@@ -179,7 +194,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
               )}
             </div>
           ))}
-          {data.banners.length > 1 && (
+          {slides.length > 1 && (
             <>
               <button
                 className="banner-nav banner-nav-prev"
@@ -202,7 +217,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
                 </svg>
               </button>
               <div className="banner-dots">
-                {data.banners.map((item, index) => (
+                {slides.map((item, index) => (
                   <button
                     key={item.id}
                     className={"banner-dot" + (index === banner ? " is-active" : "")}
@@ -216,7 +231,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
             </>
           )}
         </div>
-      )}
+      ) : null}
 
       {(loading || unavailable || data.tabs.length > 0) && (
         <div className="news-panel">

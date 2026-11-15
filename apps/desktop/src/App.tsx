@@ -462,6 +462,17 @@ export default function App() {
     };
   }, [serverId, booted, backgrounds]);
 
+  // A cached feed paints offline; when the network returns, fetch again.
+  useEffect(() => {
+    const refresh = () => {
+      setNews((current) => ({ ...current, [serverId]: undefined }));
+      setSocial((current) => ({ ...current, [serverId]: undefined }));
+      setBackgrounds((current) => ({ ...current, [serverId]: undefined }));
+    };
+    window.addEventListener("online", refresh);
+    return () => window.removeEventListener("online", refresh);
+  }, [serverId]);
+
   // Custom media uses the picked file first; the cache copy is the fallback.
   const customFailed = () => {
     setCustomSrc(null);

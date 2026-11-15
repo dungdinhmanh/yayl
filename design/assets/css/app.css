@@ -4371,6 +4371,9 @@ body[data-layout="rail"] .backdrop-scrim {
   position: absolute;
   inset: 0;
   opacity: 0;
+  background:
+    radial-gradient(120% 130% at 14% 0%, rgba(var(--accent-rgb), 0.22), transparent 58%),
+    linear-gradient(150deg, #131b29 0%, #0b0f17 68%);
   transition: opacity var(--dur-slow) var(--ease-out);
 }
 

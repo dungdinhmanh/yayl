@@ -233,21 +233,18 @@
     banners: [
       {
         id: "summer",
-        image: "assets/img/news/banner-event.svg",
         kicker: { vi: "SỰ KIỆN", en: "EVENT" },
         title: { vi: "Mùa hè rực rỡ", en: "Radiant Summer" },
         link: "#"
       },
       {
         id: "update",
-        image: "assets/img/news/banner-update.svg",
         kicker: { vi: "CẬP NHẬT", en: "UPDATE" },
         title: { vi: "042.1.0 đã sẵn sàng", en: "042.1.0 is ready" },
         link: "#"
       },
       {
         id: "login",
-        image: "assets/img/news/banner-login.svg",
         kicker: { vi: "SỰ KIỆN", en: "EVENT" },
         title: { vi: "Đăng nhập nhận quà", en: "Login rewards" },
         link: "#"

@@ -182,7 +182,6 @@ export const NEWS = {
   "banners": [
     {
       "id": "summer",
-      "image": "assets/img/news/banner-event.svg",
       "kicker": {
         "vi": "SỰ KIỆN",
         "en": "EVENT"
@@ -195,7 +194,6 @@ export const NEWS = {
     },
     {
       "id": "update",
-      "image": "assets/img/news/banner-update.svg",
       "kicker": {
         "vi": "CẬP NHẬT",
         "en": "UPDATE"
@@ -208,7 +206,6 @@ export const NEWS = {
     },
     {
       "id": "login",
-      "image": "assets/img/news/banner-login.svg",
       "kicker": {
         "vi": "SỰ KIỆN",
         "en": "EVENT"
