@@ -190,3 +190,8 @@ First run failed twice over: it downloaded 7z.tar.xz into the checkout (so the l
 [2026-11-15 16:42] opencode>all done ref:.github/workflows/launcher-versions.yml
 Switched the lock refresh from a pull request to a direct commit. The lock is generated from the installers, so a PR only added a manual merge; drift now passes the check job with a notice, and the update job writes, re-runs the plain check to prove the result, and commits to main. The "allow Actions to create PRs" setting is no longer needed.
 Verified by pushing a deliberately wrong stella version: the job downloaded only stella, rewrote 1.6.0, re-checked, and committed c01d167. Only a feed that cannot be read still fails the check job.
+
+[2026-11-15 17:05] opencode>all done ref:.github/workflows/launcher-versions.yml
+Was wrong to download 7-Zip from 7-zip.org: Ubuntu's p7zip-full is only a transitional package that pulls `7zip`, so the distro package is the same 23.01 and needs no unsigned download. CI now installs it with apt.
+Measured p7zip 16.02 (Debian, extracted by hand) against the Stella installer: it produces the correct app.asar (sha256 393B13B5...) but exits 2 with three data errors on the outer NSIS payload, so the script would refuse it anyway.
+Dispatch with extract=true on the runner: 7z i reports 7-Zip 26.00, both installers download, both salts read, lock unchanged.
