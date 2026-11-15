@@ -156,3 +156,7 @@ Removed onboarding from React and design/ (FirstRun, first-run.html, server-swit
 Documented the official electron-updater feed (app-update.yml, latest.yml 1.6.0) as shell-only self-update in docs/launcher-reference.md.
 Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked both previews at 1470x932 and 1356x734.
 Gap: self-update stays out of YAYL until release signing is defined.
+
+[2026-11-15 14:38] opencode>all done ref:crates/yayl-core/src/profile.rs
+Renamed EN_AUTH_SALT to AUTH_SALT: one salt serves EN, JP and KR, so the EN prefix was wrong. Profiles keep their own auth_salt field so a region can diverge later. Trimmed the comments in the first 25 lines that only restated field names, leaving the salt-is-public note and the API content gate.
+Ran: cargo fmt --all -- --check, cargo test -p yayl-core (120 passed), cargo clippy -p yayl-core --all-targets -- -D warnings.

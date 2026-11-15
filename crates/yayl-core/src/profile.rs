@@ -4,33 +4,26 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameProfile {
-    /// Stable local id used by settings and the UI.
     pub id: &'static str,
-    /// Official `game_tag` used by the signed API envelope.
+    /// Official `game_tag`; the EN API signs the store id, not the short name.
     pub game_tag: &'static str,
-    /// API host for this region.
     pub api_base: &'static str,
-    /// MD5 salt from the official launcher; public protocol data, not a secret.
+    /// Public protocol constant, not a secret.
     pub auth_salt: &'static str,
-    /// Official launcher version whose API contract this profile targets.
-    /// The signed envelope sends it, and the API gates some content on it:
-    /// Stella Sora only returns `notice_list` for launchers at 1.5.0 or newer.
+    /// Official launcher version; the API gates some content on it.
     pub protocol_version: &'static str,
-    /// Default folder name under the user's install base.
     pub install_dir: &'static str,
-    /// Relative executable path inside the install root.
     pub executable: &'static str,
 }
 
-/// Salt shipped by both extracted EN launchers.
-pub const EN_AUTH_SALT: &str = "DE7108E9B2842FD460F4777702727869";
+/// Salt shared by every regional build; public protocol data.
+pub const AUTH_SALT: &str = "DE7108E9B2842FD460F4777702727869";
 
 pub const ARKNIGHTS_EN: GameProfile = GameProfile {
     id: "arknights",
-    // The EN API signs `game_tag` as the store id, not the short game name.
     game_tag: "Arknights_EN",
     api_base: "https://api-launcher-en.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.8.1",
     install_dir: "Arknights_EN",
     executable: "Arknights.exe",
@@ -40,7 +33,7 @@ pub const STELLA_SORA_EN: GameProfile = GameProfile {
     id: "stella",
     game_tag: "StellaSora_EN",
     api_base: "https://api-launcher-en.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.6.0",
     install_dir: "StellaSora_EN",
     executable: "StellaSora.exe",
@@ -50,7 +43,7 @@ pub const ARKNIGHTS_JP: GameProfile = GameProfile {
     id: "arknights-jp",
     game_tag: "Arknights_JP",
     api_base: "https://api-launcher-jp.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.8.1",
     install_dir: "Arknights_JP",
     executable: "Arknights.exe",
@@ -60,7 +53,7 @@ pub const ARKNIGHTS_KR: GameProfile = GameProfile {
     id: "arknights-kr",
     game_tag: "Arknights_KR",
     api_base: "https://api-launcher-kr.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.8.1",
     install_dir: "Arknights_KR",
     executable: "Arknights.exe",
@@ -70,7 +63,7 @@ pub const STELLA_SORA_JP: GameProfile = GameProfile {
     id: "stella-jp",
     game_tag: "StellaSora_JP",
     api_base: "https://api-launcher-jp.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.6.0",
     install_dir: "StellaSora_JP",
     executable: "StellaSora.exe",
@@ -80,7 +73,7 @@ pub const STELLA_SORA_KR: GameProfile = GameProfile {
     id: "stella-kr",
     game_tag: "StellaSora_KR",
     api_base: "https://api-launcher-kr.yo-star.com",
-    auth_salt: EN_AUTH_SALT,
+    auth_salt: AUTH_SALT,
     protocol_version: "1.6.0",
     install_dir: "StellaSora_KR",
     executable: "StellaSora.exe",
