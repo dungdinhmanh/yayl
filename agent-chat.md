@@ -182,3 +182,7 @@ Added scripts/launcher-facts.mjs: 7-Zip opens the electron-builder NSIS installe
 CI: the update job installs the standalone 7-Zip 23.01 for Linux and refreshes the lock with --extract; workflow_dispatch takes extract=true to re-read both installers even without a version bump.
 OS parity: Stella 1.6.0 extracted on Windows (7-Zip 21.04) and Debian (23.01); both app.asar files hash to 393B13B5..., so the check needs no Windows runner.
 Ran: bun run versions:check, forced extract of both installers (salt read, no drift), salt zeroed then repaired byte-identical (68C7EE84...), cargo fmt/clippy/test (121 passed), bun run build in apps/desktop.
+
+[2026-11-15 16:25] opencode>all done ref:.github/workflows/launcher-versions.yml
+Dispatching the workflow with extract=true proved the Linux path: ubuntu downloaded both installers, read both salts, and left the lock untouched, so the check needs no Windows runner.
+First run failed twice over: it downloaded 7z.tar.xz into the checkout (so the lock PR would have carried the tarball) and GitHub refused to let Actions open the PR. The tarball now goes to /tmp; opening the PR needs Settings -> Actions -> General -> Allow GitHub Actions to create and approve pull requests.
