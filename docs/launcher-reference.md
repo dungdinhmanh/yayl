@@ -262,8 +262,9 @@ one salt is accepted by all three hosts.
 
 The `Launcher versions` workflow runs the check per launcher in a matrix on a
 schedule. When a feed moves it downloads the installers, refreshes the lock and
-opens a PR. Dispatching it with `extract: true` re-reads both installers even
-when no version moved.
+commits the result to the default branch; the job re-runs the plain check before
+committing, so a lock that does not satisfy the feed never lands. Dispatching it
+with `extract: true` re-reads both installers even when no version moved.
 
 ### Live versions observed
 

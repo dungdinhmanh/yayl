@@ -35,18 +35,30 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
+
+      # Drift is the normal signal, not an error: the update job rewrites the
+      # lock. Only a feed that cannot be read fails this job.
       - name: Compare ${{ matrix.launcher }} with the lock file
-        run: bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
+        run: |
+          set +e
+          bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
+          status=$?
+          set -e
+          if [ "$status" -gt 1 ]; then
+            exit "$status"
+          fi
+          if [ "$status" -eq 1 ]; then
+            echo "::notice::${{ matrix.launcher }} moved; the update job will refresh the lock"
+          fi
 
   update-lock:
     name: update lock
     needs: check
-    if: failure() || (github.event_name == 'workflow_dispatch' && inputs.extract)
+    if: needs.check.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -54,12 +66,13 @@ jobs:
           bun-version: 1.4.2
 
       # The standalone build, not apt's p7zip: same binary on every runner.
-      # Download outside the checkout so the tarball can never reach the PR.
+      # Download outside the checkout so the tarball can never reach the commit.
       - name: Install 7-Zip
         run: |
           curl -sSfL -o /tmp/7z.tar.xz https://www.7-zip.org/a/7z2301-linux-x64.tar.xz
           sudo tar -xJf /tmp/7z.tar.xz -C /usr/local/bin 7zz
 
+      # Only launchers whose feed moved are downloaded, unless extract=true.
       - name: Refresh the lock
         run: |
           if [ "${{ inputs.extract }}" = "true" ]; then
@@ -68,19 +81,17 @@ jobs:
             bun scripts/check-launcher-versions.mjs --update --extract
           fi
 
-      - uses: peter-evans/create-pull-request@v7
-        with:
-          branch: chore/launcher-versions
-          delete-branch: true
-          commit-message: "chore(deps): refresh the launcher version lock"
-          title: "chore(deps): refresh the launcher version lock"
-          body: |
-            The official launcher feed no longer matches `launcher-versions.lock.json`.
-
-            The new installers were unpacked and read: the lock carries the new
-            version, file name, size, sha512, auth salt and EN API host. The build
-            takes the protocol version and salt straight from this file, so
-            merging is enough to keep signing correct.
-
-            Check the salt diff before merging; a change there means the installed
-            launchers must be re-extracted for the extracted trees in `game-extracted/`.
+      - name: Commit the refreshed lock
+        run: |
+          if git diff --quiet -- launcher-versions.lock.json; then
+            echo "the lock already matches the published launchers"
+            exit 0
+          fi
+          # Prove the lock the job is about to commit still satisfies the feed.
+          bun scripts/check-launcher-versions.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add launcher-versions.lock.json
+          git commit -m "chore(deps): refresh the launcher version lock" \
+            -m "Read from the published installers: version, size, sha512, auth salt and EN API host. The build takes the protocol version and salt from this file."
+          git push
