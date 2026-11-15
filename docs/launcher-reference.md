@@ -51,7 +51,7 @@ Requests carry a signed envelope:
 DE7108E9B2842FD460F4777702727869
 ```
 
-The salt is a public protocol constant, not a secret. YAYL stores it on each game profile (`crates/yayl-core/src/profile.rs`) because a JP/KR build may ship a different value; `LauncherApi` passes the profile salt into `auth_header`.
+The salt is a public protocol constant, not a secret. Both extracted EN launchers ship the same value (`A9_extracted/out/main/index.js:891,20046`; `SS_extracted/out/main/index.js:894,19753`), and the EN, JP and KR hosts all accept it. YAYL keeps one shared `AUTH_SALT` constant and still stores it per profile, so a region that ships a different value only needs that entry changed. `LauncherApi` passes the profile salt into `auth_header`.
 
 `data` is the serialized request payload used for the signature. Keep the exact serialization order stable.
 
@@ -71,18 +71,92 @@ Source: `A9_extracted/node_modules/@launcher/utils/src/crypto.ts:16-29`. The EN 
 | `/api/launcher/advanced/config` | Advanced config (`log_upload`) |
 | `/api/open/api/config` | Open API config |
 
-The live contract was probed successfully. Arknights EN and Stella Sora EN responded with the expected shapes.
+The live contract was probed successfully on 2026-11-15. Arknights EN and
+Stella Sora EN responded with the expected shapes.
 
-### Launcher version gate
+### Launcher version in the header
 
 `head.version` is the official launcher version, not the game version. The
-operations endpoint gates content on it: Stella Sora returns `news_list` and
-`notice_list` as `null` for launcher versions below `1.5.0`, and returns a
-three-section `notice_list` (`News`, `Events`, `Notices`) from `1.5.0` onward.
-Profiles therefore send the version of the launcher they implement:
-`1.8.1` for Arknights EN (`A9_extracted/package.json`) and `1.6.0` for Stella
-Sora EN (`SS_extracted/package.json`). Sending YAYL's own version hides the
-Stella news list.
+server does not validate the value: any string is accepted as long as it is
+the same string used to compute the signature.
+
+Measured on 2026-11-15 with signed probes against the EN host, four endpoints
+per version (`operations/resource`, `game/config`,
+`advanced/game/download/cdn`, `base/config`):
+
+| Version sent | Stella `notice_list` | Stella other fields | Arknights `news_list` |
+|---|---|---|---|
+| `1.0.0` | `null` | unchanged | unchanged |
+| `1.4.9` | `null` | unchanged | not probed |
+| `1.5.0` | 3 sections | unchanged | not probed |
+| `1.6.0` | 3 sections | unchanged | unchanged |
+| `2.0.0` | 3 sections | unchanged | not probed |
+| `9.9.9` | 3 sections | unchanged | unchanged |
+
+"Unchanged" means the same fields and values as the current version: the
+version only gates content, it does not change the endpoint contract. `1.0.0`
+and `9.9.9` both return `200 OK`, so there is no minimum or maximum check on
+the request itself.
+
+The only gate observed is Stella's `notice_list`, which is `null` below
+`1.5.0`. Stella's `news_list` stays `null` at every version tested, including
+`9.9.9`; it is not version-gated, that game simply never fills it.
+
+Profiles send the version of the launcher they implement, `1.8.1` for
+Arknights EN (`A9_extracted/package.json`) and `1.6.0` for Stella Sora EN
+(`SS_extracted/package.json`), so the gate passes. Sending YAYL's own version
+would hide Stella's notices.
+
+There is no server-side "launcher too old" response. Shell updates go through
+electron-updater, described below.
+
+### Operations resource shapes
+
+Both games return the same envelope from `/api/launcher/operations/resource`,
+but each fills exactly one content field and nulls the other:
+
+| Game | `news_list` | `notice_list` |
+|---|---|---|
+| Arknights EN | payload | `null` |
+| Stella Sora EN | `null` | 3 sections (`News`, `Events`, `Notices`) |
+
+Arknights nests a CMS envelope inside the response:
+
+```json
+{"code":0,"message":"ok","data":{"news":[
+  {"typeLabel":"LATEST","rows":[
+    {"title":"...","link":"https://arknights.global/news/5092",
+     "publishTime":1794452109319,"thumbnail":"https://...png"}
+  ]}
+]}}
+```
+
+`typeLabel` labels the section, `publishTime` is epoch milliseconds, and rows
+carry thumbnails.
+
+Stella sends a flat array of sections:
+
+```json
+[{"notice_type":"News","notice_detail_list":[
+  {"notice_title":"Version 2.1 is Now Live!","notice_time":"2026/11/13",
+   "jump_url":"https://stellasora.global/news/5111"}
+]}]
+```
+
+`notice_time` is already a display string, and there are no thumbnails. Both
+games use `operations_banner_list` for banners.
+
+`OperationsResource::feed()` (`crates/yayl-core/src/api.rs:322-387`) normalizes
+both shapes: it reads `news_list` first, then falls back to `notice_list` only
+when that produced no section. No code branches on a game id, so a game that
+switches field needs no change here.
+
+| Official field | `NewsItemView` |
+|---|---|
+| `rows[].title` / `notice_title` | `title` |
+| `rows[].link` / `jump_url` | `url`, HTTPS only, otherwise dropped |
+| `rows[].publishTime` / `notice_time` | `date`, formatted from epoch ms or kept as sent |
+| `rows[].thumbnail` | `image`, empty for Stella |
 
 ### Launcher self-update (separate from game updates)
 
@@ -108,6 +182,48 @@ YAYL does not use this feed. It is not a game endpoint, and self-update stays
 out until release signing is defined (AGENTS.md). The useful signal is the
 launcher version (`1.6.0`), which is also the `head.version` used for Stella
 auth.
+
+### Launcher downloads (public, no auth)
+
+Two public sources carry the shell version. Neither needs a signature, and
+neither exposes `app.asar`; guessed asar paths return 404 on every CDN host and
+the bucket has no index, so the installer is the only shipped artifact.
+
+**electron-updater feed.** `<feed>/latest.yml` is what the official shell reads,
+so it is the source of truth:
+
+```text
+https://launcher-pkg-ark-en.yo-star.com/install_pkg/game_launcher/Arknights_EN/latest.yml
+https://launcher-pkg-ss-en.yo-star.com/install_pkg/game_launcher/StellaSora_EN/latest.yml
+```
+
+```yaml
+version: 1.8.1
+path: Arknights_EN_Gamelauncher-1.8.1-setup.exe
+sha512: XjdF3uaOL2N3f14bwhdNAb1TJ/sR8TihFplyWZCfrIvbpkxmGVhfTUPKD5hDSiDtgNZRZ5kyC6lIT1u0nNlgAw==
+releaseDate: '2026-08-04T03:26:45.548Z'
+```
+
+The byte size lives in the `files:` entry. The installer name follows
+`<gameTag>_Gamelauncher-<version>-setup.exe`, so the version is readable from
+`path` alone.
+
+**Website.** Each site publishes the same link differently:
+
+| Game | Source | Field |
+|---|---|---|
+| Arknights | `GET https://www.arknights.global/api/resource/game-download-link?index=1&size=999` | `data.rows[0].client` |
+| Stella Sora | literal in `assets/PcLauncher-<hash>.js` | installer URL |
+
+That Arknights endpoint is the website CMS, unauthenticated, and returns the
+current installer URL. Stella has no equivalent API: the URL and its version
+are baked into the page bundle, so they only change when the site is
+redeployed. `latest.yml` is therefore the better source for both.
+
+YAYL locks the expected values in `launcher-versions.lock.json` (version, file
+name, size, sha512) and compares them with `bun run versions:check`. The
+`Launcher versions` workflow runs that per launcher on a schedule and opens a
+PR with `bun run versions:update` when a feed moves.
 
 ### Live versions observed
 
@@ -282,3 +398,4 @@ Do not remove registry keys for Arknights unless observed and documented.
 - CDN selection response semantics under failover.
 - Full uninstall registry/file list for Arknights.
 - Auto-update signing and release channel design.
+- Whether a future launcher version gates more than Stella's `notice_list`.

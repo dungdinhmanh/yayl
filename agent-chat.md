@@ -160,3 +160,13 @@ Gap: self-update stays out of YAYL until release signing is defined.
 [2026-11-15 14:38] opencode>all done ref:crates/yayl-core/src/profile.rs
 Renamed EN_AUTH_SALT to AUTH_SALT: one salt serves EN, JP and KR, so the EN prefix was wrong. Profiles keep their own auth_salt field so a region can diverge later. Trimmed the comments in the first 25 lines that only restated field names, leaving the salt-is-public note and the API content gate.
 Ran: cargo fmt --all -- --check, cargo test -p yayl-core (120 passed), cargo clippy -p yayl-core --all-targets -- -D warnings.
+
+[2026-11-15 14:56] opencode>all done ref:docs/launcher-reference.md
+Rewrote the launcher-version section from signed probes: any head.version is accepted (1.0.0 and 9.9.9 both return 200), and the only gate is Stella's notice_list at 1.5.0. Stella's news_list is null at every version, so the earlier claim that both lists were gated was wrong. Added the operations shape table: Arknights news_list is a nested CMS envelope (typeLabel/rows/publishTime/thumbnail), Stella notice_list is a flat section array with no thumbnails, and OperationsResource::feed normalizes both without a game branch. Also recorded that one salt is accepted by the EN, JP and KR hosts.
+Ran: no build; docs only.
+
+[2026-11-15 15:14] opencode>all done ref:launcher-versions.lock.json
+Locked the two official shell versions in one file: version, installer name, size and sha512 for arknights 1.8.1 and stella 1.6.0. scripts/check-launcher-versions.mjs reads the public electron-updater latest.yml (no auth, no 178 MB download), verifies path is <gameTag>_Gamelauncher-<version>-setup.exe, and compares version/size/sha512; --update rewrites only the drifted entries and checkedAt, --json prints machine output, a bare target limits the run, and an unknown target exits 2. Size is read from the files: entry because latest.yml has no top-level size.
+Added .github/workflows/launcher-versions.yml: matrix check over [arknights, stella] plus an update-lock job that runs --update and opens a PR. package.json gains versions:check and versions:update.
+Found the website sources too: Arknights CMS GET /api/resource/game-download-link?index=1&size=999 -> data.rows[0].client; Stella bakes the URL into assets/PcLauncher-<hash>.js and has no API. Neither CDN serves app.asar, so the installer stays the only public artifact. Documented both in docs/launcher-reference.md.
+Ran: bun run versions:check (both up to date, exit 0), forced drift (exit 1, "remote 1.6.0"), --update restored the file byte-identical (hash 69730EBA...), plus --json, single target, unknown target, and the workflow YAML parse.
