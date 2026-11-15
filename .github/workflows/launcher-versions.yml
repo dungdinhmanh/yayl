@@ -4,10 +4,16 @@ on:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      extract:
+        description: "Unpack both installers even if the version is unchanged"
+        type: boolean
+        default: false
   push:
     paths:
       - launcher-versions.lock.json
       - scripts/check-launcher-versions.mjs
+      - scripts/launcher-facts.mjs
       - .github/workflows/launcher-versions.yml
 
 concurrency:
@@ -35,8 +41,9 @@ jobs:
   update-lock:
     name: update lock
     needs: check
-    if: failure()
+    if: failure() || (github.event_name == 'workflow_dispatch' && inputs.extract)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
       pull-requests: write
@@ -45,8 +52,21 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
+
+      # The standalone build, not apt's p7zip: same binary on every runner.
+      - name: Install 7-Zip
+        run: |
+          curl -sSfL -o 7z.tar.xz https://www.7-zip.org/a/7z2301-linux-x64.tar.xz
+          sudo tar -xJf 7z.tar.xz -C /usr/local/bin 7zz
+
       - name: Refresh the lock
-        run: bun scripts/check-launcher-versions.mjs --update
+        run: |
+          if [ "${{ inputs.extract }}" = "true" ]; then
+            bun scripts/check-launcher-versions.mjs --update --extract --all
+          else
+            bun scripts/check-launcher-versions.mjs --update --extract
+          fi
+
       - uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/launcher-versions
@@ -56,6 +76,10 @@ jobs:
           body: |
             The official launcher feed no longer matches `launcher-versions.lock.json`.
 
-            This PR only changes the version, file name, size and sha512 of the
-            launchers that moved. Review before merging; the next extraction
-            should use the new installer.
+            The new installers were unpacked and read: the lock carries the new
+            version, file name, size, sha512, auth salt and EN API host. The build
+            takes the protocol version and salt straight from this file, so
+            merging is enough to keep signing correct.
+
+            Check the salt diff before merging; a change there means the installed
+            launchers must be re-extracted for the extracted trees in `game-extracted/`.

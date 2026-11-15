@@ -2,6 +2,19 @@
 
 use std::path::{Path, PathBuf};
 
+// Protocol version, auth salt and EN API host, generated from the lock file.
+//
+// `launcher-versions.lock.json` is the single place a launcher update touches;
+// `build.rs` turns it into constants, so the version the API gates on and the
+// salt used to sign requests can never drift from the shipped launcher.
+include!(concat!(env!("OUT_DIR"), "/launcher_facts.rs"));
+
+/// Region hosts. Only the EN launchers have been extracted, so JP and KR hosts
+/// stay here; they reuse the EN version and salt because one salt is accepted by
+/// all three hosts.
+const API_HOST_JP: &str = "https://api-launcher-jp.yo-star.com";
+const API_HOST_KR: &str = "https://api-launcher-kr.yo-star.com";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameProfile {
     pub id: &'static str,
@@ -16,15 +29,12 @@ pub struct GameProfile {
     pub executable: &'static str,
 }
 
-/// Salt shared by every regional build; public protocol data.
-pub const AUTH_SALT: &str = "DE7108E9B2842FD460F4777702727869";
-
 pub const ARKNIGHTS_EN: GameProfile = GameProfile {
     id: "arknights",
     game_tag: "Arknights_EN",
-    api_base: "https://api-launcher-en.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.8.1",
+    api_base: ARKNIGHTS_API_BASE,
+    auth_salt: ARKNIGHTS_AUTH_SALT,
+    protocol_version: ARKNIGHTS_PROTOCOL_VERSION,
     install_dir: "Arknights_EN",
     executable: "Arknights.exe",
 };
@@ -32,9 +42,9 @@ pub const ARKNIGHTS_EN: GameProfile = GameProfile {
 pub const STELLA_SORA_EN: GameProfile = GameProfile {
     id: "stella",
     game_tag: "StellaSora_EN",
-    api_base: "https://api-launcher-en.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.6.0",
+    api_base: STELLA_API_BASE,
+    auth_salt: STELLA_AUTH_SALT,
+    protocol_version: STELLA_PROTOCOL_VERSION,
     install_dir: "StellaSora_EN",
     executable: "StellaSora.exe",
 };
@@ -42,9 +52,9 @@ pub const STELLA_SORA_EN: GameProfile = GameProfile {
 pub const ARKNIGHTS_JP: GameProfile = GameProfile {
     id: "arknights-jp",
     game_tag: "Arknights_JP",
-    api_base: "https://api-launcher-jp.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.8.1",
+    api_base: API_HOST_JP,
+    auth_salt: ARKNIGHTS_AUTH_SALT,
+    protocol_version: ARKNIGHTS_PROTOCOL_VERSION,
     install_dir: "Arknights_JP",
     executable: "Arknights.exe",
 };
@@ -52,9 +62,9 @@ pub const ARKNIGHTS_JP: GameProfile = GameProfile {
 pub const ARKNIGHTS_KR: GameProfile = GameProfile {
     id: "arknights-kr",
     game_tag: "Arknights_KR",
-    api_base: "https://api-launcher-kr.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.8.1",
+    api_base: API_HOST_KR,
+    auth_salt: ARKNIGHTS_AUTH_SALT,
+    protocol_version: ARKNIGHTS_PROTOCOL_VERSION,
     install_dir: "Arknights_KR",
     executable: "Arknights.exe",
 };
@@ -62,9 +72,9 @@ pub const ARKNIGHTS_KR: GameProfile = GameProfile {
 pub const STELLA_SORA_JP: GameProfile = GameProfile {
     id: "stella-jp",
     game_tag: "StellaSora_JP",
-    api_base: "https://api-launcher-jp.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.6.0",
+    api_base: API_HOST_JP,
+    auth_salt: STELLA_AUTH_SALT,
+    protocol_version: STELLA_PROTOCOL_VERSION,
     install_dir: "StellaSora_JP",
     executable: "StellaSora.exe",
 };
@@ -72,9 +82,9 @@ pub const STELLA_SORA_JP: GameProfile = GameProfile {
 pub const STELLA_SORA_KR: GameProfile = GameProfile {
     id: "stella-kr",
     game_tag: "StellaSora_KR",
-    api_base: "https://api-launcher-kr.yo-star.com",
-    auth_salt: AUTH_SALT,
-    protocol_version: "1.6.0",
+    api_base: API_HOST_KR,
+    auth_salt: STELLA_AUTH_SALT,
+    protocol_version: STELLA_PROTOCOL_VERSION,
     install_dir: "StellaSora_KR",
     executable: "StellaSora.exe",
 };
@@ -126,5 +136,19 @@ mod tests {
         // The operations endpoint nulls `notice_list` below 1.5.0. Stella never
         // fills `news_list`, so this gate is the only one it has.
         assert!(crate::api::compare_versions(STELLA_SORA_EN.protocol_version, "1.5.0").is_ge());
+    }
+
+    #[test]
+    fn regions_share_the_protocol_facts() {
+        // One salt is accepted by the EN, JP and KR hosts, and the lock only
+        // tracks EN, so a region must never gain its own version.
+        for profile in [&ARKNIGHTS_JP, &ARKNIGHTS_KR] {
+            assert_eq!(profile.auth_salt, ARKNIGHTS_EN.auth_salt);
+            assert_eq!(profile.protocol_version, ARKNIGHTS_EN.protocol_version);
+        }
+        for profile in [&STELLA_SORA_JP, &STELLA_SORA_KR] {
+            assert_eq!(profile.auth_salt, STELLA_SORA_EN.auth_salt);
+            assert_eq!(profile.protocol_version, STELLA_SORA_EN.protocol_version);
+        }
     }
 }

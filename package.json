@@ -15,6 +15,7 @@
     "design:serve": "bun scripts/serve-design.mjs",
     "design:check": "bun scripts/check-design-i18n.mjs",
     "versions:check": "bun scripts/check-launcher-versions.mjs",
-    "versions:update": "bun scripts/check-launcher-versions.mjs --update"
+    "versions:update": "bun scripts/check-launcher-versions.mjs --update",
+    "versions:extract": "bun scripts/check-launcher-versions.mjs --update --extract --all"
   }
 }

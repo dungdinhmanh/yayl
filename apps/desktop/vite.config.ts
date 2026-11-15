@@ -1,21 +1,28 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 /* Dev-only news bridge. The browser lab cannot call the signed API, so this
    mirrors `yayl_core::api` and never exists in a production build. */
-const AUTH_SALT = "DE7108E9B2842FD460F4777702727869";
-/* Keep in sync with the profiles in crates/yayl-core/src/profile.rs. */
-const EN_API = "https://api-launcher-en.yo-star.com";
+const lock = JSON.parse(
+  readFileSync(new URL("../../launcher-versions.lock.json", import.meta.url), "utf8"),
+) as { launchers: Record<"arknights" | "stella", { version: string; authSalt: string; apiBase: string }> };
+
+/* Version, salt and the EN host come from the lock file that `build.rs` also
+   reads, so this bridge cannot drift from the Rust profiles. JP and KR hosts
+   only exist here and in `crates/yayl-core/src/profile.rs`. */
+const AUTH_SALT = lock.launchers.arknights.authSalt;
+const EN_API = lock.launchers.arknights.apiBase;
 const JP_API = "https://api-launcher-jp.yo-star.com";
 const KR_API = "https://api-launcher-kr.yo-star.com";
 const GAMES: Record<string, { tag: string; version: string; api: string }> = {
-  arknights: { tag: "Arknights_EN", version: "1.8.1", api: EN_API },
-  "arknights-jp": { tag: "Arknights_JP", version: "1.8.1", api: JP_API },
-  "arknights-kr": { tag: "Arknights_KR", version: "1.8.1", api: KR_API },
-  stella: { tag: "StellaSora_EN", version: "1.6.0", api: EN_API },
-  "stella-jp": { tag: "StellaSora_JP", version: "1.6.0", api: JP_API },
-  "stella-kr": { tag: "StellaSora_KR", version: "1.6.0", api: KR_API },
+  arknights: { tag: "Arknights_EN", version: lock.launchers.arknights.version, api: EN_API },
+  "arknights-jp": { tag: "Arknights_JP", version: lock.launchers.arknights.version, api: JP_API },
+  "arknights-kr": { tag: "Arknights_KR", version: lock.launchers.arknights.version, api: KR_API },
+  stella: { tag: "StellaSora_EN", version: lock.launchers.stella.version, api: EN_API },
+  "stella-jp": { tag: "StellaSora_JP", version: lock.launchers.stella.version, api: JP_API },
+  "stella-kr": { tag: "StellaSora_KR", version: lock.launchers.stella.version, api: KR_API },
 };
 const CACHE_MS = 60_000;
 

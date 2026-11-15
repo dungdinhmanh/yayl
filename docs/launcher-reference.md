@@ -220,10 +220,50 @@ current installer URL. Stella has no equivalent API: the URL and its version
 are baked into the page bundle, so they only change when the site is
 redeployed. `latest.yml` is therefore the better source for both.
 
-YAYL locks the expected values in `launcher-versions.lock.json` (version, file
-name, size, sha512) and compares them with `bun run versions:check`. The
-`Launcher versions` workflow runs that per launcher on a schedule and opens a
-PR with `bun run versions:update` when a feed moves.
+YAYL locks what the build needs in `launcher-versions.lock.json`: version, file
+name, size, sha512, auth salt and the EN API host. `bun run versions:check`
+compares the feed against the lock and prints both versions; it downloads
+nothing.
+
+**Reading the salt from the installer.** The feed has no salt, so
+`bun run versions:update --extract` unpacks the published installer and reads
+the bundle:
+
+1. 7-Zip opens the electron-builder NSIS installer, which yields
+   `$PLUGINSDIR/app-32.7z` (the EN launchers ship a 32-bit payload only).
+2. The nested archive yields `resources/app.asar`.
+3. `scripts/launcher-facts.mjs` reads the asar header itself, so no `asar`
+   dependency is involved, and matches four things in `out/main/index.js` and
+   `package.json`:
+
+| Fact | Where |
+|---|---|
+| version | `package.json` `version`, also what `electron.app.getVersion()` sends |
+| auth salt | `salt: "…"` inside the `getAuthHeader(...)` call |
+| game tag | `gameId: "…"` in that same call |
+| API host | the `https://api-launcher-<region>.yo-star.com` literal next to it |
+
+Extraction refuses to continue when the asar version differs from the feed
+version, the game tag differs from the lock, or the downloaded bytes fail the
+feed's size and sha512.
+
+**One OS is enough.** Stella 1.6.0 was unpacked on Windows (7-Zip 21.04) and on
+Debian (7-Zip 23.01); both produced the same `app.asar`, sha256
+`393B13B5353C8DD544FC92EFAE29A71D28CA897C0EA0217F08443E9F81D23DAB`, so the
+check needs no Windows runner. CI downloads the standalone Linux build of
+7-Zip instead of using the distro package, so the runner runs the tested
+version.
+
+**Feeding the build.** `crates/yayl-core/build.rs` turns the lock into
+`ARKNIGHTS_*` and `STELLA_*` constants, and `profile.rs` uses them for
+`protocol_version`, `auth_salt` and the EN `api_base`. A launcher update is one
+file plus a rebuild. JP and KR profiles reuse the EN version and salt because
+one salt is accepted by all three hosts.
+
+The `Launcher versions` workflow runs the check per launcher in a matrix on a
+schedule. When a feed moves it downloads the installers, refreshes the lock and
+opens a PR. Dispatching it with `extract: true` re-reads both installers even
+when no version moved.
 
 ### Live versions observed
 

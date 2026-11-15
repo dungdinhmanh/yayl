@@ -646,12 +646,19 @@ fn civil_from_days(days: i64) -> (i64, u32, u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::profile::AUTH_SALT;
+    use crate::profile::ARKNIGHTS_EN;
 
     #[test]
     fn auth_matches_the_official_algorithm() {
         // Generated from the same JSON serialization used by the A9 launcher.
-        let header = auth_header("Arknights_EN", "0.1.0", "", AUTH_SALT, 1_710_000_000).unwrap();
+        let header = auth_header(
+            "Arknights_EN",
+            "0.1.0",
+            "",
+            ARKNIGHTS_EN.auth_salt,
+            1_710_000_000,
+        )
+        .unwrap();
         assert_eq!(
             header,
             r#"{"head":{"game_tag":"Arknights_EN","time":1710000000,"version":"0.1.0"},"sign":"49bf8d0127ebccc9018a3c1e0d64c2c0"}"#
@@ -660,8 +667,22 @@ mod tests {
 
     #[test]
     fn auth_changes_with_data() {
-        let a = auth_header("Arknights_EN", "0.1.0", "", AUTH_SALT, 1_710_000_000).unwrap();
-        let b = auth_header("Arknights_EN", "0.1.0", "{}", AUTH_SALT, 1_710_000_000).unwrap();
+        let a = auth_header(
+            "Arknights_EN",
+            "0.1.0",
+            "",
+            ARKNIGHTS_EN.auth_salt,
+            1_710_000_000,
+        )
+        .unwrap();
+        let b = auth_header(
+            "Arknights_EN",
+            "0.1.0",
+            "{}",
+            ARKNIGHTS_EN.auth_salt,
+            1_710_000_000,
+        )
+        .unwrap();
         assert_ne!(a, b);
     }
 
