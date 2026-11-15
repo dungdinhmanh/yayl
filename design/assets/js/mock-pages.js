@@ -206,7 +206,7 @@
      Settings
      ------------------------------------------------------------------------ */
 
-  var settingsTabs = ["general", "game", "network", "advanced", "about"];
+  var settingsTabs = ["general", "game", "network", "about"];
 
   function showSettingsTab(tab, updateQuery) {
     if (settingsTabs.indexOf(tab) === -1) tab = "general";
@@ -422,24 +422,30 @@
 
   function renderSettings() {
     var game = app.game();
+    var server = app.server() || {
+      region: game.region,
+      version: game.version,
+      path: game.path,
+      size: game.downloadBytes
+    };
     var langSelect = byId("languageSelect");
     if (langSelect) langSelect.value = app.current.lang;
     var motion = byId("motionToggle");
     if (motion) motion.checked = document.body.dataset.motion === "reduced";
     var path = byId("gamePathInput");
-    if (path && document.activeElement !== path) path.value = game.path;
+    if (path && document.activeElement !== path) path.value = server.path;
     var disk = document.querySelector("[data-settings-disk]");
     if (disk) {
       disk.textContent = app.t("settings.game.diskValue", {
         drive: game.drive,
         free: game.free,
-        required: game.size
+        required: formatBytes(server.size)
       });
     }
     var gameName = document.querySelector("[data-settings-game-name]");
     if (gameName) gameName.textContent = game.name;
     var gameVersion = document.querySelector("[data-settings-game-version]");
-    if (gameVersion) gameVersion.textContent = game.version;
+    if (gameVersion) gameVersion.textContent = server.version;
 
     var heroArt = byId("settingsGameArt");
     if (heroArt) app.setArt(heroArt, app.current.game);
@@ -448,10 +454,10 @@
     var heroName = byId("settingsGameName");
     if (heroName) heroName.textContent = game.name;
     var heroVersion = byId("settingsGameVersion");
-    if (heroVersion) heroVersion.textContent = "v" + game.version;
+    if (heroVersion) heroVersion.textContent = "v" + server.version;
     var heroBadge = document.querySelector("[data-settings-update]");
     if (heroBadge) {
-      heroBadge.hidden = game.latest === game.version;
+      heroBadge.hidden = server.region !== "EN" || game.latest === server.version;
       heroBadge.textContent = app.t("settings.game.newVersion", { version: game.latest });
     }
 
@@ -807,7 +813,7 @@
       });
     }
 
-    ["autostartToggle", "closeBehavior", "minimizeOnPlay", "startMinimized", "cdnSelect", "logLevel", "timeoutInput", "proxyUrl"].forEach(function (id) {
+    ["closeBehavior", "cdnSelect", "proxyUrl"].forEach(function (id) {
       var control = byId(id);
       if (!control) return;
       control.addEventListener("change", function () {
@@ -829,80 +835,10 @@
       });
     }
 
-    var detect = byId("detectGame");
-    if (detect) {
-      detect.addEventListener("click", function () {
-        appRef.showToast(
-          appRef.t("settings.toast.detect.title"),
-          appRef.t("settings.toast.detect.text", { path: appRef.game().path })
-        );
-      });
-    }
-
-    var openFolder = byId("openGameFolder");
-    if (openFolder) {
-      openFolder.addEventListener("click", function () {
-        appRef.showToast(
-          appRef.t("settings.toast.openFolder.title"),
-          appRef.t("settings.toast.openFolder.text", { path: appRef.game().path })
-        );
-      });
-    }
-
-    var verify = byId("quickVerify");
-    if (verify) {
-      verify.addEventListener("click", function () {
-        appRef.showToast(appRef.t("settings.toast.verify.title"), appRef.t("settings.toast.verify.text"));
-        window.setTimeout(function () {
-          appRef.showToast(appRef.t("settings.toast.verifyDone.title"), appRef.t("settings.toast.verifyDone.text"));
-        }, 1000);
-      });
-    }
-
-    var repair = byId("fullRepair");
-    if (repair) {
-      repair.addEventListener("click", function () {
-        appRef.openConfirm({
-          title: appRef.t("settings.repair.title", { game: appRef.game().name }),
-          text: appRef.t("settings.repair.text"),
-          confirmLabel: appRef.t("settings.repair.confirm"),
-          icon: "wrench",
-          tone: "accent",
-          onConfirm: function () {
-            appRef.showToast(appRef.t("settings.toast.repair.title"), appRef.t("settings.toast.repair.text"));
-          }
-        });
-      });
-    }
-
-    var uninstall = byId("uninstallGame");
-    if (uninstall) {
-      uninstall.addEventListener("click", function () {
-        appRef.openConfirm({
-          title: appRef.t("settings.uninstall.title", { game: appRef.game().name }),
-          text: appRef.t("settings.uninstall.text"),
-          path: appRef.game().path,
-          confirmLabel: appRef.t("settings.uninstall.confirm"),
-          cancelLabel: appRef.t("settings.uninstall.cancel"),
-          checkLabel: appRef.t("settings.uninstall.check"),
-          requireCheck: true,
-          icon: "trash",
-          tone: "danger",
-          onConfirm: function () {
-            appRef.showToast(
-              appRef.t("settings.toast.uninstall.title"),
-              appRef.t("settings.toast.uninstall.text", { game: appRef.game().name }),
-              "error"
-            );
-          }
-        });
-      });
-    }
-
-    var importGame = byId("importGame");
-    if (importGame) {
-      importGame.addEventListener("click", function () {
-        appRef.showToast(appRef.t("settings.toast.import.title"), appRef.t("settings.toast.import.text"));
+    var savePath = byId("saveGamePath");
+    if (savePath) {
+      savePath.addEventListener("click", function () {
+        flashSettingsSaved(appRef);
       });
     }
 
@@ -986,147 +922,6 @@
   /* ------------------------------------------------------------------------
      First run
      ------------------------------------------------------------------------ */
-
-  function selectedGameNames(list) {
-    var ids = list && list.length ? list : ["arknights", "stella"];
-    return ids
-      .map(function (id) {
-        return Y.GAMES[id] ? Y.GAMES[id].name : id;
-      })
-      .join(", ");
-  }
-
-  pages["first-run"] = function (appRef) {
-    var selected = ["arknights", "stella"];
-    var langButtons = document.querySelectorAll("[data-lang-option]");
-    var gameButtons = document.querySelectorAll("[data-first-game]");
-    var pathInput = byId("firstRunPath");
-
-    function showStep(step, updateQuery) {
-      var next = Math.min(3, Math.max(1, Number(step) || 1));
-      appRef.current.step = next;
-      document.body.dataset.step = String(next);
-      document.querySelectorAll("[data-step-panel]").forEach(function (panel) {
-        panel.hidden = Number(panel.getAttribute("data-step-panel")) !== next;
-      });
-      document.querySelectorAll("[data-step-indicator]").forEach(function (item) {
-        var value = Number(item.getAttribute("data-step-indicator"));
-        item.classList.toggle("is-active", value === next);
-        item.classList.toggle("is-done", value < next);
-      });
-      if (updateQuery !== false) appRef.updateQuery("step", String(next));
-      renderFirstRun();
-    }
-
-    function renderFirstRun() {
-      var activeGame = appRef.current.game;
-      if (selected.indexOf(activeGame) === -1 && selected.length) {
-        activeGame = selected[0];
-        appRef.current.game = activeGame;
-        document.body.dataset.game = activeGame;
-      }
-
-      langButtons.forEach(function (button) {
-        button.classList.toggle("is-active", button.getAttribute("data-lang-option") === appRef.current.lang);
-      });
-
-      gameButtons.forEach(function (button) {
-        button.classList.toggle("is-active", selected.indexOf(button.getAttribute("data-first-game")) !== -1);
-      });
-
-      if (pathInput) pathInput.value = appRef.game().root;
-
-      var summaryGames = byId("summaryGames");
-      if (summaryGames) summaryGames.textContent = selectedGameNames(selected);
-      var summaryPath = byId("summaryPath");
-      if (summaryPath) summaryPath.textContent = appRef.game().root;
-      var summaryLanguage = byId("summaryLanguage");
-      if (summaryLanguage) {
-        summaryLanguage.textContent = appRef.t(appRef.current.lang === "vi" ? "common.vi" : "common.en");
-      }
-
-      document.querySelectorAll("[data-first-game-status]").forEach(function (el) {
-        var id = el.getAttribute("data-first-game-status");
-        el.textContent = selected.indexOf(id) !== -1 ? appRef.t("firstRun.selected") : appRef.t("firstRun.notDetected");
-      });
-
-      document.querySelectorAll(".onboarding-visual .backdrop-art").forEach(function (img) {
-        appRef.setArt(img, activeGame);
-      });
-    }
-
-    Y.renderPage = renderFirstRun;
-    Y.setPageStep = function (step) {
-      showStep(step, false);
-    };
-
-    langButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        appRef.setLang(button.getAttribute("data-lang-option"));
-        renderFirstRun();
-      });
-    });
-
-    gameButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        var id = button.getAttribute("data-first-game");
-        var index = selected.indexOf(id);
-        if (index === -1) {
-          selected.push(id);
-          appRef.current.game = id;
-          document.body.dataset.game = id;
-        } else if (selected.length > 1) {
-          selected.splice(index, 1);
-        } else {
-          appRef.showToast(appRef.t("firstRun.toast.minOne"), appRef.t("firstRun.toast.minOneText"), "error");
-          return;
-        }
-        renderFirstRun();
-      });
-    });
-
-    var browse = byId("browseFirstRunPath");
-    if (browse) {
-      browse.addEventListener("click", function () {
-        appRef.showToast(appRef.t("firstRun.toast.path.title"), appRef.t("firstRun.toast.path.text"));
-      });
-    }
-
-    var next = byId("firstRunNext");
-    if (next) {
-      next.addEventListener("click", function () {
-        showStep(2, true);
-      });
-    }
-
-    var back = byId("firstRunBack");
-    if (back) {
-      back.addEventListener("click", function () {
-        showStep(1, true);
-      });
-    }
-
-    var start = byId("firstRunStart");
-    if (start) {
-      start.addEventListener("click", function () {
-        showStep(3, true);
-        appRef.showToast(appRef.t("firstRun.toast.start.title"), appRef.t("firstRun.toast.start.text"));
-      });
-    }
-
-    var finish = byId("firstRunFinish");
-    if (finish) {
-      finish.addEventListener("click", function () {
-        window.location.href =
-          "home-sidebar.html?game=" +
-          encodeURIComponent(selected[0] || "arknights") +
-          "&lang=" +
-          encodeURIComponent(appRef.current.lang);
-      });
-    }
-
-    showStep(appRef.current.step, false);
-  };
 
   /* ------------------------------------------------------------------------
      UI kit
@@ -1667,6 +1462,79 @@
     if (!monitor.timer) monitor.timer = setInterval(sampleMonitor, 1000);
   }
 
+  function openServerDialog(appRef) {
+    var game = appRef.game();
+    var servers = (Y.SERVERS && Y.SERVERS[game.id]) || [];
+    var activeId = appRef.current.servers[game.id];
+    var t = appRef.t;
+
+    var backdrop = document.createElement("div");
+    backdrop.className = "install-backdrop";
+    backdrop.innerHTML =
+      '<div class="install-dialog server-dialog" role="dialog" aria-modal="true" aria-labelledby="serverTitle" tabindex="-1">' +
+        '<div class="install-head">' +
+          '<div class="install-head-icon">' + appRef.icon("swap") + "</div>" +
+          '<div class="install-head-copy">' +
+            '<div class="install-title" id="serverTitle">' + escapeText(t("server.choose")) + "</div>" +
+          "</div>" +
+          '<button class="install-close" type="button" data-server-close aria-label="' + escapeText(t("common.close")) + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>' +
+          "</button>" +
+        "</div>" +
+        '<div class="install-body">' +
+          '<div class="server-list"></div>' +
+        "</div>" +
+      "</div>";
+
+    var list = backdrop.querySelector(".server-list");
+    servers.forEach(function (server) {
+      var current = server.id === activeId;
+      var stateId = Y.SERVER_STATES[server.id] || "install";
+      var installed = stateId !== "install";
+      var row = document.createElement("button");
+      row.type = "button";
+      row.className = "server-row" + (current ? " is-current" : "");
+      row.setAttribute("aria-pressed", current ? "true" : "false");
+      row.innerHTML =
+        '<span class="server-region">' + escapeText(server.region) + "</span>" +
+        '<span class="server-copy">' +
+          '<span class="server-name">' + escapeText(game.name + " " + server.region) + "</span>" +
+          '<span class="server-meta">' +
+            "<span>" + escapeText(t(installed ? "server.installed" : "server.notInstalled")) + "</span>" +
+            '<span class="server-size">' + escapeText(formatBytes(server.size)) + "</span>" +
+          "</span>" +
+        "</span>" +
+        (current
+          ? '<span class="server-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg></span>'
+          : "");
+      row.addEventListener("click", function () {
+        close();
+        appRef.setServer(server.id);
+      });
+      list.appendChild(row);
+    });
+
+    document.body.appendChild(backdrop);
+    var dialog = backdrop.querySelector(".install-dialog");
+    var closeBtn = backdrop.querySelector("[data-server-close]");
+
+    function close() {
+      document.removeEventListener("keydown", onKey);
+      backdrop.remove();
+    }
+
+    function onKey(event) {
+      if (event.key === "Escape") close();
+    }
+
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("mousedown", function (event) {
+      if (event.target === backdrop) close();
+    });
+    document.addEventListener("keydown", onKey);
+    dialog.focus();
+  }
+
   function renderHome() {
     var game = app.game();
     var state = app.current.state;
@@ -1807,6 +1675,13 @@
       });
     }
 
+    var serverSwitch = byId("serverSwitch");
+    if (serverSwitch) {
+      serverSwitch.addEventListener("click", function () {
+        openServerDialog(appRef);
+      });
+    }
+
     var menuBtn = byId("homeMenuBtn");
     var menuPop = byId("homeMenuPop");
     if (menuBtn && menuPop) {
@@ -1854,18 +1729,6 @@
     }
 
     Y.renderPage = renderHome;
-  };
-
-  pages["server-switch"] = function (appRef) {
-    document.querySelectorAll("[data-server]").forEach(function (item) {
-      item.addEventListener("click", function () {
-        document.querySelectorAll("[data-server]").forEach(function (other) {
-          other.classList.toggle("is-active", other === item);
-        });
-        var badge = document.querySelector(".server-game.is-active .server-badge");
-        if (badge) badge.textContent = item.getAttribute("data-server").toUpperCase();
-      });
-    });
   };
 
   pages.animations = function () {

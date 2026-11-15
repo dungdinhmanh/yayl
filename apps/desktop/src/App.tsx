@@ -1,12 +1,22 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import { GAMES, HOME_STATES, type GameState } from "./data";
+import {
+  GAMES,
+  HOME_STATES,
+  SERVERS,
+  SERVER_LIST,
+  defaultServerId,
+  serverOf,
+  type GameId,
+  type GameState,
+} from "./data";
 import { I18N } from "./i18n";
 import Rail from "./components/Rail";
 import Home from "./pages/Home";
 import DevBar from "./components/DevBar";
 import ConfirmDialog from "./components/ConfirmDialog";
 import InstallDialog from "./components/InstallDialog";
+import ServerDialog from "./components/ServerDialog";
 import SocialLinks from "./components/SocialLinks";
 import {
   backgroundIsVideo,
@@ -45,7 +55,6 @@ import {
 } from "./lib/ipc";
 
 const SettingsPage = lazy(() => import("./pages/Settings"));
-const FirstRunPage = lazy(() => import("./pages/FirstRun"));
 
 type View = "home" | "settings";
 
@@ -56,15 +65,21 @@ function customObjectFit(fit: BackgroundFit): CSSProperties["objectFit"] {
   return "cover";
 }
 
-export type GameId = keyof typeof GAMES;
 export type Lang = "vi" | "en";
 
 const GAME_IDS = Object.keys(GAMES) as GameId[];
+const PROFILE_IDS = SERVER_LIST.map((server) => server.id);
 const QUERY = new URLSearchParams(window.location.search);
 
 function queryGame(): GameId {
   const value = QUERY.get("game") as GameId | null;
   return value && GAME_IDS.includes(value) ? value : "arknights";
+}
+
+function queryServer(gameId: GameId): string {
+  const value = QUERY.get("server");
+  if (value && SERVERS[gameId].some((server) => server.id === value)) return value;
+  return defaultServerId(gameId);
 }
 
 function queryState(): GameState | null {
@@ -161,18 +176,27 @@ function errorCode(error: unknown): string {
   return "unknown";
 }
 
-function initialRoots(): Record<GameId, string> {
-  const roots = {} as Record<GameId, string>;
-  for (const id of GAME_IDS) roots[id] = isTauri() ? "" : GAMES[id].path;
+function initialActiveServers(): Record<GameId, string> {
+  const active = {} as Record<GameId, string>;
+  for (const id of GAME_IDS) active[id] = queryServer(id);
+  return active;
+}
+
+function initialRoots(): Record<string, string> {
+  const roots: Record<string, string> = {};
+  for (const server of SERVER_LIST) roots[server.id] = isTauri() ? "" : server.path;
   return roots;
 }
 
-function initialStateMap(): Record<GameId, GameState> {
-  const initial = {} as Record<GameId, GameState>;
-  const fallback: GameState = isTauri() ? "install" : "ready";
-  for (const id of GAME_IDS) initial[id] = fallback;
+/* EN is the bundled sample; JP/KR start uninstalled so the install state is
+   visible while reviewing the server switch. */
+function initialStateMap(): Record<string, GameState> {
+  const initial: Record<string, GameState> = {};
+  for (const server of SERVER_LIST) {
+    initial[server.id] = isTauri() ? "install" : server.region === "EN" ? "ready" : "install";
+  }
   const fromQuery = queryState();
-  if (fromQuery) initial[queryGame()] = fromQuery;
+  if (fromQuery) initial[queryServer(queryGame())] = fromQuery;
   return initial;
 }
 
@@ -188,35 +212,35 @@ function BootMark() {
 
 export default function App() {
   const [gameId, setGameId] = useState<GameId>(queryGame);
-  const [states, setStates] = useState<Record<GameId, GameState>>(initialStateMap);
-  const [roots, setRoots] = useState<Record<GameId, string>>(initialRoots);
-  const [live, setLive] = useState<Partial<Record<GameId, LiveDownload>>>({});
-  const [errors, setErrors] = useState<Partial<Record<GameId, string>>>({});
+  const [activeServers, setActiveServers] = useState<Record<GameId, string>>(initialActiveServers);
+  const [serverId, setServerId] = useState<string>(() => queryServer(queryGame()));
+  const [states, setStates] = useState<Record<string, GameState>>(initialStateMap);
+  const [roots, setRoots] = useState<Record<string, string>>(initialRoots);
+  const [live, setLive] = useState<Partial<Record<string, LiveDownload>>>({});
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [lang, setLang] = useState<Lang>(queryLang);
   const [installOpen, setInstallOpen] = useState(false);
+  const [serverOpen, setServerOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [view, setView] = useState<View>("home");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [playtimes, setPlaytimes] = useState<Partial<Record<GameId, PlaytimeEntry>>>({});
-  const [news, setNews] = useState<Partial<Record<GameId, NewsFeed | null>>>({});
-  const [social, setSocial] = useState<Partial<Record<GameId, SocialLink[]>>>({});
-  const [backgrounds, setBackgrounds] = useState<Partial<Record<GameId, string | null>>>({});
+  const [playtimes, setPlaytimes] = useState<Partial<Record<string, PlaytimeEntry>>>({});
+  const [news, setNews] = useState<Partial<Record<string, NewsFeed | null>>>({});
+  const [social, setSocial] = useState<Partial<Record<string, SocialLink[]>>>({});
+  const [backgrounds, setBackgrounds] = useState<Partial<Record<string, string | null>>>({});
   const [customSrc, setCustomSrc] = useState<string | null>(null);
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const customSource = settings.backgroundSource ?? settings.backgroundPath;
   const customFallback = customSource !== null && failedSource === customSource;
   const customActive = customFallback ? settings.backgroundPath : customSource;
   const custom = settings.background === "custom" && customSrc !== null;
-  const [versions, setVersions] = useState<Partial<Record<GameId, GameVersion>>>({});
+  const [versions, setVersions] = useState<Partial<Record<string, GameVersion>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
-  const [onboarding, setOnboarding] = useState(
-    () => !isTauri() && QUERY.get("onboarding") === "1"
-  );
 
-  const state = states[gameId];
+  const state = states[serverId] ?? "install";
 
   const setState = (next: GameState) => {
-    setStates((current) => ({ ...current, [gameId]: next }));
+    setStates((current) => ({ ...current, [serverId]: next }));
   };
 
   // Load settings before the first paint; download state can arrive later.
@@ -230,7 +254,6 @@ export default function App() {
       } catch (error) {
         console.error("[YAYL] cannot load settings", error);
         loaded = defaultSettings();
-        if (!isTauri()) loaded.onboardingComplete = true;
       }
       if (!active) return;
 
@@ -238,27 +261,24 @@ export default function App() {
       if (loaded.language === "vi" || loaded.language === "en") {
         setLang(loaded.language);
       }
-      // The lab can replay onboarding with ?onboarding=1.
-      const forcedOnboarding = !isTauri() && QUERY.get("onboarding") === "1";
-      setOnboarding(forcedOnboarding || !loaded.onboardingComplete);
       setBooted(true);
 
       if (!isTauri()) {
-        const nextRoots = {} as Record<GameId, string>;
-        for (const id of GAME_IDS) {
-          nextRoots[id] = loaded.installRoots[id] || GAMES[id].path;
+        const nextRoots: Record<string, string> = {};
+        for (const profile of SERVER_LIST) {
+          nextRoots[profile.id] = loaded.installRoots[profile.id] || profile.path;
         }
         setRoots(nextRoots);
         return;
       }
 
-      const nextRoots = {} as Record<GameId, string>;
-      const nextStates: Partial<Record<GameId, GameState>> = {};
-      const nextLive: Partial<Record<GameId, LiveDownload>> = {};
-      const nextVersions: Partial<Record<GameId, GameVersion>> = {};
+      const nextRoots: Record<string, string> = {};
+      const nextStates: Partial<Record<string, GameState>> = {};
+      const nextLive: Partial<Record<string, LiveDownload>> = {};
+      const nextVersions: Partial<Record<string, GameVersion>> = {};
 
       await Promise.all(
-        GAME_IDS.map(async (id) => {
+        PROFILE_IDS.map(async (id) => {
           try {
             const root = loaded.installRoots[id] || (await defaultInstallRoot(id));
             nextRoots[id] = root;
@@ -285,9 +305,9 @@ export default function App() {
         })
       );
 
-      const nextPlaytimes: Partial<Record<GameId, PlaytimeEntry>> = {};
+      const nextPlaytimes: Partial<Record<string, PlaytimeEntry>> = {};
       await Promise.all(
-        GAME_IDS.map(async (id) => {
+        PROFILE_IDS.map(async (id) => {
           try {
             const entry = await fetchPlaytime(id);
             if (entry) nextPlaytimes[id] = entry;
@@ -303,9 +323,12 @@ export default function App() {
       setLive((current) => ({ ...current, ...nextLive }));
       setVersions(nextVersions);
       setStates((current) => {
-        const merged = { ...current, ...nextStates };
+        const merged: Record<string, GameState> = {
+          ...current,
+          ...(nextStates as Record<string, GameState>),
+        };
         const forced = queryState();
-        if (forced) merged[queryGame()] = forced;
+        if (forced) merged[queryServer(queryGame())] = forced;
         return merged;
       });
     })().catch((error: unknown) => {
@@ -324,8 +347,8 @@ export default function App() {
     let unlisten: (() => void) | undefined;
 
     void onDownloadProgress((progress) => {
-      const id = progress.game as GameId;
-      if (!GAME_IDS.includes(id)) return;
+      const id = progress.game;
+      if (!PROFILE_IDS.includes(id)) return;
 
       const view = liveFromProgress(progress);
       setLive((current) => ({ ...current, [id]: view }));
@@ -370,8 +393,8 @@ export default function App() {
     let unlisten: (() => void) | undefined;
 
     void onGameExit((event) => {
-      const id = event.game as GameId;
-      if (!GAME_IDS.includes(id)) return;
+      const id = event.game;
+      if (!PROFILE_IDS.includes(id)) return;
       setPlaytimes((current) => ({
         ...current,
         [id]: { seconds: event.totalSeconds, lastPlayed: event.lastPlayed },
@@ -388,56 +411,56 @@ export default function App() {
     };
   }, []);
 
-  // News is fetched per game and cached; the lab uses the Vite bridge.
+  // News is fetched per server profile and cached; the lab uses the Vite bridge.
   useEffect(() => {
-    if (!booted || news[gameId] !== undefined) return;
+    if (!booted || news[serverId] !== undefined) return;
     let active = true;
-    void fetchNews(gameId)
+    void fetchNews(serverId)
       .then((feed) => {
-        if (active) setNews((current) => ({ ...current, [gameId]: feed }));
+        if (active) setNews((current) => ({ ...current, [serverId]: feed }));
       })
       .catch((error: unknown) => {
-        console.error(`[YAYL] cannot load ${gameId} news`, error);
-        if (active) setNews((current) => ({ ...current, [gameId]: null }));
+        console.error(`[YAYL] cannot load ${serverId} news`, error);
+        if (active) setNews((current) => ({ ...current, [serverId]: null }));
       });
     return () => {
       active = false;
     };
-  }, [gameId, booted, news]);
+  }, [serverId, booted, news]);
 
   // Social channels are cached; a failure hides the cluster.
   useEffect(() => {
-    if (!booted || social[gameId] !== undefined) return;
+    if (!booted || social[serverId] !== undefined) return;
     let active = true;
-    void fetchSocial(gameId)
+    void fetchSocial(serverId)
       .then((links) => {
-        if (active) setSocial((current) => ({ ...current, [gameId]: links }));
+        if (active) setSocial((current) => ({ ...current, [serverId]: links }));
       })
       .catch((error: unknown) => {
-        console.error(`[YAYL] cannot load ${gameId} social links`, error);
-        if (active) setSocial((current) => ({ ...current, [gameId]: [] }));
+        console.error(`[YAYL] cannot load ${serverId} social links`, error);
+        if (active) setSocial((current) => ({ ...current, [serverId]: [] }));
       });
     return () => {
       active = false;
     };
-  }, [gameId, booted, social]);
+  }, [serverId, booted, social]);
 
   // Background art is verified and cached; `null` keeps the bundled image.
   useEffect(() => {
-    if (!booted || backgrounds[gameId] !== undefined) return;
+    if (!booted || backgrounds[serverId] !== undefined) return;
     let active = true;
-    void fetchBackground(gameId)
+    void fetchBackground(serverId)
       .then((source) => {
-        if (active) setBackgrounds((current) => ({ ...current, [gameId]: source }));
+        if (active) setBackgrounds((current) => ({ ...current, [serverId]: source }));
       })
       .catch((error: unknown) => {
-        console.error(`[YAYL] cannot load ${gameId} background`, error);
-        if (active) setBackgrounds((current) => ({ ...current, [gameId]: null }));
+        console.error(`[YAYL] cannot load ${serverId} background`, error);
+        if (active) setBackgrounds((current) => ({ ...current, [serverId]: null }));
       });
     return () => {
       active = false;
     };
-  }, [gameId, booted, backgrounds]);
+  }, [serverId, booted, backgrounds]);
 
   // Custom media uses the picked file first; the cache copy is the fallback.
   const customFailed = () => {
@@ -483,16 +506,12 @@ export default function App() {
   useLayoutEffect(() => {
     document.body.dataset.game = gameId;
     document.body.dataset.state = state;
-    document.body.dataset.layout = onboarding ? "onboarding" : "rail";
-    document.body.dataset.page = onboarding
-      ? "first-run"
-      : view === "settings"
-        ? "settings"
-        : "home";
+    document.body.dataset.layout = "rail";
+    document.body.dataset.page = view === "settings" ? "settings" : "home";
     document.body.dataset.background = settings.background;
     document.documentElement.lang = lang;
     document.documentElement.dataset.motion = settings.reducedMotion ? "off" : "on";
-  }, [gameId, state, lang, view, onboarding, settings.background, settings.reducedMotion]);
+  }, [gameId, state, lang, view, settings.background, settings.reducedMotion]);
 
   const t = useMemo(() => {
     const dict = I18N[lang] ?? I18N.vi;
@@ -512,17 +531,17 @@ export default function App() {
     if (next.language === "vi" || next.language === "en") setLang(next.language);
     setRoots((current) => {
       let merged = current;
-      for (const id of GAME_IDS) {
-        const path = next.installRoots[id];
-        if (!path || path === current[id]) continue;
+      for (const profile of SERVER_LIST) {
+        const path = next.installRoots[profile.id];
+        if (!path || path === current[profile.id]) continue;
         if (merged === current) merged = { ...current };
-        merged[id] = path;
+        merged[profile.id] = path;
       }
       return merged;
     });
   };
 
-  const rememberRoot = (id: GameId, path: string) => {
+  const rememberRoot = (id: string, path: string) => {
     setRoots((current) => ({ ...current, [id]: path }));
     setSettings((current) => ({
       ...current,
@@ -530,8 +549,23 @@ export default function App() {
     }));
   };
 
+  const selectGame = (id: GameId) => {
+    setGameId(id);
+    setServerId(activeServers[id]);
+    setView("home");
+  };
+
+  const switchServer = (id: string) => {
+    const target = serverOf(id);
+    if (!target) return;
+    setActiveServers((current) => ({ ...current, [target.gameId]: id }));
+    setServerId(id);
+    setGameId(target.gameId);
+    setServerOpen(false);
+  };
+
   const locate = () => {
-    void openInstallFolder(gameId, roots[gameId]).catch((error: unknown) => {
+    void openInstallFolder(serverId, roots[serverId]).catch((error: unknown) => {
       console.error("[YAYL] cannot open install folder", error);
     });
   };
@@ -545,21 +579,21 @@ export default function App() {
     }
     setErrors((current) => {
       const next = { ...current };
-      delete next[gameId];
+      delete next[serverId];
       return next;
     });
-    void launchGame(gameId)
+    void launchGame(serverId)
       .then((started) => {
         if (started) setState("running");
       })
       .catch((error: unknown) => {
         console.error("[YAYL] cannot launch game", error);
-        setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+        setErrors((current) => ({ ...current, [serverId]: errorCode(error) }));
       });
   };
 
   const check = (repair: boolean) => {
-    const id = gameId;
+    const id = serverId;
     setState("verifying");
     setErrors((current) => {
       const next = { ...current };
@@ -597,41 +631,41 @@ export default function App() {
 
   const confirmInstall = async (path: string) => {
     setInstallOpen(false);
-    rememberRoot(gameId, path);
+    rememberRoot(serverId, path);
     setErrors((current) => {
       const next = { ...current };
-      delete next[gameId];
+      delete next[serverId];
       return next;
     });
     setState("downloading");
 
     try {
-      await saveInstallRoot(gameId, path);
-      await startDownload(gameId, path);
+      await saveInstallRoot(serverId, path);
+      await startDownload(serverId, path);
     } catch (error) {
       setState("error");
-      setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+      setErrors((current) => ({ ...current, [serverId]: errorCode(error) }));
     }
   };
 
   const discard = async () => {
     setCancelOpen(false);
     try {
-      await discardDownload(gameId, roots[gameId]);
+      await discardDownload(serverId, roots[serverId]);
       setLive((current) => {
         const next = { ...current };
-        delete next[gameId];
+        delete next[serverId];
         return next;
       });
       setErrors((current) => {
         const next = { ...current };
-        delete next[gameId];
+        delete next[serverId];
         return next;
       });
       setState("install");
     } catch (error) {
       setState("error");
-      setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+      setErrors((current) => ({ ...current, [serverId]: errorCode(error) }));
     }
   };
 
@@ -644,24 +678,24 @@ export default function App() {
 
     setState("paused");
     try {
-      await cancelDownload(gameId);
+      await cancelDownload(serverId);
     } catch (error) {
       setState("error");
-      setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+      setErrors((current) => ({ ...current, [serverId]: errorCode(error) }));
     }
   };
 
   const resume = async () => {
     setState("downloading");
     try {
-      await startDownload(gameId, roots[gameId]);
+      await startDownload(serverId, roots[serverId]);
     } catch (error) {
       setState("error");
-      setErrors((current) => ({ ...current, [gameId]: errorCode(error) }));
+      setErrors((current) => ({ ...current, [serverId]: errorCode(error) }));
     }
   };
 
-  const artSrc = backgrounds[gameId] || `/art/${gameId}.png`;
+  const artSrc = backgrounds[serverId] || `/art/${gameId}.png`;
 
   return (
     <div
@@ -724,13 +758,13 @@ export default function App() {
             <img
               className="backdrop-art"
               data-active-art
-              key={`${gameId}:${backgrounds[gameId] ?? "art"}`}
+              key={`${serverId}:${backgrounds[serverId] ?? "art"}`}
               src={artSrc}
               alt=""
               onError={(event) => {
-                if (backgrounds[gameId]) {
+                if (backgrounds[serverId]) {
                   // A verified cache file can still disappear; fall back once.
-                  setBackgrounds((current) => ({ ...current, [gameId]: null }));
+                  setBackgrounds((current) => ({ ...current, [serverId]: null }));
                   return;
                 }
                 event.currentTarget.classList.add("is-missing");
@@ -755,22 +789,10 @@ export default function App() {
               <path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z" />
             </svg>
           </span>
-          <div>
-            <div className="brand-name" data-tauri-drag-region>
-              YAYL
-            </div>
-            {(onboarding || view === "settings") && (
-              <div className="brand-sub" data-tauri-drag-region>
-                {t("app.launcher")}
-              </div>
-            )}
+          <div className="brand-name" data-tauri-drag-region>
+            YAYL
           </div>
         </div>
-        {onboarding && (
-          <div className="titlebar-center">
-            <span className="titlebar-note">{t("firstRun.setup")}</span>
-          </div>
-        )}
         <div className="window-controls">
           <button className="win-btn" type="button" aria-label={t("window.minimize")} onClick={() => void windowMinimize()}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M5 12h14" /></svg>
@@ -784,50 +806,26 @@ export default function App() {
         </div>
       </header>
 
-      {view === "home" && !onboarding && (
-        <SocialLinks links={social[gameId] ?? []} t={t} />
+      {view === "home" && (
+        <SocialLinks links={social[serverId] ?? []} t={t} />
       )}
 
       {!booted ? (
         <div className="boot-screen" aria-busy="true">
           <BootMark />
         </div>
-      ) : onboarding ? (
-        <Suspense
-          fallback={
-            <div className="boot-screen" aria-busy="true">
-              <BootMark />
-            </div>
-          }
-        >
-          <FirstRunPage
-            settings={settings}
-            lang={lang}
-            t={t}
-            onLang={setLang}
-            onSettings={applySettings}
-            onDone={() => {
-              setOnboarding(false);
-              setView("home");
-            }}
-          />
-        </Suspense>
       ) : (
         <div className="shell">
           <Rail
             gameId={gameId}
             view={view}
+            activeServers={activeServers}
             states={states}
-            progress={
-              Object.fromEntries(
-                GAME_IDS.map((id) => [id, live[id]?.progress ?? 0])
-              ) as Record<GameId, number>
-            }
+            progress={Object.fromEntries(
+              PROFILE_IDS.map((id) => [id, live[id]?.progress ?? 0])
+            )}
             t={t}
-            onSelect={(id) => {
-              setGameId(id);
-              setView("home");
-            }}
+            onSelect={selectGame}
             onNavigate={setView}
           />
           <main className="main">
@@ -841,6 +839,7 @@ export default function App() {
                   }
                 >
                   <SettingsPage
+                    serverId={serverId}
                     gameId={gameId}
                     settings={settings}
                     roots={roots}
@@ -854,24 +853,25 @@ export default function App() {
               ) : (
                 <Home
                   gameId={gameId}
+                  serverId={serverId}
                   state={state}
                   lang={lang}
                   t={t}
-                  installRoot={roots[gameId]}
-                  progress={live[gameId]?.progress ?? null}
+                  installRoot={roots[serverId]}
+                  progress={live[serverId]?.progress ?? null}
                   download={
-                    live[gameId]
+                    live[serverId]
                       ? {
-                          speed: live[gameId].speed,
-                          done: live[gameId].bytesDone,
-                          total: live[gameId].bytesTotal,
+                          speed: live[serverId].speed,
+                          done: live[serverId].bytesDone,
+                          total: live[serverId].bytesTotal,
                         }
                       : null
                   }
-                  errorCode={errors[gameId] ?? null}
-                  playtime={playtimes[gameId]}
-                  news={news[gameId]}
-                  updateRequired={versions[gameId]?.updateRequired ?? false}
+                  errorCode={errors[serverId] ?? null}
+                  playtime={playtimes[serverId]}
+                  news={news[serverId]}
+                  updateRequired={versions[serverId]?.updateRequired ?? false}
                   onInstall={() => setInstallOpen(true)}
                   onLocate={locate}
                   onResume={() => void resume()}
@@ -882,6 +882,7 @@ export default function App() {
                   onRepair={() => check(true)}
                   onRetry={retry}
                   onSettings={() => setView("settings")}
+                  onSwitchServer={() => setServerOpen(true)}
                 />
               )}
             </div>
@@ -889,12 +890,12 @@ export default function App() {
         </div>
       )}
 
-      {!onboarding && (import.meta.env.DEV || !isTauri()) && (
+      {(import.meta.env.DEV || !isTauri()) && (
         <DevBar
           gameId={gameId}
           state={state}
           lang={lang}
-          onGame={setGameId}
+          onGame={selectGame}
           onState={setState}
           onLang={setLang}
         />
@@ -902,12 +903,23 @@ export default function App() {
 
       {installOpen && (
         <InstallDialog
-          gameId={gameId}
+          profileId={serverId}
           game={GAMES[gameId]}
-          initialPath={roots[gameId]}
+          initialPath={roots[serverId]}
           t={t}
           onClose={() => setInstallOpen(false)}
           onConfirm={(path) => void confirmInstall(path)}
+        />
+      )}
+
+      {serverOpen && (
+        <ServerDialog
+          gameId={gameId}
+          currentId={serverId}
+          states={states}
+          t={t}
+          onSelect={switchServer}
+          onClose={() => setServerOpen(false)}
         />
       )}
 
@@ -915,7 +927,7 @@ export default function App() {
         <ConfirmDialog
           title={t("home.cancel.title")}
           body={t("home.cancel.body")}
-          detail={roots[gameId]}
+          detail={roots[serverId]}
           confirmLabel={t("home.cancel.confirm")}
           cancelLabel={t("common.back")}
           danger

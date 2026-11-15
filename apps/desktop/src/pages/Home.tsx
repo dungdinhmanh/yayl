@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GAMES, STATE_META, type GameId, type GameState } from "../data";
+import { GAMES, STATE_META, serverOf, type GameId, type GameState } from "../data";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
@@ -9,6 +9,7 @@ import type { Lang } from "../App";
 
 interface Props {
   gameId: GameId;
+  serverId: string;
   state: GameState;
   lang: Lang;
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -29,6 +30,7 @@ interface Props {
   onRepair: () => void;
   onRetry: () => void;
   onSettings: () => void;
+  onSwitchServer: () => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -91,6 +93,7 @@ function formatLastPlayed(unixSeconds: number, lang: Lang): string {
 
 export default function Home({
   gameId,
+  serverId,
   state,
   lang,
   t,
@@ -111,8 +114,10 @@ export default function Home({
   onRepair,
   onRetry,
   onSettings,
+  onSwitchServer,
 }: Props) {
   const game = GAMES[gameId];
+  const region = serverOf(serverId)?.region ?? game.region;
   const live = isTauri();
   const meta = STATE_META[state];
   const secondary = secondaryAction(state);
@@ -186,6 +191,28 @@ export default function Home({
 
       <div className="home-actions">
         <div className="home-action-group">
+          <button
+            className="home-server"
+            type="button"
+            aria-haspopup="dialog"
+            aria-label={t("server.switch")}
+            title={t("server.switch")}
+            onClick={onSwitchServer}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 8h13l-3-3" />
+              <path d="M20 16H7l3 3" />
+            </svg>
+            <span>{region}</span>
+          </button>
           <div className="home-play-wrap">
             <button
               className={"home-play is-" + state}

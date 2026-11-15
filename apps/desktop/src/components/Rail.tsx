@@ -1,4 +1,4 @@
-import { GAMES, STATE_META, type GameId, type GameState } from "../data";
+import { GAMES, STATE_META, serverOf, type GameId, type GameState } from "../data";
 import DownloadBadge from "./DownloadBadge";
 import type { DownloadBadgeState } from "./DownloadBadge";
 
@@ -7,8 +7,9 @@ export type RailView = "home" | "settings";
 interface Props {
   gameId: GameId;
   view: RailView;
-  states: Record<GameId, GameState>;
-  progress: Record<GameId, number>;
+  activeServers: Record<GameId, string>;
+  states: Record<string, GameState>;
+  progress: Record<string, number>;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onSelect: (id: GameId) => void;
   onNavigate: (view: RailView) => void;
@@ -19,13 +20,24 @@ const RAIL_PATH =
 
 const DOWNLOAD_STATES: GameState[] = ["downloading", "paused", "verifying"];
 
-export default function Rail({ gameId, view, states, progress, t, onSelect, onNavigate }: Props) {
+export default function Rail({
+  gameId,
+  view,
+  activeServers,
+  states,
+  progress,
+  t,
+  onSelect,
+  onNavigate,
+}: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-scroll">
         <div className="game-list">
           {(Object.keys(GAMES) as GameId[]).map((id) => {
-            const gameState = states[id];
+            const serverId = activeServers[id];
+            const region = serverOf(serverId)?.region ?? GAMES[id].region;
+            const gameState = states[serverId] ?? "install";
             const downloadActive = DOWNLOAD_STATES.includes(gameState);
             const badge: DownloadBadgeState = !downloadActive
               ? "idle"
@@ -36,7 +48,7 @@ export default function Rail({ gameId, view, states, progress, t, onSelect, onNa
             // The progress ring belongs to a downloading game that is not selected.
             const showRing = downloadActive && !selected;
             // Selected rings are full: the ring doubles as the selection indicator.
-            const percent = progress[id] ?? STATE_META[gameState].progress;
+            const percent = progress[serverId] ?? STATE_META[gameState].progress;
             const endOffset = selected ? 0 : showRing ? 100 - percent : 100;
 
             return (
@@ -48,7 +60,7 @@ export default function Rail({ gameId, view, states, progress, t, onSelect, onNa
                   (showRing ? " is-downloading" : "")
                 }
                 type="button"
-                title={GAMES[id].name}
+                title={`${GAMES[id].name} ${region}`}
                 onClick={() => onSelect(id)}
                 data-game-id={id}
               >
@@ -68,6 +80,7 @@ export default function Rail({ gameId, view, states, progress, t, onSelect, onNa
                     alt={GAMES[id].name}
                     onError={(event) => event.currentTarget.classList.add("is-missing")}
                   />
+                  <span className="game-region">{region}</span>
                   <DownloadBadge state={badge} size="16px" />
                 </span>
                 <span className="game-info">

@@ -14,7 +14,6 @@ import {
   fetchDownloadBytes,
   formatBytes,
   gameVersion,
-  openInstallFolder,
   resetSettings,
   saveAppearance,
   saveInstallRoot,
@@ -31,21 +30,22 @@ import {
   type Settings as SettingsData,
 } from "../lib/ipc";
 
-type Tab = "general" | "game" | "network" | "advanced" | "about";
+type Tab = "general" | "game" | "network" | "about";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 interface Props {
+  serverId: string;
   gameId: GameId;
   settings: SettingsData;
-  roots: Record<GameId, string>;
-  states: Record<GameId, GameState>;
+  roots: Record<string, string>;
+  states: Record<string, GameState>;
   t: (key: string, vars?: Record<string, string | number>) => string;
   onSettings: (settings: SettingsData) => void;
   onLang: (lang: Lang) => void;
-  onRoot: (gameId: GameId, path: string) => void;
+  onRoot: (serverId: string, path: string) => void;
 }
 
-const TABS: Tab[] = ["general", "game", "network", "advanced", "about"];
+const TABS: Tab[] = ["general", "game", "network", "about"];
 
 const ICONS: Record<Tab, string> = {
   general:
@@ -53,9 +53,7 @@ const ICONS: Record<Tab, string> = {
   game:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h10a4 4 0 0 1 3.9 4.9l-1 4.1a2.4 2.4 0 0 1-4.2 1.2L14 16h-4l-1.7 2.2a2.4 2.4 0 0 1-4.2-1.2l-1-4.1A4 4 0 0 1 7 8Z"/><path d="M8 12h2M9 11v2"/></svg>',
   network:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><path d="M12 19h.01"/></svg>',
-  advanced:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.4 2.4 3.6 5.3 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.3-3.6-8.5S9.6 5.9 12 3.5Z"/></svg>',
   about:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>',
 };
@@ -73,6 +71,7 @@ function rangeFill(value: number, min: number, max: number): CSSProperties {
 }
 
 export default function Settings({
+  serverId,
   gameId,
   settings,
   roots,
@@ -84,7 +83,7 @@ export default function Settings({
 }: Props) {
   const [tab, setTab] = useState<Tab>("general");
   const [save, setSave] = useState<SaveState>("idle");
-  const [pathDraft, setPathDraft] = useState(roots[gameId]);
+  const [pathDraft, setPathDraft] = useState(roots[serverId]);
   const [pathState, setPathState] = useState<SaveState>("idle");
   const [resetArmed, setResetArmed] = useState(false);
   const [disk, setDisk] = useState<DiskSpace | null>(null);
@@ -104,8 +103,8 @@ export default function Settings({
   const savedTimer = useRef<number | null>(null);
 
   const game = GAMES[gameId];
-  const root = roots[gameId];
-  const busy = BUSY_STATES.includes(states[gameId]);
+  const root = roots[serverId] ?? "";
+  const busy = BUSY_STATES.includes(states[serverId] ?? "install");
   const pathChanged = pathDraft.trim() !== root.trim();
   const customPath = settings.backgroundSource ?? settings.backgroundPath;
   const isVideo = customPath ? backgroundIsVideo(customPath) : false;
@@ -117,11 +116,11 @@ export default function Settings({
   // status when the root changes because of our own save.
   useEffect(() => {
     setPathDraft(root);
-  }, [gameId, root]);
+  }, [serverId, root]);
 
   useEffect(() => {
     setPathState("idle");
-  }, [gameId]);
+  }, [serverId]);
 
   useEffect(() => {
     setProxyMode(settings.proxy.mode);
@@ -149,7 +148,7 @@ export default function Settings({
     let active = true;
     setDisk(null);
     setDownloadBytes(null);
-    void Promise.all([fetchDiskSpace(root), fetchDownloadBytes(gameId)])
+    void Promise.all([fetchDiskSpace(root), fetchDownloadBytes(serverId)])
       .then(([space, bytes]) => {
         if (!active) return;
         setDisk(space);
@@ -161,7 +160,7 @@ export default function Settings({
     return () => {
       active = false;
     };
-  }, [gameId, root]);
+  }, [serverId, root]);
 
   useEffect(() => {
     if (tab !== "about" || info) return;
@@ -181,7 +180,7 @@ export default function Settings({
   useEffect(() => {
     let active = true;
     setVersionInfo(null);
-    void gameVersion(gameId)
+    void gameVersion(serverId)
       .then((value) => {
         if (active) setVersionInfo(value);
       })
@@ -191,7 +190,7 @@ export default function Settings({
     return () => {
       active = false;
     };
-  }, [gameId, root]);
+  }, [serverId, root]);
 
   const clearSavedTimer = () => {
     if (savedTimer.current !== null) {
@@ -367,8 +366,8 @@ export default function Settings({
     setPathState("saving");
     try {
       const next = pathDraft.trim();
-      await saveInstallRoot(gameId, next);
-      onRoot(gameId, next);
+      await saveInstallRoot(serverId, next);
+      onRoot(serverId, next);
       setPathState("saved");
     } catch (error) {
       console.error("[YAYL] cannot save install folder", error);
@@ -799,27 +798,6 @@ export default function Settings({
                     )}
                   </div>
                 </div>
-
-                <div className="setting-row">
-                  <div className="setting-copy">
-                    <div className="setting-label">{t("settings.game.tools")}</div>
-                  </div>
-                  <div className="setting-control">
-                    <div className="settings-actions">
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        type="button"
-                        onClick={() =>
-                          void openInstallFolder(gameId, root).catch((error: unknown) => {
-                            console.error("[YAYL] cannot open install folder", error);
-                          })
-                        }
-                      >
-                        {t("settings.game.openFolder")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </section>
@@ -913,58 +891,6 @@ export default function Settings({
           <section
             className="settings-panel"
             role="tabpanel"
-            id="settings-panel-advanced"
-            aria-labelledby="settings-tab-advanced"
-            hidden={tab !== "advanced"}
-          >
-            <div className="settings-section">
-              <div className="settings-section-header">
-                <div className="settings-section-title">{t("settings.advanced.title")}</div>
-              </div>
-              <div className="settings-rows">
-                <div className="setting-row">
-                  <div className="setting-copy">
-                    <div className="setting-label">{t("settings.advanced.reset")}</div>
-                    {resetArmed && (
-                      <div className="setting-desc">{t("settings.reset.text")}</div>
-                    )}
-                  </div>
-                  <div className="setting-control">
-                    {resetArmed ? (
-                      <div className="settings-actions">
-                        <button
-                          className="btn btn-danger btn-sm"
-                          type="button"
-                          onClick={() => void doReset()}
-                        >
-                          {t("settings.reset.confirm")}
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          type="button"
-                          onClick={() => setResetArmed(false)}
-                        >
-                          {t("common.cancel")}
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        className="btn btn-danger btn-sm"
-                        type="button"
-                        onClick={() => setResetArmed(true)}
-                      >
-                        {t("settings.advanced.resetAction")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section
-            className="settings-panel"
-            role="tabpanel"
             id="settings-panel-about"
             aria-labelledby="settings-tab-about"
             hidden={tab !== "about"}
@@ -996,6 +922,44 @@ export default function Settings({
                 </div>
               </div>
               <div className="legal-note">{t("settings.about.legal")}</div>
+              <div className="settings-rows">
+                <div className="setting-row">
+                  <div className="setting-copy">
+                    <div className="setting-label">{t("settings.reset.title")}</div>
+                    {resetArmed && (
+                      <div className="setting-desc">{t("settings.reset.text")}</div>
+                    )}
+                  </div>
+                  <div className="setting-control">
+                    {resetArmed ? (
+                      <div className="settings-actions">
+                        <button
+                          className="btn btn-danger btn-sm"
+                          type="button"
+                          onClick={() => void doReset()}
+                        >
+                          {t("settings.reset.confirm")}
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          type="button"
+                          onClick={() => setResetArmed(false)}
+                        >
+                          {t("common.cancel")}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        type="button"
+                        onClick={() => setResetArmed(true)}
+                      >
+                        {t("settings.reset.confirm")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

@@ -62,6 +62,7 @@
             <button class="game-card is-active" type="button" data-game-id="arknights" data-status="ready" title="Arknights">
               <span class="game-thumb-wrap">
                 <img class="game-thumb" src="assets/img/icons/arknights.ico" alt="Arknights" onerror="this.classList.add('is-missing')">
+                <span class="game-region">EN</span>
               </span>
               <span class="game-info">
                 <span class="game-name">Arknights</span>
@@ -71,6 +72,7 @@
             <button class="game-card" type="button" data-game-id="stella" data-status="ready" title="Stella Sora">
               <span class="game-thumb-wrap">
                 <img class="game-thumb" src="assets/img/icons/stella.ico" alt="Stella Sora" onerror="this.classList.add('is-missing')">
+                <span class="game-region">EN</span>
               </span>
               <span class="game-info">
                 <span class="game-name">Stella Sora</span>
@@ -114,6 +116,10 @@
 
             <div class="home-actions">
               <div class="home-action-group">
+                <button class="home-server" type="button" id="serverSwitch" aria-haspopup="dialog" data-i18n-title="server.switch" aria-label="Đổi máy chủ">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg>
+                  <span data-server-region>EN</span>
+                </button>
                 <div class="home-play-wrap">
                   <button class="home-play" type="button" id="primaryAction">
                     <span class="home-play-icon" data-button-icon></span>
@@ -162,7 +168,6 @@
                     <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.verify">Kiểm tra</button>
                     <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.repair">Sửa game</button>
                     <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.settings">Thiết lập game</button>
-                    <button class="home-menu-item" type="button" role="menuitem" data-i18n="home.menu.shortcut">Tạo shortcut</button>
                   </div>
                 </div>
               </div>

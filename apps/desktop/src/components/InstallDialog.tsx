@@ -12,7 +12,7 @@ import {
 } from "../lib/ipc";
 
 interface Props {
-  gameId: GameId;
+  profileId: string;
   game: (typeof GAMES)[GameId];
   initialPath: string;
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -40,7 +40,7 @@ function percent(value: number) {
   return `${Math.max(0, Math.min(100, value))}%`;
 }
 
-export default function InstallDialog({ gameId, game, initialPath, t, onClose, onConfirm }: Props) {
+export default function InstallDialog({ profileId, game, initialPath, t, onClose, onConfirm }: Props) {
   const [path, setPath] = useState<string>(initialPath);
   const [downloadBytes, setDownloadBytes] = useState<number | null>(null);
   const [disk, setDisk] = useState<DiskSpace | null>(null);
@@ -61,7 +61,7 @@ export default function InstallDialog({ gameId, game, initialPath, t, onClose, o
     let active = true;
     setSizeLoading(true);
     setSizeError(false);
-    fetchDownloadBytes(gameId)
+    fetchDownloadBytes(profileId)
       .then((bytes) => {
         if (active) setDownloadBytes(bytes);
       })
@@ -77,7 +77,7 @@ export default function InstallDialog({ gameId, game, initialPath, t, onClose, o
     return () => {
       active = false;
     };
-  }, [gameId, sizeAttempt]);
+  }, [profileId, sizeAttempt]);
 
   useEffect(() => {
     let active = true;
@@ -293,7 +293,7 @@ export default function InstallDialog({ gameId, game, initialPath, t, onClose, o
               href={fileUrl(path)}
               onClick={(event) => {
                 event.preventDefault();
-                void openInstallFolder(gameId, path);
+                void openInstallFolder(profileId, path);
               }}
             >
               {t("home.action.locateGame")}

@@ -84,6 +84,31 @@ Profiles therefore send the version of the launcher they implement:
 Sora EN (`SS_extracted/package.json`). Sending YAYL's own version hides the
 Stella news list.
 
+### Launcher self-update (separate from game updates)
+
+`resources/app-update.yml` is electron-updater config for the official Electron
+shell, not the game protocol:
+
+```yaml
+provider: generic
+useMultipleRangeRequest: false
+url: https://launcher-pkg-ss-en.yo-star.com/install_pkg/game_launcher/StellaSora_EN/
+updaterCacheDirName: stellasora_en_gamelauncher-updater
+```
+
+That URL serves `latest.yml` (currently launcher `1.6.0`,
+`StellaSora_EN_Gamelauncher-1.6.0-setup.exe`, 177,986,936 bytes).
+`SS_extracted/out/main/index.js` calls `autoUpdater.checkForUpdates()` at
+startup, prompts when a newer shell exists, downloads on confirm, moves
+`YostarGames` aside to `..\temp-yo-star-games-en` before `quitAndInstall`, and
+restores it on the next launch (`request-recover-games-folder`). This replaces
+the launcher shell; it does not touch `manifest.json` game content.
+
+YAYL does not use this feed. It is not a game endpoint, and self-update stays
+out until release signing is defined (AGENTS.md). The useful signal is the
+launcher version (`1.6.0`), which is also the `head.version` used for Stella
+auth.
+
 ### Live versions observed
 
 | Game | Region | Version |

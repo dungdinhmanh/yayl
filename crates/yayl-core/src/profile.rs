@@ -46,7 +46,54 @@ pub const STELLA_SORA_EN: GameProfile = GameProfile {
     executable: "StellaSora.exe",
 };
 
-pub const PROFILES: [&GameProfile; 2] = [&ARKNIGHTS_EN, &STELLA_SORA_EN];
+pub const ARKNIGHTS_JP: GameProfile = GameProfile {
+    id: "arknights-jp",
+    game_tag: "Arknights_JP",
+    api_base: "https://api-launcher-jp.yo-star.com",
+    auth_salt: EN_AUTH_SALT,
+    protocol_version: "1.8.1",
+    install_dir: "Arknights_JP",
+    executable: "Arknights.exe",
+};
+
+pub const ARKNIGHTS_KR: GameProfile = GameProfile {
+    id: "arknights-kr",
+    game_tag: "Arknights_KR",
+    api_base: "https://api-launcher-kr.yo-star.com",
+    auth_salt: EN_AUTH_SALT,
+    protocol_version: "1.8.1",
+    install_dir: "Arknights_KR",
+    executable: "Arknights.exe",
+};
+
+pub const STELLA_SORA_JP: GameProfile = GameProfile {
+    id: "stella-jp",
+    game_tag: "StellaSora_JP",
+    api_base: "https://api-launcher-jp.yo-star.com",
+    auth_salt: EN_AUTH_SALT,
+    protocol_version: "1.6.0",
+    install_dir: "StellaSora_JP",
+    executable: "StellaSora.exe",
+};
+
+pub const STELLA_SORA_KR: GameProfile = GameProfile {
+    id: "stella-kr",
+    game_tag: "StellaSora_KR",
+    api_base: "https://api-launcher-kr.yo-star.com",
+    auth_salt: EN_AUTH_SALT,
+    protocol_version: "1.6.0",
+    install_dir: "StellaSora_KR",
+    executable: "StellaSora.exe",
+};
+
+pub const PROFILES: [&GameProfile; 6] = [
+    &ARKNIGHTS_EN,
+    &ARKNIGHTS_JP,
+    &ARKNIGHTS_KR,
+    &STELLA_SORA_EN,
+    &STELLA_SORA_JP,
+    &STELLA_SORA_KR,
+];
 
 pub fn by_id(id: &str) -> Option<&'static GameProfile> {
     PROFILES.iter().copied().find(|profile| profile.id == id)
@@ -64,7 +111,15 @@ mod tests {
     fn profiles_are_unique() {
         assert!(by_id("arknights").is_some());
         assert!(by_id("stella").is_some());
+        assert!(by_id("arknights-jp").is_some());
+        assert!(by_id("arknights-kr").is_some());
+        assert!(by_id("stella-jp").is_some());
+        assert!(by_id("stella-kr").is_some());
         assert!(by_id("unknown").is_none());
+        let mut ids: Vec<_> = PROFILES.iter().map(|profile| profile.id).collect();
+        ids.sort_unstable();
+        ids.dedup();
+        assert_eq!(ids.len(), PROFILES.len());
     }
 
     #[test]

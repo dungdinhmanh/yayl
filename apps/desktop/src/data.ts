@@ -75,6 +75,109 @@ export const GAMES = {
     "thumb": "assets/img/stella.png"
   }
 } as const;
+
+export type GameId = keyof typeof GAMES;
+
+export type Region = "EN" | "JP" | "KR";
+
+/* One install profile per server. The EN profile keeps the short game id so
+   existing settings and playtime files stay valid. */
+export interface ServerInfo {
+  id: string;
+  gameId: GameId;
+  region: Region;
+  installDir: string;
+  path: string;
+  size: number;
+  version: string;
+}
+
+export const SERVERS = {
+  arknights: [
+    {
+      id: "arknights",
+      gameId: "arknights",
+      region: "EN",
+      installDir: "Arknights_EN",
+      path: "D:\\Games\\YAYL\\Arknights_EN",
+      size: 26628797235,
+      version: "042.0.0",
+    },
+    {
+      id: "arknights-jp",
+      gameId: "arknights",
+      region: "JP",
+      installDir: "Arknights_JP",
+      path: "D:\\Games\\YAYL\\Arknights_JP",
+      size: 25904332800,
+      version: "37.7.41",
+    },
+    {
+      id: "arknights-kr",
+      gameId: "arknights",
+      region: "KR",
+      installDir: "Arknights_KR",
+      path: "D:\\Games\\YAYL\\Arknights_KR",
+      size: 26100000000,
+      version: "42.0.0",
+    },
+  ],
+  stella: [
+    {
+      id: "stella",
+      gameId: "stella",
+      region: "EN",
+      installDir: "StellaSora_EN",
+      path: "D:\\Games\\YAYL\\StellaSora_EN",
+      size: 20086893425,
+      version: "2.0.0",
+    },
+    {
+      id: "stella-jp",
+      gameId: "stella",
+      region: "JP",
+      installDir: "StellaSora_JP",
+      path: "D:\\Games\\YAYL\\StellaSora_JP",
+      size: 20300000000,
+      version: "2.0.0",
+    },
+    {
+      id: "stella-kr",
+      gameId: "stella",
+      region: "KR",
+      installDir: "StellaSora_KR",
+      path: "D:\\Games\\YAYL\\StellaSora_KR",
+      size: 20300000000,
+      version: "2.0.0",
+    },
+  ],
+} as const satisfies Record<GameId, readonly ServerInfo[]>;
+
+export const SERVER_LIST: readonly ServerInfo[] = [
+  ...SERVERS.arknights,
+  ...SERVERS.stella,
+];
+
+const SERVER_BY_ID: Record<string, ServerInfo> = Object.fromEntries(
+  SERVER_LIST.map((server) => [server.id, server])
+);
+
+export function serverOf(id: string): ServerInfo | undefined {
+  return SERVER_BY_ID[id];
+}
+
+export function gameOfServer(id: string): GameId {
+  return SERVER_BY_ID[id]?.gameId ?? "arknights";
+}
+
+export function defaultServerId(gameId: GameId): string {
+  return SERVERS[gameId][0].id;
+}
+
+export function isServerId(id: string): boolean {
+  return id in SERVER_BY_ID;
+}
+
 export const NEWS = {
   "banners": [
     {
@@ -353,6 +456,5 @@ export const HOME_STATES = [
   "offline"
 ] as const;
 
-export type GameId = keyof typeof GAMES;
 export type GameState = keyof typeof STATE_META;
 export type NewsTab = (typeof NEWS.tabs)[number];

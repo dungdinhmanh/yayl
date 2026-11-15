@@ -21,7 +21,6 @@
   var initialGame = validGame(params.get("game"));
   var initialLang = params.get("lang") === "en" ? "en" : "vi";
   var initialState;
-  var initialStep = Math.min(3, Math.max(1, parseInt(params.get("step") || "1", 10) || 1));
 
   if (page === "download") {
     initialState = validState(params.get("state"), "downloading");
@@ -34,14 +33,29 @@
     initialState = validState(params.get("state"), "ready");
   }
 
+  /* The lab keeps one state per regional profile, mirroring the app. */
+  var serverList = Y.SERVER_LIST || [];
+  var serverStates = {};
+  var activeServers = {};
+  serverList.forEach(function (server) {
+    serverStates[server.id] = server.region === "EN" ? "ready" : "install";
+    if (!activeServers[server.gameId]) activeServers[server.gameId] = server.id;
+  });
+  var requestedServer = params.get("server");
+  var initialServer = Y.serverOf && Y.serverOf(requestedServer);
+  if (initialServer && initialServer.gameId === initialGame) {
+    activeServers[initialGame] = initialServer.id;
+  }
+  var activeServerId = activeServers[initialGame];
+  if (activeServerId) serverStates[activeServerId] = initialState;
+
   var app = {
     params: params,
     page: page,
     current: {
       game: initialGame,
-      state: initialState,
-      lang: initialLang,
-      step: initialStep
+      servers: activeServers,
+      lang: initialLang
     },
     t: t,
     icon: function (name) {
@@ -50,14 +64,17 @@
     game: function () {
       return games[app.current.game] || games.arknights;
     },
+    server: function () {
+      return (Y.serverOf && Y.serverOf(app.current.servers[app.current.game])) || null;
+    },
     meta: function () {
       return states[app.current.state] || states.ready;
     },
     setGame: setGame,
+    setServer: setServer,
     setState: setState,
     setLang: setLang,
     setMotion: setMotion,
-    setStep: setStep,
     render: render,
     showToast: showToast,
     openConfirm: openConfirm,
@@ -67,14 +84,13 @@
     format: format
   };
 
-  Y.GAME_STATES = Y.GAME_STATES || {};
-  Y.GAME_STATES[app.current.game] = initialState;
+  Y.SERVER_STATES = serverStates;
   Object.defineProperty(app.current, "state", {
     get: function () {
-      return Y.GAME_STATES[app.current.game] || "ready";
+      return serverStates[app.current.servers[app.current.game]] || "ready";
     },
     set: function (value) {
-      Y.GAME_STATES[app.current.game] = value;
+      serverStates[app.current.servers[app.current.game]] = value;
     }
   });
 
@@ -112,6 +128,18 @@
     app.current.game = id;
     document.body.dataset.game = id;
     updateQuery("game", id);
+    updateQuery("server", app.current.servers[id]);
+    render();
+  }
+
+  function setServer(id) {
+    var server = Y.serverOf && Y.serverOf(id);
+    if (!server) return;
+    app.current.servers[server.gameId] = server.id;
+    app.current.game = server.gameId;
+    document.body.dataset.game = server.gameId;
+    updateQuery("game", server.gameId);
+    updateQuery("server", server.id);
     render();
   }
 
@@ -135,16 +163,6 @@
   function setMotion(reduced) {
     document.body.dataset.motion = reduced ? "reduced" : "full";
     updateToolbarMotion();
-  }
-
-  function setStep(step) {
-    var next = Math.min(3, Math.max(1, parseInt(step, 10) || 1));
-    app.current.step = next;
-    updateQuery("step", String(next));
-    if (typeof Y.setPageStep === "function") {
-      Y.setPageStep(next);
-    }
-    updateToolbar();
   }
 
   function wireImage(img) {
@@ -243,6 +261,7 @@
 
   function applyGameData() {
     var game = app.game();
+    var server = app.server() || { region: game.region, version: game.version, path: game.path };
     var lang = app.current.lang;
 
     document.querySelectorAll("[data-game-name]").forEach(function (el) {
@@ -252,10 +271,13 @@
       el.textContent = game.title;
     });
     document.querySelectorAll("[data-game-region]").forEach(function (el) {
-      el.textContent = game.region;
+      el.textContent = server.region;
+    });
+    document.querySelectorAll("[data-server-region]").forEach(function (el) {
+      el.textContent = server.region;
     });
     document.querySelectorAll("[data-game-version]").forEach(function (el) {
-      el.textContent = game.version;
+      el.textContent = server.version;
     });
     document.querySelectorAll("[data-game-latest]").forEach(function (el) {
       el.textContent = game.latest;
@@ -276,7 +298,7 @@
       el.textContent = game.drive;
     });
     document.querySelectorAll("[data-game-path]").forEach(function (el) {
-      el.textContent = game.path;
+      el.textContent = server.path;
     });
     document.querySelectorAll("[data-game-root]").forEach(function (el) {
       el.textContent = game.root;
@@ -324,10 +346,13 @@
       var game = games[id];
       if (!game) return;
       var isActive = id === active;
-      var stateId = (Y.GAME_STATES && Y.GAME_STATES[id]) || "ready";
+      var server = Y.serverOf ? Y.serverOf(app.current.servers[id]) : null;
+      var stateId = (server && Y.SERVER_STATES[server.id]) || "ready";
       card.dataset.status = statusKind(stateId);
       var versionEl = card.querySelector("[data-card-version]");
-      if (versionEl) versionEl.textContent = game.version;
+      if (versionEl && server) versionEl.textContent = server.version;
+      var regionEl = card.querySelector(".game-region");
+      if (regionEl && server) regionEl.textContent = server.region;
       var stateEl = card.querySelector("[data-card-state]");
       if (stateEl) stateEl.textContent = sidebarStateLabel(stateId, game);
       var badge = card.querySelector("[data-card-badge]");
@@ -370,7 +395,8 @@
       var tabId = tab.getAttribute("data-game-id");
       var thumb = tab.querySelector(".top-tab-thumb");
       if (thumb) setArt(thumb, tabId);
-      var tabState = (Y.GAME_STATES && Y.GAME_STATES[tabId]) || "ready";
+      var tabServer = Y.serverOf ? Y.serverOf(app.current.servers[tabId]) : null;
+      var tabState = (tabServer && Y.SERVER_STATES[tabServer.id]) || "ready";
       var tabDownloading = ["downloading", "paused", "verifying"].indexOf(tabState) !== -1;
       var tabBadge = tab.querySelector(".dl-badge");
       if (tabBadge && window.YAYL_BADGE) {
@@ -379,11 +405,6 @@
           tabDownloading ? (tabState === "paused" ? "paused" : "downloading") : "idle"
         );
       }
-    });
-
-    document.querySelectorAll(".game-select[data-game-id]").forEach(function (item) {
-      var thumb = item.querySelector(".game-select-thumb");
-      if (thumb) setArt(thumb, item.getAttribute("data-game-id"));
     });
 
     document.querySelectorAll(".game-settings-tab[data-game-id]").forEach(function (tab) {
@@ -436,8 +457,6 @@
     if (stateSelect) stateSelect.value = app.current.state;
     var langSelect = panel.querySelector("[data-mock-lang]");
     if (langSelect) langSelect.value = app.current.lang;
-    var stepSelect = panel.querySelector("[data-mock-step]");
-    if (stepSelect) stepSelect.value = String(app.current.step);
     updateToolbarMotion();
   }
 
@@ -500,7 +519,6 @@
         '<div class="mock-field"><label for="mockLang">Language</label><select id="mockLang" data-mock-lang>' +
           '<option value="vi">Tiếng Việt</option><option value="en">English</option>' +
         "</select></div>" +
-        (page === "first-run" ? '<div class="mock-field"><label for="mockStep">Step</label><select id="mockStep" data-mock-step><option value="1">01 Language</option><option value="2">02 Games</option><option value="3">03 Done</option></select></div>' : "") +
         '<div class="mock-panel-actions"><button type="button" class="mock-toggle" data-mock-motion>Motion: on</button></div>' +
         '<div class="mock-panel-note">Mock only. Add <code>?ui=0</code> to hide this panel. <code>?state=</code>, <code>?lang=</code>, <code>?game=</code> are also supported.</div>' +
       "</div>";
@@ -532,13 +550,6 @@
     if (langSelect) {
       langSelect.addEventListener("change", function () {
         setLang(langSelect.value);
-      });
-    }
-
-    var stepSelect = panel.querySelector("[data-mock-step]");
-    if (stepSelect) {
-      stepSelect.addEventListener("change", function () {
-        setStep(stepSelect.value);
       });
     }
 

@@ -149,3 +149,10 @@ Ran: bun run build, bun run design:check; checked 1470x932, 1280x720, and 1100x6
 [2026-11-14 13:26] opencode>all done ref:apps/desktop/src/styles/app.css
 Kept the first-run visual on object-fit cover so the contained backdrop rule does not letterbox that panel. Checked the app home and settings at the live 1470x932 preview.
 Ran: bun run build, bun run design:check.
+
+[2026-11-15 09:40] opencode>all done ref:apps/desktop/src/components/ServerDialog.tsx
+Added a real per-server profile switch: EN keeps the `arknights`/`stella` ids, JP/KR become `arknights-jp|kr` and `stella-jp|kr` in data.ts and profile.rs. A swap button sits left of Play with the current region; the modal lists every region, install state, and download size, and picking an uninstalled server lands on the install state. Rail thumbs show a region badge and read state per active server.
+Removed onboarding from React and design/ (FirstRun, first-run.html, server-switch.html) and deleted its dead CSS and mock hooks. Advanced tab is gone; reset now lives in About. Settings Game loses the Tools/Open folder row. Network tab uses a globe. Window is locked to 1356x734 with a solid topbar and art flush underneath.
+Documented the official electron-updater feed (app-update.yml, latest.yml 1.6.0) as shell-only self-update in docs/launcher-reference.md.
+Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13); browser-checked both previews at 1470x932 and 1356x734.
+Gap: self-update stays out of YAYL until release signing is defined.

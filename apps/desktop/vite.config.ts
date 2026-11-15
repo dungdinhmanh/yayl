@@ -4,13 +4,18 @@ import react from "@vitejs/plugin-react";
 
 /* Dev-only news bridge. The browser lab cannot call the signed API, so this
    mirrors `yayl_core::api` and never exists in a production build. */
-const API_BASE = "https://api-launcher-en.yo-star.com";
-/* Keep in sync with EN_AUTH_SALT in crates/yayl-core/src/profile.rs. */
 const AUTH_SALT = "DE7108E9B2842FD460F4777702727869";
 /* Keep in sync with the profiles in crates/yayl-core/src/profile.rs. */
-const GAMES: Record<string, { tag: string; version: string }> = {
-  arknights: { tag: "Arknights_EN", version: "1.8.1" },
-  stella: { tag: "StellaSora_EN", version: "1.6.0" },
+const EN_API = "https://api-launcher-en.yo-star.com";
+const JP_API = "https://api-launcher-jp.yo-star.com";
+const KR_API = "https://api-launcher-kr.yo-star.com";
+const GAMES: Record<string, { tag: string; version: string; api: string }> = {
+  arknights: { tag: "Arknights_EN", version: "1.8.1", api: EN_API },
+  "arknights-jp": { tag: "Arknights_JP", version: "1.8.1", api: JP_API },
+  "arknights-kr": { tag: "Arknights_KR", version: "1.8.1", api: KR_API },
+  stella: { tag: "StellaSora_EN", version: "1.6.0", api: EN_API },
+  "stella-jp": { tag: "StellaSora_JP", version: "1.6.0", api: JP_API },
+  "stella-kr": { tag: "StellaSora_KR", version: "1.6.0", api: KR_API },
 };
 const CACHE_MS = 60_000;
 
@@ -147,7 +152,7 @@ function devNewsPlugin(): Plugin {
           }
 
           try {
-            const response = await fetch(`${API_BASE}/api/launcher/operations/resource`, {
+            const response = await fetch(`${GAMES[game].api}/api/launcher/operations/resource`, {
               headers: {
                 Authorization: authHeader(tag, GAMES[game]?.version ?? "1.0.0"),
                 Accept: "application/json",
@@ -228,7 +233,7 @@ function devLauncherPlugin(): Plugin {
           return;
         }
         try {
-          const response = await fetch(`${API_BASE}${endpoint}`, {
+          const response = await fetch(`${GAMES[game].api}${endpoint}`, {
             headers: {
               Authorization: authHeader(tag, GAMES[game]?.version ?? "1.0.0"),
               Accept: "application/json",

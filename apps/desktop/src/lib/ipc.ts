@@ -1,6 +1,6 @@
 /* Typed wrappers for the Tauri command layer; components never call `invoke`. */
 
-import { GAMES, type GameId } from "../data";
+import { GAMES, SERVER_LIST, serverOf } from "../data";
 
 export interface DiskSpace {
   freeBytes: number;
@@ -94,7 +94,6 @@ export interface Settings {
   backgroundFit: BackgroundFit;
   backgroundMuted: boolean;
   backgroundLoop: boolean;
-  onboardingComplete: boolean;
   closeToTray: boolean;
 }
 
@@ -188,7 +187,6 @@ export function defaultSettings(): Settings {
     backgroundFit: "cover",
     backgroundMuted: true,
     backgroundLoop: true,
-    onboardingComplete: false,
     closeToTray: true,
   };
 }
@@ -196,10 +194,7 @@ export function defaultSettings(): Settings {
 const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 /* In-memory settings for the web lab. */
-let mockSettings: Settings = {
-  ...defaultSettings(),
-  onboardingComplete: true,
-};
+let mockSettings: Settings = defaultSettings();
 
 const GIB = 1024 ** 3;
 
@@ -212,7 +207,7 @@ const DISK_PRESETS: Record<string, DiskSpace> = {
 
 const MOCK_DRIVES = ["D:", "E:", "C:"];
 
-const downloadCache = new Map<GameId, number>();
+const downloadCache = new Map<string, number>();
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
@@ -247,20 +242,21 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(2)} ${units[unit]}`;
 }
 
-/* Total download size, cached per game. */
-export async function fetchDownloadBytes(gameId: GameId): Promise<number> {
-  const cached = downloadCache.get(gameId);
+/* Total download size, cached per server profile. */
+export async function fetchDownloadBytes(profileId: string): Promise<number> {
+  const cached = downloadCache.get(profileId);
   if (cached !== undefined) return cached;
 
   if (IS_TAURI) {
-    const bytes = await invoke<number>("download_bytes", { game: gameId });
-    downloadCache.set(gameId, bytes);
+    const bytes = await invoke<number>("download_bytes", { game: profileId });
+    downloadCache.set(profileId, bytes);
     return bytes;
   }
 
   await delay(650);
-  const bytes = GAMES[gameId].downloadBytes;
-  downloadCache.set(gameId, bytes);
+  const bytes = serverOf(profileId)?.size ?? 0;
+  if (bytes <= 0) throw new Error(`unknown server: ${profileId}`);
+  downloadCache.set(profileId, bytes);
   return bytes;
 }
 
@@ -276,9 +272,9 @@ export async function fetchDiskSpace(path: string): Promise<DiskSpace> {
 }
 
 /* Manifest size and disk space are independent: run both at the same time. */
-export async function planInstall(gameId: GameId, path: string): Promise<InstallPlan> {
+export async function planInstall(profileId: string, path: string): Promise<InstallPlan> {
   const [downloadBytes, disk] = await Promise.all([
-    fetchDownloadBytes(gameId),
+    fetchDownloadBytes(profileId),
     fetchDiskSpace(path),
   ]);
   const missingBytes = Math.max(0, downloadBytes - disk.freeBytes);
@@ -307,19 +303,19 @@ export async function chooseInstallFolder(current: string): Promise<string> {
   return current.replace(/^[A-Za-z]:/, next);
 }
 
-export async function openInstallFolder(gameId: GameId, path: string): Promise<void> {
+export async function openInstallFolder(profileId: string, path: string): Promise<void> {
   if (IS_TAURI) {
-    await invoke("open_install_folder", { game: gameId, path });
+    await invoke("open_install_folder", { game: profileId, path });
     return;
   }
   console.info(`[YAYL mock] open install folder: ${path}`);
 }
 
-export async function defaultInstallRoot(gameId: GameId): Promise<string> {
+export async function defaultInstallRoot(profileId: string): Promise<string> {
   if (IS_TAURI) {
-    return invoke<string>("default_install_root", { game: gameId });
+    return invoke<string>("default_install_root", { game: profileId });
   }
-  return GAMES[gameId].path;
+  return serverOf(profileId)?.path ?? GAMES.arknights.path;
 }
 
 export async function loadSettings(): Promise<Settings> {
@@ -329,14 +325,14 @@ export async function loadSettings(): Promise<Settings> {
   return { ...mockSettings };
 }
 
-export async function saveInstallRoot(gameId: GameId, path: string): Promise<void> {
+export async function saveInstallRoot(profileId: string, path: string): Promise<void> {
   if (IS_TAURI) {
-    await invoke("save_install_root", { game: gameId, path });
+    await invoke("save_install_root", { game: profileId, path });
     return;
   }
   mockSettings = {
     ...mockSettings,
-    installRoots: { ...mockSettings.installRoots, [gameId]: path },
+    installRoots: { ...mockSettings.installRoots, [profileId]: path },
   };
 }
 
@@ -491,29 +487,6 @@ export async function saveWindowBehavior(closeToTray: boolean): Promise<Settings
   return { ...mockSettings };
 }
 
-export async function saveFirstRun(
-  language: "vi" | "en",
-  roots: Record<string, string>
-): Promise<Settings> {
-  if (IS_TAURI) {
-    return invoke<Settings>("save_first_run", { input: { language, roots } });
-  }
-  mockSettings = {
-    ...mockSettings,
-    language,
-    installRoots: { ...mockSettings.installRoots, ...roots },
-  };
-  return { ...mockSettings };
-}
-
-export async function completeOnboarding(): Promise<Settings> {
-  if (IS_TAURI) {
-    return invoke<Settings>("complete_onboarding");
-  }
-  mockSettings = { ...mockSettings, onboardingComplete: true };
-  return { ...mockSettings };
-}
-
 export async function resetSettings(): Promise<Settings> {
   if (IS_TAURI) {
     return invoke<Settings>("reset_settings");
@@ -521,7 +494,6 @@ export async function resetSettings(): Promise<Settings> {
   mockSettings = {
     ...defaultSettings(),
     installRoots: mockSettings.installRoots,
-    onboardingComplete: mockSettings.onboardingComplete,
   };
   return { ...mockSettings };
 }
@@ -532,10 +504,10 @@ export async function gameProfiles(): Promise<GameProfiles> {
   }
   return {
     base: "D:\\Games\\YAYL",
-    games: (Object.keys(GAMES) as GameId[]).map((id) => ({
-      id,
-      installDir: GAMES[id].path.split("\\").pop() ?? id,
-      defaultRoot: GAMES[id].path,
+    games: SERVER_LIST.map((server) => ({
+      id: server.id,
+      installDir: server.installDir,
+      defaultRoot: server.path,
     })),
   };
 }
@@ -547,16 +519,16 @@ export async function appInfo(): Promise<AppInfo> {
   return { version: "0.1.0", debug: true };
 }
 
-export async function fetchPlaytime(gameId: GameId): Promise<PlaytimeEntry | null> {
+export async function fetchPlaytime(profileId: string): Promise<PlaytimeEntry | null> {
   if (!IS_TAURI) return null;
-  return invoke<PlaytimeEntry>("playtime", { game: gameId });
+  return invoke<PlaytimeEntry>("playtime", { game: profileId });
 }
 
-export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
+export async function fetchNews(profileId: string): Promise<NewsFeed | null> {
   if (!IS_TAURI) {
     /* Dev-only bridge from vite.config.ts. */
     if (!import.meta.env.DEV) return null;
-    const response = await fetch(`/__dev/news?game=${encodeURIComponent(gameId)}`, {
+    const response = await fetch(`/__dev/news?game=${encodeURIComponent(profileId)}`, {
       cache: "no-store",
     });
     if (!response.ok) {
@@ -564,11 +536,11 @@ export async function fetchNews(gameId: GameId): Promise<NewsFeed | null> {
     }
     const feed = (await response.json()) as NewsFeed;
     console.info(
-      `[YAYL] dev news ${gameId}: ${feed.banners.length} banners, ${feed.sections.length} sections`
+      `[YAYL] dev news ${profileId}: ${feed.banners.length} banners, ${feed.sections.length} sections`
     );
     return feed;
   }
-  return invoke<NewsFeed>("fetch_news", { game: gameId });
+  return invoke<NewsFeed>("fetch_news", { game: profileId });
 }
 
 export interface SocialLink {
@@ -578,10 +550,10 @@ export interface SocialLink {
 }
 
 /* Official social channels; URLs are validated by the core. */
-export async function fetchSocial(gameId: GameId): Promise<SocialLink[]> {
+export async function fetchSocial(profileId: string): Promise<SocialLink[]> {
   if (!IS_TAURI) {
     if (!import.meta.env.DEV) return [];
-    const response = await fetch(`/__dev/social?game=${encodeURIComponent(gameId)}`, {
+    const response = await fetch(`/__dev/social?game=${encodeURIComponent(profileId)}`, {
       cache: "no-store",
     });
     if (!response.ok) {
@@ -589,52 +561,39 @@ export async function fetchSocial(gameId: GameId): Promise<SocialLink[]> {
     }
     return (await response.json()) as SocialLink[];
   }
-  return invoke<SocialLink[]>("fetch_social", { game: gameId });
+  return invoke<SocialLink[]>("fetch_social", { game: profileId });
 }
 
 /* Cached background art served through the asset protocol. */
-export async function fetchBackground(gameId: GameId): Promise<string | null> {
+export async function fetchBackground(profileId: string): Promise<string | null> {
   if (!IS_TAURI) {
     if (!import.meta.env.DEV) return null;
-    const response = await fetch(`/__dev/background?game=${encodeURIComponent(gameId)}`, {
+    const response = await fetch(`/__dev/background?game=${encodeURIComponent(profileId)}`, {
       cache: "no-store",
     });
     if (!response.ok) return null;
     const data = (await response.json()) as { url?: string };
     return typeof data.url === "string" && data.url ? data.url : null;
   }
-  const path = await invoke<string | null>("fetch_background", { game: gameId });
+  const path = await invoke<string | null>("fetch_background", { game: profileId });
   if (!path) return null;
   const { convertFileSrc } = await import("@tauri-apps/api/core");
   return convertFileSrc(path);
 }
 
-function compareVersions(left: string, right: string): number {
-  const a = left.split(".");
-  const b = right.split(".");
-  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
-    const x = Number(a[i] ?? 0);
-    const y = Number(b[i] ?? 0);
-    const nx = Number.isFinite(x) ? x : 0;
-    const ny = Number.isFinite(y) ? y : 0;
-    if (nx !== ny) return nx < ny ? -1 : 1;
-  }
-  return 0;
-}
-
-export async function gameVersion(gameId: GameId): Promise<GameVersion> {
+export async function gameVersion(profileId: string): Promise<GameVersion> {
   if (!IS_TAURI) {
-    const local = GAMES[gameId].version;
-    const latest = GAMES[gameId].latest;
+    const server = serverOf(profileId);
+    const local = server?.version ?? "0.0.0";
     return {
       local,
-      latest,
+      latest: local,
       minimum: null,
-      updateAvailable: compareVersions(local, latest) < 0,
+      updateAvailable: false,
       updateRequired: false,
     };
   }
-  return invoke<GameVersion>("game_version", { game: gameId });
+  return invoke<GameVersion>("game_version", { game: profileId });
 }
 
 /* Open an https link in the system browser instead of navigating the webview. */
@@ -648,9 +607,9 @@ export async function openExternal(url: string): Promise<void> {
 }
 
 /* Returns true when a real backend started the game. */
-export async function launchGame(gameId: GameId): Promise<boolean> {
+export async function launchGame(profileId: string): Promise<boolean> {
   if (!IS_TAURI) return false;
-  await invoke("launch_game", { game: gameId });
+  await invoke("launch_game", { game: profileId });
   return true;
 }
 
@@ -663,46 +622,46 @@ export async function onGameExit(
 }
 
 export async function verifyGame(
-  gameId: GameId,
+  profileId: string,
   path: string
 ): Promise<VerifyReport | null> {
   if (!IS_TAURI) return null;
-  return invoke<VerifyReport>("verify_game", { game: gameId, path });
+  return invoke<VerifyReport>("verify_game", { game: profileId, path });
 }
 
 export async function repairGame(
-  gameId: GameId,
+  profileId: string,
   path: string
 ): Promise<VerifyReport | null> {
   if (!IS_TAURI) return null;
-  return invoke<VerifyReport>("repair_game", { game: gameId, path });
+  return invoke<VerifyReport>("repair_game", { game: profileId, path });
 }
 
 export async function downloadStatus(
-  gameId: GameId,
+  profileId: string,
   path: string
 ): Promise<DownloadSnapshot | null> {
   if (!IS_TAURI || !path.trim()) return null;
-  return invoke<DownloadSnapshot | null>("download_status", { game: gameId, path });
+  return invoke<DownloadSnapshot | null>("download_status", { game: profileId, path });
 }
 
 /* True when a real backend accepted the download. */
-export async function startDownload(gameId: GameId, path: string): Promise<boolean> {
+export async function startDownload(profileId: string, path: string): Promise<boolean> {
   if (!IS_TAURI) return false;
-  await invoke("start_download", { game: gameId, path });
+  await invoke("start_download", { game: profileId, path });
   return true;
 }
 
-export async function cancelDownload(gameId: GameId): Promise<void> {
+export async function cancelDownload(profileId: string): Promise<void> {
   if (IS_TAURI) {
-    await invoke("cancel_download", { game: gameId });
+    await invoke("cancel_download", { game: profileId });
   }
 }
 
 /* Drop the saved resume state but keep downloaded and partial files. */
-export async function discardDownload(gameId: GameId, path: string): Promise<void> {
+export async function discardDownload(profileId: string, path: string): Promise<void> {
   if (IS_TAURI) {
-    await invoke("discard_download", { game: gameId, path });
+    await invoke("discard_download", { game: profileId, path });
   }
 }
 

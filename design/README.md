@@ -30,39 +30,37 @@ Static HTML/CSS/JS prototypes for the YAYL launcher. **No build step. No server.
 | `index.html` | Gallery and review checklist |
 | `home-sidebar.html` | Home, variant A (icon rail + news) |
 | `home-topbar.html` | Home, variant B (top avatars + news) |
-| `settings.html` | Settings (General, Game, Network, Advanced, About) |
-| `first-run.html` | Onboarding (language, games, done) |
+| `settings.html` | Settings (General, Game, Network, About) |
 | `ui-kit.html` | Buttons, forms, status, progress, modal |
 | `download-animations.html` | Five download-avatar animation options to review |
 | `bubble-progress.html` | Chosen download effect (rising bubbles), standalone component demo |
 | `effects-gallery.html` | 41 progress effects with library tags, weight, sticky scrubber and a simulate-download control |
-| `server-switch.html` | One game icon + server picker concept |
 
 ## Query parameters
 
 | Parameter | Values | Notes |
 |---|---|---|
 | `game` | `arknights`, `stella` | Active game profile |
+| `server` | `arknights`, `arknights-jp`, `arknights-kr`, `stella`, `stella-jp`, `stella-kr` | Active regional profile |
 | `state` | `ready`, `update`, `install`, `downloading`, `paused`, `verifying`, `running`, `error`, `offline`, `complete` | Home; download supports a subset |
 | `lang` | `vi`, `en` | Vietnamese is the default |
 | `ui` | `0`, `1` | `0` hides the lab toolbar |
-| `step` | `1`, `2`, `3` | `first-run.html` only |
-| `tab` | `general`, `game`, `network`, `advanced`, `about` | `settings.html` only |
+| `tab` | `general`, `game`, `network`, `about` | `settings.html` only |
 
 Examples:
 
 ```text
 home-sidebar.html?state=install&lang=vi
 home-sidebar.html?state=downloading&game=stella
+home-sidebar.html?server=stella-jp
 settings.html?tab=network
-first-run.html?step=2
 ```
 
 ## Review checklist
 
 - All strings fit in Vietnamese and English.
 - Long install paths truncate in the middle without hiding the drive.
-- 1280×720 and 1100×650 both look intentional.
+- 1356×734 and 1470×932 both look intentional.
 - 150% zoom does not clip the primary action.
 - Keyboard focus is visible on every control.
 - Disabled and enabled states are clearly different.

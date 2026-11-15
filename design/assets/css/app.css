@@ -160,7 +160,7 @@ body[data-game="stella"] .backdrop {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center;
+  object-position: center top;
   filter: saturate(1.04) contrast(1.03);
   animation: art-in 900ms var(--ease-out) both;
 }
@@ -233,7 +233,7 @@ body[data-background="solid"] .backdrop-blur {
   min-width: 0;
   padding: 0 8px 0 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.045);
-  background: linear-gradient(180deg, rgba(5, 7, 11, 0.82), rgba(5, 7, 11, 0.34));
+  background: var(--bg-0);
   -webkit-app-region: drag;
   user-select: none;
 }
@@ -2646,409 +2646,6 @@ body[data-background="solid"] .backdrop-blur {
   line-height: 1.65;
 }
 
-/* --------------------------------------------------------------------------
-   First run
-   -------------------------------------------------------------------------- */
-
-.onboarding {
-  position: relative;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: minmax(430px, 0.82fr) minmax(0, 1.18fr);
-  min-height: 0;
-}
-
-.onboarding-panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 28px 40px 30px;
-  border-right: 1px solid var(--border-soft);
-  background: linear-gradient(180deg, rgba(6, 9, 14, 0.9), rgba(6, 9, 14, 0.76));
-  backdrop-filter: blur(22px);
-}
-
-.onboarding-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.onboarding-brand .brand-mark {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-}
-
-.onboarding-brand .brand-name {
-  font-size: 16.8px;
-}
-
-.onboarding-brand .brand-sub {
-  font-size: 12px;
-}
-
-.onboarding-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 440px;
-  padding: 24px 0;
-}
-
-.onboarding-steps {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 26px;
-}
-
-.onboarding-step {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted-3);
-  font-size: 12.6px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.onboarding-step::after {
-  content: "";
-  width: 18px;
-  height: 1px;
-  margin: 0 4px;
-  background: var(--border);
-}
-
-.onboarding-step:last-child::after {
-  display: none;
-}
-
-.onboarding-step.is-active {
-  color: var(--accent);
-}
-
-.onboarding-step.is-done {
-  color: var(--muted);
-}
-
-.step-num {
-  display: grid;
-  place-items: center;
-  width: 19px;
-  height: 19px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.onboarding-step.is-active .step-num {
-  border-color: rgba(var(--accent-rgb), 0.5);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.onboarding-step.is-done .step-num {
-  border-color: rgba(69, 214, 160, 0.3);
-  background: var(--success-soft);
-  color: var(--success);
-}
-
-.onboarding-eyebrow {
-  color: var(--accent);
-  font-size: 12.6px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.onboarding-title {
-  margin-top: 9px;
-  font-size: clamp(27px, 3vw, 38px);
-  font-weight: 750;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
-}
-
-.onboarding-desc {
-  max-width: 380px;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 13.8px;
-  line-height: 1.65;
-}
-
-.onboarding-form {
-  margin-top: 22px;
-}
-
-.language-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.language-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 58px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.025);
-  color: var(--muted);
-  text-align: left;
-  transition: border-color var(--dur-fast), background var(--dur-fast);
-}
-
-.language-option:hover {
-  border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.language-option.is-active {
-  border-color: rgba(var(--accent-rgb), 0.4);
-  background: rgba(var(--accent-rgb), 0.09);
-  color: var(--text);
-}
-
-.language-option > span:last-child {
-  display: grid;
-}
-
-.language-flag {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 15.6px;
-}
-
-.language-name {
-  font-size: 13.8px;
-  font-weight: 600;
-}
-
-.language-sub {
-  margin-top: 1px;
-  color: var(--muted-2);
-  font-size: 12.6px;
-}
-
-.onboarding-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.onboarding-actions .btn-primary {
-  min-width: 150px;
-  box-shadow: none;
-}
-
-.onboarding-actions .btn-primary:hover:not(:disabled) {
-  box-shadow: none;
-}
-
-.onboarding-visual {
-  position: relative;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.onboarding-visual .backdrop-art {
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.onboarding-visual-scrim {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(6, 9, 14, 0.86), transparent 35%),
-    linear-gradient(0deg, rgba(6, 9, 14, 0.9), transparent 50%);
-}
-
-.onboarding-quote {
-  position: absolute;
-  left: 42px;
-  right: 42px;
-  bottom: 38px;
-}
-
-.onboarding-quote-mark {
-  color: var(--accent);
-  font-family: Georgia, serif;
-  font-size: 34px;
-  line-height: 1;
-}
-
-.onboarding-quote p {
-  max-width: 420px;
-  margin-top: 4px;
-  color: var(--text-soft);
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.5;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5);
-}
-
-.onboarding-quote small {
-  display: block;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 12.6px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.onboarding-features {
-  position: absolute;
-  top: 34px;
-  right: 38px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  align-items: flex-end;
-}
-
-.onboarding-feature {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: rgba(5, 8, 13, 0.34);
-  color: var(--muted);
-  font-size: 12px;
-  backdrop-filter: blur(8px);
-}
-
-.onboarding-feature svg {
-  width: 11px;
-  height: 11px;
-  color: var(--accent);
-}
-
-/* Game selection cards */
-.game-select-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.game-select {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  min-height: 60px;
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.025);
-  color: var(--muted);
-  text-align: left;
-  transition: border-color var(--dur-fast), background var(--dur-fast);
-}
-
-.game-select:hover {
-  border-color: var(--border-strong);
-}
-
-.game-select.is-active {
-  border-color: rgba(var(--accent-rgb), 0.4);
-  background: rgba(var(--accent-rgb), 0.08);
-}
-
-.game-select-thumb {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
-  border-radius: 10px;
-  object-fit: cover;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.game-select-copy {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-}
-
-.game-select-name {
-  color: var(--text-soft);
-  font-size: 13.8px;
-  font-weight: 600;
-}
-
-.game-select-meta {
-  margin-top: 2px;
-  color: var(--muted-2);
-  font-size: 12.6px;
-}
-
-.check-box {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  border: 1px solid var(--border-strong);
-  border-radius: 5px;
-  color: transparent;
-  transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
-}
-
-.game-select.is-active .check-box {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.check-box svg {
-  width: 10px;
-  height: 10px;
-}
-
-.onboarding-path {
-  margin-top: 13px;
-}
-
-.onboarding-path-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
-  color: var(--muted-2);
-  font-size: 12.6px;
-  font-weight: 650;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.onboarding-path-label span {
-  color: var(--muted-3);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .disk-note {
   display: flex;
   align-items: center;
@@ -3841,7 +3438,6 @@ body[data-background="solid"] .backdrop-blur {
 .backdrop-art.is-missing,
 .game-thumb.is-missing,
 .top-tab-thumb.is-missing,
-.game-select-thumb.is-missing,
 .lab-card-art.is-missing,
 .game-settings-tab img.is-missing {
   display: none !important;
@@ -4200,14 +3796,6 @@ body[data-background="solid"] .backdrop-blur {
   .download-stat-grid {
     gap: 8px;
   }
-
-  .onboarding {
-    grid-template-columns: 430px minmax(0, 1fr);
-  }
-
-  .onboarding-panel {
-    padding: 24px 30px 26px;
-  }
 }
 
 @media (max-width: 980px) {
@@ -4298,14 +3886,6 @@ body[data-background="solid"] .backdrop-blur {
 
   .settings-nav-item {
     white-space: nowrap;
-  }
-
-  .onboarding {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .onboarding-visual {
-    display: none;
   }
 
   .lab-grid {
@@ -4467,20 +4047,6 @@ body[data-background="solid"] .backdrop-blur {
   .setting-row {
     min-height: 52px;
   }
-
-  .onboarding-panel {
-    padding-top: 20px;
-    padding-bottom: 20px;
-  }
-
-  .onboarding-body {
-    padding: 16px 0;
-  }
-
-  .language-option,
-  .game-select {
-    min-height: 52px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4625,6 +4191,25 @@ body[data-layout="rail"] .game-thumb {
   height: 40px;
   border-radius: 11px;
   object-fit: contain;
+}
+
+/* Region code on the active server, opposite the download badge. */
+body[data-layout="rail"] .game-region {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  z-index: 3;
+  padding: 1px 4px;
+  border-radius: 6px;
+  background: rgba(6, 9, 14, 0.94);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  pointer-events: none;
 }
 
 body[data-layout="rail"] .nav-item {
@@ -5036,6 +4621,41 @@ body[data-layout="rail"] .backdrop-scrim {
   gap: 10px;
 }
 
+/* Region switch sits left of Play: square, stacked icon and region code. */
+.home-server {
+  display: flex;
+  width: 62px;
+  height: 62px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.home-server:hover,
+.home-server:focus-visible {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.home-server svg {
+  width: 20px;
+  height: 20px;
+}
+
+.home-server span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .home-play-wrap {
   position: relative;
   display: flex;
@@ -5308,6 +4928,89 @@ body[data-layout="rail"] .backdrop-scrim {
 
 .install-dialog:focus {
   outline: none;
+}
+
+/* Server switcher reuses the install dialog shell. */
+.server-dialog {
+  width: min(460px, 100%);
+}
+
+.server-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.server-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  text-align: left;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.server-row:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.server-row.is-current {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.server-region {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.server-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.server-name {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.server-meta {
+  display: flex;
+  gap: 10px;
+  color: var(--muted-2);
+  font-size: 12.4px;
+}
+
+.server-size {
+  font-family: var(--font-mono);
+}
+
+.server-check {
+  color: var(--accent);
+}
+
+.server-check svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .install-head {
@@ -6804,9 +6507,9 @@ body[data-page="download"] .backdrop-scrim {
 
 
 /* The launcher locks its minimum size. The lab shows the same guard. */
-@media (max-width: 1099px), (max-height: 649px) {
+@media (max-width: 1355px), (max-height: 733px) {
   body::before {
-    content: "YAYL needs at least 1100 × 650";
+    content: "YAYL needs at least 1356 × 734";
     position: fixed;
     inset: 0;
     z-index: 9999;

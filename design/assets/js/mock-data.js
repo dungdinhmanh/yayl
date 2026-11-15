@@ -69,6 +69,29 @@
     }
   };
 
+  /* One profile per region. EN is the bundled sample; JP/KR start uninstalled. */
+  YAYL.SERVERS = {
+    arknights: [
+      { id: "arknights", gameId: "arknights", region: "EN", installDir: "Arknights_EN", path: "D:\\Games\\YAYL\\Arknights_EN", size: 26628797235, version: "042.0.0" },
+      { id: "arknights-jp", gameId: "arknights", region: "JP", installDir: "Arknights_JP", path: "D:\\Games\\YAYL\\Arknights_JP", size: 25904332800, version: "37.7.41" },
+      { id: "arknights-kr", gameId: "arknights", region: "KR", installDir: "Arknights_KR", path: "D:\\Games\\YAYL\\Arknights_KR", size: 26100000000, version: "42.0.0" }
+    ],
+    stella: [
+      { id: "stella", gameId: "stella", region: "EN", installDir: "StellaSora_EN", path: "D:\\Games\\YAYL\\StellaSora_EN", size: 20086893425, version: "2.0.0" },
+      { id: "stella-jp", gameId: "stella", region: "JP", installDir: "StellaSora_JP", path: "D:\\Games\\YAYL\\StellaSora_JP", size: 20300000000, version: "2.0.0" },
+      { id: "stella-kr", gameId: "stella", region: "KR", installDir: "StellaSora_KR", path: "D:\\Games\\YAYL\\StellaSora_KR", size: 20300000000, version: "2.0.0" }
+    ]
+  };
+
+  YAYL.SERVER_LIST = YAYL.SERVERS.arknights.concat(YAYL.SERVERS.stella);
+
+  YAYL.serverOf = function (id) {
+    for (var i = 0; i < YAYL.SERVER_LIST.length; i += 1) {
+      if (YAYL.SERVER_LIST[i].id === id) return YAYL.SERVER_LIST[i];
+    }
+    return null;
+  };
+
   YAYL.STATE_META = {
     ready: {
       tone: "ready",
@@ -206,11 +229,6 @@
 
   YAYL.DOWNLOAD_STATES = ["downloading", "paused", "verifying", "error", "complete"];
 
-  YAYL.GAME_STATES = {
-    arknights: "ready",
-    stella: "ready"
-  };
-
   YAYL.NEWS = {
     banners: [
       {
@@ -267,6 +285,8 @@
   };
 
   YAYL.ICONS = {
+    swap:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/></svg>',
     play:
       '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.4 5.2a1 1 0 0 1 1.52-.86l9.1 6.8a1 1 0 0 1 0 1.72l-9.1 6.8A1 1 0 0 1 8.4 18.8V5.2Z"/></svg>',
     download:
