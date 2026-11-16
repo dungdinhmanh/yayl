@@ -229,3 +229,8 @@ Offline start: fetch_news/fetch_social cache the last good response under `<data
 Placeholder banner art is gone: the three SVGs are deleted from apps/desktop/public/news and design/assets/img/news; mock banners draw their copy on a CSS gradient and a live banner whose image fails is dropped (NewsWidget.tsx:123).
 Ran: cargo fmt --check, test -p yayl-core (124), clippy -D warnings, check -p yayl-desktop, bun run build, design:check, versions:check.
 Not run: the app on a real offline network. No TODO id existed for this task, so there is no claim entry.
+[2026-11-16 16:55] opencode>all done ref:apps/desktop/src/components/NewsWidget.tsx:90
+Ran the built app (debug + custom-protocol, PrintWindow capture, no focus steal) with the network cut via a dead manual proxy.
+Offline with cache: cached feed (5 banners / 3 sections) and cached background render; no-cache offline: `news.unavailable` only.
+Fixed what the run exposed: mock banners/tabs were leaking into the app on a failed fetch, so the notice sat above fake tabs; mock copy is now lab-only (NewsWidget.tsx:90,241).
+Not tested: the `online` refresh needs a real network flap. A settings.json with a UTF-8 BOM aborts every settings-dependent command before its cache fallback (self-written files are clean).

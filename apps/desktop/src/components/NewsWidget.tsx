@@ -88,8 +88,13 @@ export default function NewsWidget({ lang, t, news }: Props) {
       (news !== undefined && news.banners.length === 0 && news.sections.length === 0));
 
   const data = useMemo(() => {
-    if (!live || !news) {
+    /* Mock copy is a lab fallback only: in the app a failed fetch must not
+       turn into fake tabs under the "no news" notice. */
+    if (!live) {
       return { banners: mockBanners(lang), tabs: mockTabs(lang) };
+    }
+    if (!news) {
+      return { banners: [] as BannerView[], tabs: [] as TabView[] };
     }
     return {
       banners: news.banners.map((item, index) => ({
@@ -233,7 +238,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
         </div>
       ) : null}
 
-      {(loading || unavailable || data.tabs.length > 0) && (
+      {(loading || data.tabs.length > 0) && (
         <div className="news-panel">
           <div className="news-tabs" role="tablist" aria-label={t("news.title")}>
             {data.tabs.map((item) => (
@@ -252,8 +257,6 @@ export default function NewsWidget({ lang, t, news }: Props) {
           <div className="news-list">
             {loading ? (
               <div className="news-placeholder-row" aria-busy="true" />
-            ) : unavailable ? (
-              <div className="news-placeholder-row" />
             ) : (
               (tab?.items ?? []).map((item) => {
                 const body = (
