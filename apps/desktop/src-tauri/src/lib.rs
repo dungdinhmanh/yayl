@@ -108,6 +108,8 @@ pub fn run() {
             commands::save_window_behavior,
             commands::choose_custom_background,
             commands::clear_custom_background,
+            commands::save_background_cache,
+            commands::background_cache_bytes,
             commands::save_first_run,
             commands::complete_onboarding,
             commands::reset_settings,

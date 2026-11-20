@@ -1,6 +1,7 @@
 /* Typed wrappers for the Tauri command layer; components never call `invoke`. */
 
 import { GAMES, SERVER_LIST, serverOf } from "../data";
+import type { InvokeArgs } from "@tauri-apps/api/core";
 
 export interface DiskSpace {
   freeBytes: number;
@@ -215,7 +216,7 @@ function delay(ms: number) {
   });
 }
 
-async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+async function invoke<T>(command: string, args?: InvokeArgs): Promise<T> {
   const { invoke: call } = await import("@tauri-apps/api/core");
   return call<T>(command, args);
 }
@@ -579,6 +580,23 @@ export async function fetchBackground(profileId: string): Promise<string | null>
   if (!path) return null;
   const { convertFileSrc } = await import("@tauri-apps/api/core");
   return convertFileSrc(path);
+}
+
+/** Bytes of the downscaled custom backdrop, 0 when it has not been written. */
+export async function backgroundCacheBytes(): Promise<number> {
+  if (!IS_TAURI) return 0;
+  return invoke<number>("background_cache_bytes");
+}
+
+/** Store the JPEG the app rendered from a picked backdrop. */
+export async function saveBackgroundCache(bytes: Uint8Array): Promise<Settings> {
+  if (!IS_TAURI) return { ...mockSettings };
+  /* Raw body, not JSON: the payload is up to a few MiB of JPEG. */
+  const body = bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength
+  ) as ArrayBuffer;
+  return invoke<Settings>("save_background_cache", body);
 }
 
 export async function gameVersion(profileId: string): Promise<GameVersion> {

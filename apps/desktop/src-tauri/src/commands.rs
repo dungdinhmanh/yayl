@@ -569,58 +569,73 @@ pub async fn choose_custom_background(
         ));
     }
 
-    let name = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("background");
     let dir = custom_background_dir(&app)?;
-    tokio::fs::create_dir_all(&dir)
-        .await
-        .map_err(|error| CommandError::new("io", error.to_string()))?;
-
-    let dest = dir.join(name);
-    // Copying a file onto itself truncates it, so keep an already-cached pick.
-    if !same_path(&path, &dest) {
-        tokio::fs::copy(&path, &dest)
-            .await
-            .map_err(|error| CommandError::new("io", error.to_string()))?;
-    }
-
-    // Keep a single custom file; drop older copies after the new one lands.
-    let mut entries = tokio::fs::read_dir(&dir)
-        .await
-        .map_err(|error| CommandError::new("io", error.to_string()))?;
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|error| CommandError::new("io", error.to_string()))?
-    {
-        let entry_path = entry.path();
-        if entry_path != dest
-            && entry
+    // The light copy covers the previous pick only; the UI writes a new one.
+    if let Ok(mut entries) = tokio::fs::read_dir(&dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            if entry
                 .file_type()
                 .await
                 .map(|kind| kind.is_file())
                 .unwrap_or(false)
-        {
-            let _ = tokio::fs::remove_file(entry_path).await;
+            {
+                let _ = tokio::fs::remove_file(entry.path()).await;
+            }
         }
     }
 
     let mut settings = settings::load(&app)?;
     settings.background = BackgroundMode::Custom;
-    // Use the picked file directly; the cache copy only covers a moved or deleted source.
-    let source = if tokio::fs::metadata(&path).await.is_ok() {
-        path
-    } else {
-        dest.clone()
-    };
-    // The asset protocol serves the app cache only, so open the picked file too.
-    let _ = app.asset_protocol_scope().allow_file(&source);
-    settings.background_source = Some(source);
-    settings.background_path = Some(dest);
+    // Use the picked file directly; the light copy only covers a moved or
+    // deleted source, and `background_path` is set once the UI has written it.
+    let _ = app.asset_protocol_scope().allow_file(&path);
+    settings.background_source = Some(path);
+    settings.background_path = None;
     settings::save(&app, &settings)?;
     Ok(Some(settings.into()))
+}
+
+/// Store the downscaled JPEG the UI rendered from the picked backdrop.
+///
+/// The webview is an untrusted caller like any other: the size cap, the single
+/// file name and the "custom is still selected" check all live here.
+#[tauri::command]
+pub async fn save_background_cache(
+    app: AppHandle,
+    request: tauri::ipc::Request<'_>,
+) -> Result<SettingsView, CommandError> {
+    let bytes = match request.body() {
+        tauri::ipc::InvokeBody::Raw(bytes) => bytes.clone(),
+        tauri::ipc::InvokeBody::Json(_) => {
+            return Err(CommandError::new(
+                "invalid_input",
+                "background cache must be sent as raw bytes",
+            ));
+        }
+    };
+    let mut settings = settings::load(&app)?;
+    if settings.background != BackgroundMode::Custom || settings.background_source.is_none() {
+        return Err(CommandError::new(
+            "invalid_input",
+            "no custom background is selected",
+        ));
+    }
+    let dir = custom_background_dir(&app)?;
+    let path =
+        tokio::task::spawn_blocking(move || yayl_core::background::store_light(&dir, &bytes))
+            .await
+            .map_err(|error| CommandError::new("unknown", error.to_string()))??;
+    settings.background_path = Some(path);
+    settings::save(&app, &settings)?;
+    Ok(settings.into())
+}
+
+/// Size of the light copy, so the UI can replace a stale full-size cache.
+#[tauri::command]
+pub fn background_cache_bytes(app: AppHandle) -> Result<u64, CommandError> {
+    Ok(yayl_core::background::light_bytes(&custom_background_dir(
+        &app,
+    )?))
 }
 
 #[tauri::command]

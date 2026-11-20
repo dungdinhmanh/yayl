@@ -234,3 +234,10 @@ Ran the built app (debug + custom-protocol, PrintWindow capture, no focus steal)
 Offline with cache: cached feed (5 banners / 3 sections) and cached background render; no-cache offline: `news.unavailable` only.
 Fixed what the run exposed: mock banners/tabs were leaking into the app on a failed fetch, so the notice sat above fake tabs; mock copy is now lab-only (NewsWidget.tsx:90,241).
 Not tested: the `online` refresh needs a real network flap. A settings.json with a UTF-8 BOM aborts every settings-dependent command before its cache fallback (self-written files are clean).
+[2026-11-20 10:10] opencode>all claim T-21 ref:TODO.md
+Scope: drop the full-size `tokio::fs::copy` in `choose_custom_background`; frontend downscales to <=1920px JPEG (video: first frame) and posts bytes; Rust caps the cache at 4 MiB, writes one atomic auto file and sets `background_path`.
+Legacy full-size copies are regenerated once at boot when the original still exists; original -> light cache -> game art order unchanged.
+[2026-11-20 10:44] opencode>all done T-21 ref:TODO.md
+Original-first custom backdrop now keeps one light fallback: canvas -> <=1920px JPEG (video first frame) in `lib/backdrop.ts:13`, Rust writes `background.jpg` under a 4 MiB cap (`background.rs:139`, `commands.rs:618`), rebuild-on-boot in `App.tsx:564`.
+Ran the debug exe: 3200x2000 PNG -> 93 KB cache, 640x360 MP4 -> 16 KB still; deleting each original still painted the light copy, and Settings showed the cache path plus `settings.background.cacheFallback` (`Settings.tsx:508`).
+Gates: fmt, 127 core tests, clippy, `cargo check -p yayl-desktop`, `bun run build`, `design:check`, `versions:check`. Not exercised: the native pick dialog itself (test seeded `settings.json`).

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   GAMES,
@@ -19,6 +19,7 @@ import InstallDialog from "./components/InstallDialog";
 import ServerDialog from "./components/ServerDialog";
 import SocialLinks from "./components/SocialLinks";
 import {
+  backgroundCacheBytes,
   backgroundIsVideo,
   backgroundSrc,
   cancelDownload,
@@ -38,6 +39,7 @@ import {
   onGameExit,
   openInstallFolder,
   repairGame,
+  saveBackgroundCache,
   saveInstallRoot,
   startDownload,
   verifyGame,
@@ -552,6 +554,32 @@ export default function App() {
     });
   };
 
+  /* The fallback copy is a downscaled JPEG. Rebuild it when it is missing
+     (this also replaces the full-size copies older builds wrote), using the
+     file the window is already showing. Lab runs skip the whole path. */
+  const sourceRef = useRef<string | null>(null);
+  sourceRef.current = settings.backgroundSource;
+  const cacheBuilt = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isTauri() || settings.background !== "custom") return;
+    const source = settings.backgroundSource;
+    if (!source || cacheBuilt.current === source) return;
+    cacheBuilt.current = source;
+    void (async () => {
+      const cached = await backgroundCacheBytes();
+      // Mirrors `background::MAX_LIGHT_BYTES`; anything bigger is a legacy copy.
+      if (cached > 0 && cached <= 4 * 1024 * 1024) return;
+      const { renderLightBackdrop } = await import("./lib/backdrop");
+      const bytes = await renderLightBackdrop(source, backgroundIsVideo(source));
+      if (!bytes || sourceRef.current !== source) return;
+      const next = await saveBackgroundCache(bytes);
+      if (sourceRef.current === source) applySettings(next);
+    })().catch((error: unknown) => {
+      console.error("[YAYL] cannot store the backdrop cache", error);
+    });
+  }, [settings.background, settings.backgroundSource]);
+
   const rememberRoot = (id: string, path: string) => {
     setRoots((current) => ({ ...current, [id]: path }));
     setSettings((current) => ({
@@ -856,6 +884,7 @@ export default function App() {
                     roots={roots}
                     states={states}
                     t={t}
+                    backgroundFallback={customFallback}
                     onSettings={applySettings}
                     onLang={setLang}
                     onRoot={rememberRoot}

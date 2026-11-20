@@ -176,7 +176,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
   - Video gốc rất lớn vẫn tốn RAM khi giải mã. Cân nhắc cảnh báo mềm ở Settings, không chặn cứng.
   - Kiểm tra nhánh probe cho video trong `App.tsx` (mình chỉ thấy probe cho ảnh).
   - Server background giữ nguyên (đã giới hạn 32 MiB ở `api.rs:525`).
-- Owner: ____ Trạng thái: ____
+- Owner: opencode Trạng thái: xong 2026-11-20 (cache ảnh 93 KB từ ảnh 3200×2000; video 640×360 → 16 KB)
 
 ---
 

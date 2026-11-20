@@ -40,6 +40,7 @@ interface Props {
   roots: Record<string, string>;
   states: Record<string, GameState>;
   t: (key: string, vars?: Record<string, string | number>) => string;
+  backgroundFallback?: boolean;
   onSettings: (settings: SettingsData) => void;
   onLang: (lang: Lang) => void;
   onRoot: (serverId: string, path: string) => void;
@@ -77,6 +78,7 @@ export default function Settings({
   roots,
   states,
   t,
+  backgroundFallback = false,
   onSettings,
   onLang,
   onRoot,
@@ -106,7 +108,9 @@ export default function Settings({
   const root = roots[serverId] ?? "";
   const busy = BUSY_STATES.includes(states[serverId] ?? "install");
   const pathChanged = pathDraft.trim() !== root.trim();
-  const customPath = settings.backgroundSource ?? settings.backgroundPath;
+  const customPath = backgroundFallback
+    ? settings.backgroundPath
+    : (settings.backgroundSource ?? settings.backgroundPath);
   const isVideo = customPath ? backgroundIsVideo(customPath) : false;
   const customPathLabel = customPath
     ? backgroundDisplayPath(customPath)
@@ -501,6 +505,11 @@ export default function Settings({
                     <div className="setting-row">
                       <div className="setting-copy">
                         <div className="setting-label">{t("settings.background.path")}</div>
+                        {backgroundFallback && (
+                          <div className="setting-desc">
+                            {t("settings.background.cacheFallback")}
+                          </div>
+                        )}
                       </div>
                       <div className="setting-control is-wide">
                         <div className="setting-actions">

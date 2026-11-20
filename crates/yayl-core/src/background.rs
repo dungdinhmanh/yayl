@@ -9,6 +9,12 @@ use std::time::SystemTime;
 /// How many background versions to keep per game.
 pub const MAX_VERSIONS: usize = 3;
 
+/// File name of the downscaled copy the UI writes for a custom backdrop.
+pub const LIGHT_FILE: &str = "background.jpg";
+
+/// Hard cap on that copy; the UI re-encodes well below it.
+pub const MAX_LIGHT_BYTES: usize = 4 * 1024 * 1024;
+
 /// The background announced by `base/config`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BackgroundImage {
@@ -140,6 +146,46 @@ pub fn newest(dir: &Path) -> Option<PathBuf> {
     best.map(|(_, path)| path)
 }
 
+/// Replace the single light copy in `dir`, keeping the cache one file only.
+///
+/// `bytes` is a JPEG the UI already downscaled. The cap is enforced here
+/// because the UI is untrusted input like any other caller.
+pub fn store_light(dir: &Path, bytes: &[u8]) -> Result<PathBuf> {
+    if bytes.is_empty() {
+        return Err(Error::new(
+            ErrorCode::InvalidInput,
+            "background cache is empty",
+        ));
+    }
+    if bytes.len() > MAX_LIGHT_BYTES {
+        return Err(Error::new(
+            ErrorCode::InvalidInput,
+            "background cache exceeds the 4 MiB cap",
+        ));
+    }
+    fs::create_dir_all(dir)?;
+    let target = dir.join(LIGHT_FILE);
+    let temp = target.with_extension("part");
+    fs::write(&temp, bytes)?;
+    fs::rename(&temp, &target)?;
+    // The light copy covers the current pick only, so older files are stale.
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path != target && entry.file_type()?.is_file() {
+            let _ = fs::remove_file(path);
+        }
+    }
+    Ok(target)
+}
+
+/// Size of the light copy, or 0 when it has not been written yet.
+pub fn light_bytes(dir: &Path) -> u64 {
+    fs::metadata(dir.join(LIGHT_FILE))
+        .map(|metadata| metadata.len())
+        .unwrap_or(0)
+}
+
 fn same_path(left: &Path, right: &Path) -> bool {
     if cfg!(windows) {
         left.as_os_str()
@@ -234,5 +280,41 @@ mod tests {
         assert_eq!(cached, dir.path().join("old.png"));
         let missing = dir.path().join("missing");
         assert!(newest(&missing).is_none());
+    }
+
+    #[test]
+    fn stores_one_light_copy_and_drops_stale_files() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("old-full-size.png"), b"heavy").unwrap();
+        let target = store_light(dir.path(), b"jpeg-bytes").unwrap();
+        assert_eq!(target, dir.path().join(LIGHT_FILE));
+        assert_eq!(fs::read(&target).unwrap(), b"jpeg-bytes");
+        let names: Vec<_> = fs::read_dir(dir.path())
+            .unwrap()
+            .flatten()
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(names, vec![LIGHT_FILE.to_owned()]);
+        assert_eq!(light_bytes(dir.path()), 10);
+
+        store_light(dir.path(), b"second").unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"second");
+        assert_eq!(light_bytes(dir.path()), 6);
+    }
+
+    #[test]
+    fn rejects_an_empty_or_oversized_light_copy() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(store_light(dir.path(), b"").is_err());
+        let oversized = vec![0u8; MAX_LIGHT_BYTES + 1];
+        assert!(store_light(dir.path(), &oversized).is_err());
+        assert!(!dir.path().join(LIGHT_FILE).exists());
+        assert_eq!(light_bytes(dir.path()), 0);
+    }
+
+    #[test]
+    fn light_bytes_is_zero_without_a_cache() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(light_bytes(dir.path()), 0);
     }
 }
