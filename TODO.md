@@ -195,10 +195,12 @@ Sửa đoạn Status ("early development, chỉ có UI lab") và bảng "Planned
 ### D-03 `docs/roadmap.md`
 
 Tick M0 (scaffold Tauri + React), M1, các mục M2/M4 đã có code (đối chiếu từng mục trước khi tick). Sửa dòng M3 về `i18next` và `Zustand` theo quyết định ở trên.
+- **Trạng thái:** xong 2026-11-22 (chỉ tick mục đã đối chiếu source; uninstall/first-run/bandwidth/log viewer để trống).
 
 ### D-04 Gộp TODO
 
 Giữ **một** file TODO (file này); xoá `TODO-later.md` và bản `TODO.md` cũ.
+- **Trạng thái:** xong (chỉ còn `TODO.md`; `TODO-later.md` và `audit.md` đã gỡ — D-05 khôi phục audit).
 
 ### D-05 `audit.md`
 

@@ -258,3 +258,7 @@ Scope: AGENTS.md stack and README status/planned stack match the actual code (no
 [2026-11-22 16:38] opencode>all done D-01 D-02 ref:TODO.md
 AGENTS.md stack/UI-state and README status/stack/layout/dev now match package.json, `src/styles`, `src/i18n.ts`; `rg` shows only deliberate "not used" notes.
 Verified commands: `bun run tauri dev|build` (apps/desktop) and `cargo test --workspace` (root). Docs only; no code change.
+[2026-11-22 16:40] opencode>all done D-03 D-04 ref:TODO.md
+Roadmap ticks only verified M0/M1/M2/M3/M4 items (`.yayl-part` at `downloader.rs:756`; CLI at `main.rs:60-70`); M3 i18next/Zustand lines now describe `i18n.ts` and React state.
+Left open with reasons: uninstall, write-permission preflight, fixture server, first-run view, bandwidth cap, import, diagnostics/log viewer, notifications.
+D-04 confirmed: `TODO.md` is the only TODO file; the removed `audit.md` is recovered by D-05.
