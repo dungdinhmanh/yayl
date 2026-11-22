@@ -21,10 +21,10 @@ The repository is in early development. UI work is validated as static HTML in `
 
 - Tauri 2
 - React 19 + TypeScript + Vite
-- Tailwind CSS 4 + CSS custom properties
-- Zustand for UI state
-- i18next + react-i18next
-- Rust workspace: `crates/yayl-core`, `crates/yayl-cli`
+- Plain CSS with custom properties in `apps/desktop/src/styles/` (`tokens.css`, `app.css`); Tailwind is not used
+- React state and hooks for UI state; Zustand is not used
+- Hand-written i18n module in `apps/desktop/src/i18n.ts`; i18next is not used
+- Rust workspace: `crates/yayl-core`, `crates/yayl-cli`, `apps/desktop/src-tauri`
 - Bun 1.4.2 for JS package management and scripts; commit `bun.lock`
 - Windows first, with a path to Linux support where practical
 
@@ -87,7 +87,7 @@ apps/desktop/        Tauri + React desktop app
 
 - Strict TypeScript. No `any` in public interfaces.
 - Tauri commands are wrapped in `src/lib/ipc.ts`; components do not call `invoke` directly.
-- UI state in Zustand stores, split by concern (app, games, downloads, ui).
+- UI state lives in React state and hooks, lifted to `App.tsx`; no external state library.
 - Use discriminated unions for game/download states.
 - No router unless a real navigation need appears; use explicit view state.
 - Lazy-load settings, logs, and other non-home views.

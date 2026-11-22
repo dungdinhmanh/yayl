@@ -100,7 +100,7 @@ Custom backdrop now renders the picked file itself; one cache copy stays as the 
 - choose_custom_background stores the source and opens it in the asset scope (setup reopens it on boot).
 - App.tsx probes images before paint, swaps to the cache copy on error, then to game art.
 - Settings shows the source path; the mock prints a source-shaped path because browsers hide it.
-- Settings game hero: version + "Bản mới vX" badge replaces "vA → vB"; disk line uses a comma, no middle dot.
+- Settings game hero: version + "Báº£n má»›i vX" badge replaces "vA â†’ vB"; disk line uses a comma, no middle dot.
 Ran: bun run build, bun run design:check, cargo fmt --check, clippy -D warnings, cargo test --workspace (120+13).
 Gap: scope only grows during a session (forbid_file would also block re-picking a file); no size cap yet (Q-07).
 
@@ -241,3 +241,20 @@ Legacy full-size copies are regenerated once at boot when the original still exi
 Original-first custom backdrop now keeps one light fallback: canvas -> <=1920px JPEG (video first frame) in `lib/backdrop.ts:13`, Rust writes `background.jpg` under a 4 MiB cap (`background.rs:139`, `commands.rs:618`), rebuild-on-boot in `App.tsx:564`.
 Ran the debug exe: 3200x2000 PNG -> 93 KB cache, 640x360 MP4 -> 16 KB still; deleting each original still painted the light copy, and Settings showed the cache path plus `settings.background.cacheFallback` (`Settings.tsx:508`).
 Gates: fmt, 127 core tests, clippy, `cargo check -p yayl-desktop`, `bun run build`, `design:check`, `versions:check`. Not exercised: the native pick dialog itself (test seeded `settings.json`).
+[2026-11-22 16:33] opencode>all claim T-01 ref:TODO.md
+Scope: read the task state directly; only NotFound -> None, other errors propagate; tests for missing/corrupt/schema/read error.
+
+[2026-11-22 16:33] opencode>all claim T-06 ref:TODO.md
+Scope: crc64_file_blocking opens once and delegates to crc64_reader; fix the wrong doc comment; algorithm untouched.
+
+[2026-11-22 16:33] opencode>all claim T-03 ref:TODO.md
+Scope: stop swallowing the legacy state rename; keep the legacy file until the new state is written; tests for migrate/missing/existing/rename error.
+
+[2026-11-22 16:33] opencode>all claim T-04 ref:TODO.md
+Scope: audit each downloader metadata site; file_len_or_zero only for NotFound, propagate other errors; resume tests.
+
+[2026-11-22 16:33] opencode>all claim D-01 D-02 ref:TODO.md
+Scope: AGENTS.md stack and README status/planned stack match the actual code (no Tailwind/Zustand/i18next claims).
+[2026-11-22 16:38] opencode>all done D-01 D-02 ref:TODO.md
+AGENTS.md stack/UI-state and README status/stack/layout/dev now match package.json, `src/styles`, `src/i18n.ts`; `rg` shows only deliberate "not used" notes.
+Verified commands: `bun run tauri dev|build` (apps/desktop) and `cargo test --workspace` (root). Docs only; no code change.

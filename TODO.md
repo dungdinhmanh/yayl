@@ -185,10 +185,12 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 ### D-01 `AGENTS.md`: sửa mục Stack
 
 Bỏ/đánh dấu "chưa dùng" cho Tailwind 4, Zustand, i18next + react-i18next; ghi đúng: CSS thường + custom properties, `i18n.ts` tự viết. Việc này quan trọng vì coding agent đọc file này sẽ tự thêm đúng các gói đó.
+- **Trạng thái:** xong 2026-11-22.
 
 ### D-02 `README.md`
 
 Sửa đoạn Status ("early development, chỉ có UI lab") và bảng "Planned stack" cho khớp thực tế.
+- **Trạng thái:** xong 2026-11-22.
 
 ### D-03 `docs/roadmap.md`
 
