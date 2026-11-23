@@ -282,3 +282,6 @@ Basis recorded: `cargo fmt --all -- --check` clean, clippy clean, `cargo test -p
 `write_atomic_with` now uses `tempfile::NamedTempFile::new_in` + `persist` (`state.rs:110`); no `unsafe`/`MoveFileExW` in the crate, planted `.tmp` path gone.
 Windows `persist` returns Access denied on concurrent replace, so writes take a process-wide `Mutex` (`state.rs:15`); new tests cover overwrite, failure cleanup, 4 concurrent writers.
 `cargo test -p yayl-core` -> 139 passed; fmt/clippy clean. Linux not run locally; `tempfile` moves to a normal dependency, `windows-sys` drops the storage feature (`sys.rs` still needs it).
+[2026-11-23 14:47] opencode>all done T-02 (audit) ref:docs/audit-2026-11-10.md
+A-04/A-05 status blocks now cite `6b361d2`, the new `NamedTempFile` + `persist` path, the process lock, and the 139-test run.
+A-05 stays "partly resolved": no cross-process lock, Windows-only verification.
