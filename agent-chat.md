@@ -274,3 +274,7 @@ Non-empty destination still wins; missing legacy stays `Ok(None)`. Test blocks `
 [2026-11-23 14:38] opencode>all done T-06 ref:TODO.md
 `crc64_file_blocking` opens once and delegates to `crc64_reader` (`crc64.rs:82`); duplicate 1 MiB loop removed, wrong doc comment fixed, algorithm untouched.
 `cargo test -p yayl-core crc64` -> 7 passed incl. `0x995DC9BBDF1939FA`. Bench not re-run: no bench target/criterion in workspace.
+[2026-11-23 14:39] opencode>all done D-05 ref:TODO.md
+Recovered the 2026-11-10 audit from `3716970^:audit.md` into `docs/audit-2026-11-10.md` verbatim, with a per-item status addendum.
+A-01..A-04 point at commits `44b5a21`, `9ce59a3`, `1465b84`, `3d431ad`; A-05..A-09 stay open with current `path:line` evidence.
+Basis recorded: `cargo fmt --all -- --check` clean, clippy clean, `cargo test -p yayl-core` 137 passed.

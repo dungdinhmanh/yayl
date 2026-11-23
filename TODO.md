@@ -209,6 +209,7 @@ Giữ **một** file TODO (file này); xoá `TODO-later.md` và bản `TODO.md` 
 ### D-05 `audit.md`
 
 Chuyển vào `docs/` (ví dụ `docs/audit-2026-11-10.md`), thêm dòng trạng thái từng mục A-01…A-09 và ghi chú đã đối chiếu source.
+- **Trạng thái:** xong 2026-11-23. A-01…A-04 resolved kèm commit (`9ce59a3`, `3d431ad`, `1465b84`, `44b5a21`), A-05…A-09 giữ open; đã ghi 137 test + fmt/clippy.
 
 ### D-06 `docs/backend-worklog.md`
 
