@@ -278,3 +278,7 @@ Non-empty destination still wins; missing legacy stays `Ok(None)`. Test blocks `
 Recovered the 2026-11-10 audit from `3716970^:audit.md` into `docs/audit-2026-11-10.md` verbatim, with a per-item status addendum.
 A-01..A-04 point at commits `44b5a21`, `9ce59a3`, `1465b84`, `3d431ad`; A-05..A-09 stay open with current `path:line` evidence.
 Basis recorded: `cargo fmt --all -- --check` clean, clippy clean, `cargo test -p yayl-core` 137 passed.
+[2026-11-23 14:47] opencode>all done T-02 ref:TODO.md
+`write_atomic_with` now uses `tempfile::NamedTempFile::new_in` + `persist` (`state.rs:110`); no `unsafe`/`MoveFileExW` in the crate, planted `.tmp` path gone.
+Windows `persist` returns Access denied on concurrent replace, so writes take a process-wide `Mutex` (`state.rs:15`); new tests cover overwrite, failure cleanup, 4 concurrent writers.
+`cargo test -p yayl-core` -> 139 passed; fmt/clippy clean. Linux not run locally; `tempfile` moves to a normal dependency, `windows-sys` drops the storage feature (`sys.rs` still needs it).

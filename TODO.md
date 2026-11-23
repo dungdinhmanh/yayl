@@ -39,7 +39,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/state.rs` (`write_atomic_with`, dòng 87; khối `MoveFileExW` dòng ~109–122)
 - **Việc:** dùng `tempfile::NamedTempFile::new_in(dir)` + `persist` (chuyển `tempfile` 3.27 từ dev-dep sang dependency). Giữ phân biệt `Durability::Full`/`Relaxed` và phòng symlink/planted-link. Bỏ `windows-sys` khỏi `yayl-core` nếu không còn chỗ dùng (hiện chỉ file này).
 - **Xong khi:** không còn `unsafe`; test ghi đè file có sẵn, hai ghi đồng thời, dọn file tạm khi lỗi; chạy trên Windows và Linux.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-23. `NamedTempFile::new_in` + `persist`, khoá `Mutex` trong process (Windows `persist` lỗi `Access denied` khi ghi đồng thời — test bắt được), giữ `Full`/`Relaxed`; `windows-sys` vẫn cần cho `sys.rs` nên chỉ bỏ feature `Win32_Storage_FileSystem`. Windows: 139 test pass; Linux chưa chạy trên máy này.
 
 ### T-03 Migration state không nuốt lỗi `rename`
 

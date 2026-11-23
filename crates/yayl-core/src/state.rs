@@ -3,7 +3,16 @@
 use crate::error::{Error, ErrorCode, Result};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+/// Serializes atomic replacements inside this process.
+///
+/// On Windows `MoveFileExW` (used by `persist`) can fail with access denied
+/// when two writers replace the same destination at once. State writes are
+/// small and infrequent, so one process-wide lock is simpler than a per-path
+/// map. Cross-process writers are still not coordinated.
+static WRITE_LOCK: Mutex<()> = Mutex::new(());
 
 pub const STATE_DIR: &str = ".yayl";
 pub const PLAN_FILE: &str = "plan.json";
@@ -99,54 +108,25 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 
 pub fn write_atomic_with(path: &Path, bytes: &[u8], durability: Durability) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let tmp = path.with_extension("tmp");
-    // Remove a planted link and create the file fresh.
-    match std::fs::remove_file(&tmp) {
-        Ok(()) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(error) => return Err(error.into()),
-    }
-    let mut file = std::fs::OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(&tmp)?;
+    // Recover from poisoning: a panic elsewhere must not make every later
+    // state write fail. The critical section only touches local files.
+    let _guard = WRITE_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let parent = match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    std::fs::create_dir_all(parent)?;
+    // `NamedTempFile` creates a uniquely named file with create-new semantics,
+    // so a pre-planted link at a predictable `.tmp` name cannot be followed.
+    // It is removed automatically unless `persist` succeeds.
+    let mut file = tempfile::NamedTempFile::new_in(parent)?;
     file.write_all(bytes)?;
     if durability == Durability::Full {
-        file.sync_all()?;
+        file.as_file().sync_all()?;
     }
-    drop(file);
-    replace_file(&tmp, path)
-}
-
-#[cfg(windows)]
-fn replace_file(tmp: &Path, path: &Path) -> Result<()> {
-    use std::os::windows::ffi::OsStrExt;
-    use windows_sys::Win32::Storage::FileSystem::{MOVEFILE_REPLACE_EXISTING, MoveFileExW};
-
-    let from: Vec<u16> = tmp
-        .as_os_str()
-        .encode_wide()
-        .chain(std::iter::once(0))
-        .collect();
-    let to: Vec<u16> = path
-        .as_os_str()
-        .encode_wide()
-        .chain(std::iter::once(0))
-        .collect();
-    // SAFETY: both paths are null-terminated UTF-16 buffers that outlive the call.
-    let moved = unsafe { MoveFileExW(from.as_ptr(), to.as_ptr(), MOVEFILE_REPLACE_EXISTING) };
-    if moved == 0 {
-        return Err(std::io::Error::last_os_error().into());
-    }
-    Ok(())
-}
-
-#[cfg(not(windows))]
-fn replace_file(tmp: &Path, path: &Path) -> Result<()> {
-    std::fs::rename(tmp, path)?;
+    file.persist(path).map_err(|error| error.error)?;
     Ok(())
 }
 
@@ -209,20 +189,19 @@ mod tests {
     }
 
     #[test]
-    fn migration_failure_keeps_the_legacy_manifest_and_reports_an_error() {
+    fn unreadable_current_manifest_reports_an_error_and_keeps_the_legacy_copy() {
         let dir = tempfile::tempdir().unwrap();
         let path = remote_manifest_path(dir.path());
         let legacy = legacy_remote_manifest_path(dir.path());
         std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+        // A directory where a file is expected is unreadable on both platforms:
+        // Windows reports access denied, Unix reports "is a directory".
+        std::fs::create_dir_all(&path).unwrap();
         std::fs::write(&legacy, b"old").unwrap();
-        // Block the atomic write's temp path with a directory. The failure is
-        // reported as "access denied" on Windows and "is a directory" on Unix.
-        std::fs::create_dir_all(path.with_extension("tmp")).unwrap();
 
         let error = load_remote_manifest(dir.path()).unwrap_err();
 
         assert!(matches!(error.code, ErrorCode::Io | ErrorCode::Permission));
-        assert!(!path.exists());
         assert_eq!(std::fs::read_to_string(&legacy).unwrap(), "old");
     }
 
@@ -265,6 +244,42 @@ mod tests {
         write_atomic(&path, b"first").unwrap();
         write_atomic(&path, b"second").unwrap();
         assert_eq!(std::fs::read_to_string(&path).unwrap(), "second");
+    }
+
+    #[test]
+    fn atomic_write_failure_leaves_no_temporary_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("state.json");
+        // A directory at the destination makes `persist` fail on both platforms.
+        std::fs::create_dir_all(&path).unwrap();
+
+        assert!(write_atomic(&path, b"payload").is_err());
+        assert!(path.is_dir());
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn concurrent_writes_never_interleave() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("state.json");
+        write_atomic(&path, b"seed").unwrap();
+
+        let payloads: Vec<Vec<u8>> = (0..4).map(|index| vec![b'a' + index; 64 * 1024]).collect();
+
+        std::thread::scope(|scope| {
+            for payload in &payloads {
+                let path = &path;
+                scope.spawn(move || {
+                    for _ in 0..10 {
+                        write_atomic(path, payload).unwrap();
+                    }
+                });
+            }
+        });
+
+        let body = std::fs::read(&path).unwrap();
+        assert!(payloads.contains(&body));
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
     }
 
     #[test]
