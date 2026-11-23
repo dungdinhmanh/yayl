@@ -268,3 +268,6 @@ Tests: missing, malformed, wrong shape, bad schema, unreadable path. `cargo test
 [2026-11-23 14:38] opencode>all done T-03 ref:TODO.md
 Legacy migration now writes `manifest.json` with `write_atomic` first and removes `remote-manifest.json` only after success (`state.rs:36`); write errors propagate.
 Non-empty destination still wins; missing legacy stays `Ok(None)`. Test blocks `manifest.tmp` to force the error path; `cargo test -p yayl-core state` -> 10 passed.
+[2026-11-23 14:38] opencode>all done T-04 ref:TODO.md
+`file_len_or_zero` returns 0 only for NotFound and propagates other metadata errors (`downloader.rs:774`); applied at verify/resume/size/Range/missing-bytes sites.
+`remove_part` keeps `unwrap_or(0)` deliberately (cleanup accounting). Tests: truncated-part resume, absent part from zero, helper errors; `cargo test -p yayl-core downloader` -> 13 passed.

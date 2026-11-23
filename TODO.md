@@ -54,6 +54,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/downloader.rs` (dòng 371, 398, 462, 533, 775, 790, 794)
 - **Việc:** xét từng chỗ; chỗ nào cần "thiếu file = 0" thì dùng helper `file_len_or_zero` (chỉ `NotFound` → 0, lỗi khác propagate). Không thay máy móc.
 - **Xong khi:** test resume với checkpoint hợp lệ + `.part` bị cắt; file `.part` thiếu vẫn recover như cũ.
+- **Trạng thái:** xong 2026-11-23 (helper chỉ nuốt `NotFound`; giữ `unwrap_or(0)` ở `remove_part` vì là cleanup best-effort).
 - Owner: ____ Trạng thái: ____
 
 ### T-05 `LocalManifest::validate` fail-closed (security #5)

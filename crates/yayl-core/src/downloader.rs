@@ -249,7 +249,7 @@ impl Downloader {
         tokio::fs::create_dir_all(root).await?;
 
         // Count only missing bytes so a resumed install still passes the check.
-        let required_bytes = missing_bytes(&jobs).await;
+        let required_bytes = missing_bytes(&jobs).await?;
         let space = disk::space_for(root)?;
         if space.free_bytes < required_bytes {
             return Err(Error::disk(format!(
@@ -365,10 +365,8 @@ impl Downloader {
         crate::path::reject_symlink_components(root, &job.dest)?;
 
         if self.verify_existing && job.dest.is_file() {
-            let size = tokio::fs::metadata(&job.dest)
-                .await
-                .map(|meta| meta.len())
-                .unwrap_or(0);
+            // Do not delete a destination whose metadata we cannot read.
+            let size = file_len_or_zero(&job.dest).await?;
             if size == job.size {
                 counters.active_verifications.fetch_add(1, Ordering::SeqCst);
                 let valid = job.checksum.verify(&job.dest).await.unwrap_or(false);
@@ -392,10 +390,7 @@ impl Downloader {
         }
         crate::path::reject_symlink_components(root, &part)?;
 
-        let mut part_len = tokio::fs::metadata(&part)
-            .await
-            .map(|meta| meta.len())
-            .unwrap_or(0);
+        let mut part_len = file_len_or_zero(&part).await?;
         if part_len > job.size {
             remove_part(&part, counters, false).await;
             part_len = 0;
@@ -456,10 +451,7 @@ impl Downloader {
                 continue;
             }
 
-            let actual_size = tokio::fs::metadata(&part)
-                .await
-                .map(|meta| meta.len())
-                .unwrap_or(0);
+            let actual_size = file_len_or_zero(&part).await?;
             if actual_size != job.size {
                 last_error = Error::new(
                     ErrorCode::Checksum,
@@ -527,10 +519,7 @@ impl Downloader {
         tracker: &SpeedTracker,
         cancel: &CancelToken,
     ) -> Result<()> {
-        let offset = tokio::fs::metadata(part)
-            .await
-            .map(|meta| meta.len())
-            .unwrap_or(0);
+        let offset = file_len_or_zero(part).await?;
 
         let mut request = self.client.get(url).header(ACCEPT_ENCODING, "identity");
         if offset > 0 {
@@ -769,6 +758,8 @@ pub fn part_path(dest: &Path) -> PathBuf {
 }
 
 async fn remove_part(part: &Path, counters: &Counters, counted: bool) {
+    // Best-effort cleanup: a part we cannot stat has no downloaded bytes to
+    // subtract, and removal continues regardless.
     let len = tokio::fs::metadata(part)
         .await
         .map(|meta| meta.len())
@@ -780,22 +771,28 @@ async fn remove_part(part: &Path, counters: &Counters, counted: bool) {
     remove_checkpoint(part).await;
 }
 
+/// Length of a file, treating only an absent file as zero bytes.
+///
+/// Every other error (permissions, invalid path, I/O) is propagated so callers
+/// never mistake an unreadable file for an empty one.
+async fn file_len_or_zero(path: &Path) -> Result<u64> {
+    match tokio::fs::metadata(path).await {
+        Ok(meta) => Ok(meta.len()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(0),
+        Err(error) => Err(error.into()),
+    }
+}
+
 /// Bytes still needed, accounting for completed files and resumable partials.
-async fn missing_bytes(jobs: &[FileJob]) -> u64 {
+async fn missing_bytes(jobs: &[FileJob]) -> Result<u64> {
     let mut total = 0u64;
     for job in jobs {
-        let existing = tokio::fs::metadata(&job.dest)
-            .await
-            .map(|meta| meta.len())
-            .unwrap_or(0);
-        let part = tokio::fs::metadata(part_path(&job.dest))
-            .await
-            .map(|meta| meta.len())
-            .unwrap_or(0);
+        let existing = file_len_or_zero(&job.dest).await?;
+        let part = file_len_or_zero(&part_path(&job.dest)).await?;
         let have = existing.max(part).min(job.size);
         total = total.saturating_add(job.size - have);
     }
-    total
+    Ok(total)
 }
 
 fn checkpoint_path(part: &Path) -> PathBuf {
@@ -1207,6 +1204,111 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn resumes_a_truncated_part_at_its_checkpoint() {
+        let body = sample_body();
+        let saw_offset = Arc::new(AtomicU64::new(u64::MAX));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server_offset = saw_offset.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let request = read_request(&mut socket).await;
+            let offset = request_range(&request).unwrap_or(0) as usize;
+            server_offset.store(offset as u64, Ordering::SeqCst);
+            let slice = &server_body[offset..];
+            let header = partial_head(offset, server_body.len(), slice.len());
+            write_response(&mut socket, &header, slice).await;
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        let part = part_path(&dest);
+        // Interrupted download: the part is shorter than the file, and the
+        // checkpoint records exactly how much of it is durable.
+        std::fs::write(&part, &body[..6000]).unwrap();
+        std::fs::write(checkpoint_path(&part), "6000").unwrap();
+
+        let downloader = Downloader::new().unwrap().retries(0);
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/file.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        );
+        let report = downloader
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(report.is_complete());
+        assert_eq!(saw_offset.load(Ordering::SeqCst), 6000);
+        assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
+        assert!(!part.exists());
+        assert!(!checkpoint_path(&part).exists());
+    }
+
+    #[tokio::test]
+    async fn missing_part_downloads_from_zero() {
+        let body = sample_body();
+        let saw_offset = Arc::new(AtomicU64::new(u64::MAX));
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server_body = body.clone();
+        let server_offset = saw_offset.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let request = read_request(&mut socket).await;
+            let offset = request_range(&request).unwrap_or(0) as usize;
+            server_offset.store(offset as u64, Ordering::SeqCst);
+            assert_eq!(offset, 0);
+            let header = format!(
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                server_body.len()
+            );
+            write_response(&mut socket, &header, &server_body).await;
+        });
+
+        let dir = tempfile::tempdir().unwrap();
+        let dest = dir.path().join("file.bin");
+        assert!(!part_path(&dest).exists());
+
+        let downloader = Downloader::new().unwrap().retries(0);
+        let job = FileJob::new(
+            format!("http://127.0.0.1:{port}/file.bin"),
+            dest.clone(),
+            body.len() as u64,
+            crc64::crc64(&body),
+        );
+        let report = downloader
+            .download_all(dir.path(), vec![job], CancelToken::new(), |_| {})
+            .await
+            .unwrap();
+
+        server.await.unwrap();
+        assert!(report.is_complete());
+        assert_eq!(saw_offset.load(Ordering::SeqCst), 0);
+        assert_eq!(std::fs::read(&dest).unwrap(), body.as_slice());
+        assert!(!part_path(&dest).exists());
+    }
+
+    #[tokio::test]
+    async fn file_len_or_zero_only_swallows_not_found() {
+        let dir = tempfile::tempdir().unwrap();
+        let missing = dir.path().join("missing.bin");
+        assert_eq!(file_len_or_zero(&missing).await.unwrap(), 0);
+
+        let present = dir.path().join("present.bin");
+        std::fs::write(&present, vec![0u8; 17]).unwrap();
+        assert_eq!(file_len_or_zero(&present).await.unwrap(), 17);
+
+        // Invalid path input is not absence and must propagate.
+        let invalid = dir.path().join("nul\0.bin");
+        assert!(file_len_or_zero(&invalid).await.is_err());
+    }
+
+    #[tokio::test]
     async fn counts_only_missing_bytes() {
         let dir = tempfile::tempdir().unwrap();
         let complete = dir.path().join("complete.bin");
@@ -1220,6 +1322,6 @@ mod tests {
             FileJob::new("http://example.invalid/b", partial, 100, 0),
             FileJob::new("http://example.invalid/c", missing, 100, 0),
         ];
-        assert_eq!(missing_bytes(&jobs).await, 60 + 100);
+        assert_eq!(missing_bytes(&jobs).await.unwrap(), 60 + 100);
     }
 }
