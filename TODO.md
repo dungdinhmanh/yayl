@@ -32,7 +32,6 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **Việc:** bỏ `path.exists()`; đọc thẳng, chỉ `ErrorKind::NotFound` → `Ok(None)`, lỗi khác trả về.
 - **Xong khi:** có test cho file thiếu, JSON hỏng, schema sai, lỗi đọc.
 - **Trạng thái:** xong 2026-11-23.
-- Owner: ____ Trạng thái: ____
 
 ### T-02 Ghi file atomic bằng `tempfile::persist` (thay `unsafe`)
 
@@ -47,7 +46,6 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **Việc:** trả lỗi hoặc dùng file cũ có chủ đích và báo là chưa migrate. Không xoá file legacy trước khi state mới ghi xong.
 - **Xong khi:** test migrate thành công, thiếu legacy, đích đã có, rename lỗi.
 - **Trạng thái:** xong 2026-11-23 (ghi `manifest.json` durable trước, xoá legacy best-effort sau).
-- Owner: ____ Trạng thái: ____
 
 ### T-04 Rà `unwrap_or(0)` ở metadata trong downloader
 
@@ -55,7 +53,6 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **Việc:** xét từng chỗ; chỗ nào cần "thiếu file = 0" thì dùng helper `file_len_or_zero` (chỉ `NotFound` → 0, lỗi khác propagate). Không thay máy móc.
 - **Xong khi:** test resume với checkpoint hợp lệ + `.part` bị cắt; file `.part` thiếu vẫn recover như cũ.
 - **Trạng thái:** xong 2026-11-23 (helper chỉ nuốt `NotFound`; giữ `unwrap_or(0)` ở `remove_part` vì là cleanup best-effort).
-- Owner: ____ Trạng thái: ____
 
 ### T-05 `LocalManifest::validate` fail-closed (security #5)
 
@@ -70,7 +67,6 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **Việc:** `crc64_file_blocking` mở file rồi gọi `crc64_reader`; sửa doc comment sai của `crc64_reader`. **Không đổi thuật toán.**
 - **Xong khi:** test vector cũ (`"123456789"` → `0x995DC9BBDF1939FA`) qua; bench không tụt so với 1953 MiB/s.
 - **Trạng thái:** xong phần code 2026-11-23. Vector qua; workspace không có `benches/`/criterion nên **không đo lại được** 1953 MiB/s — thuật toán và buffer 1 MiB giữ nguyên.
-- Owner: ____ Trạng thái: ____
 
 ### T-07 Ảnh nền tùy chỉnh: giới hạn dung lượng + tránh copy chính nó
 
