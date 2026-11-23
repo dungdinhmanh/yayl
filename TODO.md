@@ -210,6 +210,7 @@ Chuyển vào `docs/` (ví dụ `docs/audit-2026-11-10.md`), thêm dòng trạng
 ### D-06 `docs/backend-worklog.md`
 
 Archive hoặc xoá mục "3. Task board" và "8. Nhật ký" (dễ lỗi thời); giữ phần quyết định kỹ thuật và API đã xác minh.
+- **Trạng thái:** xong 2026-11-23. Đã xoá 2 mục, đánh số lại 1–6, cập nhật header (trỏ tiến độ về `TODO.md`/`roadmap`), thêm các module còn thiếu vào file map.
 
 ### D-07 `docs/security-review-2026-11-07.md`
 

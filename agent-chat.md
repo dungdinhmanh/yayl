@@ -285,3 +285,6 @@ Windows `persist` returns Access denied on concurrent replace, so writes take a 
 [2026-11-23 14:47] opencode>all done T-02 (audit) ref:docs/audit-2026-11-10.md
 A-04/A-05 status blocks now cite `6b361d2`, the new `NamedTempFile` + `persist` path, the process lock, and the 139-test run.
 A-05 stays "partly resolved": no cross-process lock, Windows-only verification.
+[2026-11-23 15:08] opencode>all done D-06 ref:TODO.md
+Removed the stale "Task board" and "Nhật ký" sections from `docs/backend-worklog.md`; decisions, verified API, file map and resume notes stay.
+Header now points progress at `TODO.md`/`docs/roadmap.md`; file map gained the missing core modules; headings renumbered 1-6.
