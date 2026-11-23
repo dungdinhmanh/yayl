@@ -68,10 +68,14 @@ impl DownloadTask {
     }
 
     pub fn load(path: &Path) -> Result<Option<Self>> {
-        if !path.exists() {
-            return Ok(None);
-        }
-        let body = std::fs::read_to_string(path)?;
+        // Read directly instead of probing with `exists()`: only a genuinely
+        // missing file means "no task". Permission, I/O, and decode failures
+        // must surface rather than silently resetting download progress.
+        let body = match std::fs::read_to_string(path) {
+            Ok(body) => body,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(error.into()),
+        };
         let task: Self = serde_json::from_str(&body)?;
         if task.schema_version != TASK_SCHEMA_VERSION {
             return Err(Error::new(
@@ -193,6 +197,57 @@ mod tests {
         let loaded = DownloadTask::load(&path).unwrap().unwrap();
         assert_eq!(loaded.bytes_done, 100);
         assert_eq!(loaded.files_done, 1);
+    }
+
+    #[test]
+    fn missing_task_file_is_none() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+
+        assert!(DownloadTask::load(&path).unwrap().is_none());
+    }
+
+    #[test]
+    fn malformed_task_json_is_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"{not json").unwrap();
+
+        assert!(DownloadTask::load(&path).is_err());
+    }
+
+    #[test]
+    fn unsupported_task_schema_is_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut task = DownloadTask::new("stella", "2.0.0", "basis", 1, 1);
+        task.schema_version = TASK_SCHEMA_VERSION + 1;
+        std::fs::write(&path, serde_json::to_vec(&task).unwrap()).unwrap();
+
+        let error = DownloadTask::load(&path).unwrap_err();
+
+        assert_eq!(error.code, ErrorCode::InvalidInput);
+    }
+
+    #[test]
+    fn task_json_with_the_wrong_shape_is_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, br#"{"schema_version":1}"#).unwrap();
+
+        assert!(DownloadTask::load(&path).is_err());
+    }
+
+    #[test]
+    fn unreadable_task_path_is_an_error_not_none() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = state::task_path(dir.path());
+        std::fs::create_dir_all(&path).unwrap();
+
+        assert!(DownloadTask::load(&path).is_err());
     }
 
     #[test]

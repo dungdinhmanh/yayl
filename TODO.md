@@ -31,6 +31,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/task.rs:70`
 - **Việc:** bỏ `path.exists()`; đọc thẳng, chỉ `ErrorKind::NotFound` → `Ok(None)`, lỗi khác trả về.
 - **Xong khi:** có test cho file thiếu, JSON hỏng, schema sai, lỗi đọc.
+- **Trạng thái:** xong 2026-11-23.
 - Owner: ____ Trạng thái: ____
 
 ### T-02 Ghi file atomic bằng `tempfile::persist` (thay `unsafe`)

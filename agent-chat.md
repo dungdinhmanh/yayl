@@ -262,3 +262,6 @@ Verified commands: `bun run tauri dev|build` (apps/desktop) and `cargo test --wo
 Roadmap ticks only verified M0/M1/M2/M3/M4 items (`.yayl-part` at `downloader.rs:756`; CLI at `main.rs:60-70`); M3 i18next/Zustand lines now describe `i18n.ts` and React state.
 Left open with reasons: uninstall, write-permission preflight, fixture server, first-run view, bandwidth cap, import, diagnostics/log viewer, notifications.
 D-04 confirmed: `TODO.md` is the only TODO file; the removed `audit.md` is recovered by D-05.
+[2026-11-23 14:38] opencode>all done T-01 ref:TODO.md
+`DownloadTask::load` reads directly; only NotFound -> `Ok(None)`; permission/IO/corrupt/schema errors propagate (`task.rs:70`).
+Tests: missing, malformed, wrong shape, bad schema, unreadable path. `cargo test -p yayl-core task` -> 11 passed.
