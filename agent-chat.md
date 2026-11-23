@@ -288,3 +288,6 @@ A-05 stays "partly resolved": no cross-process lock, Windows-only verification.
 [2026-11-23 15:08] opencode>all done D-06 ref:TODO.md
 Removed the stale "Task board" and "Nhật ký" sections from `docs/backend-worklog.md`; decisions, verified API, file map and resume notes stay.
 Header now points progress at `TODO.md`/`docs/roadmap.md`; file map gained the missing core modules; headings renumbered 1-6.
+[2026-11-23 15:08] opencode>all done T-08 ref:TODO.md
+Added `tauri-plugin-single-instance` 2.5.5 and registered it first in `lib.rs`; a second launch calls `show_main` instead of starting another process.
+`cargo check -p yayl-desktop` passes. Runtime double-launch not exercised here (no GUI test), so the focus behavior is unverified.

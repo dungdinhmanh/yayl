@@ -79,7 +79,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **Việc:** thêm `tauri-plugin-single-instance` 2.5.5; mở lần 2 thì focus cửa sổ cũ.
 - **Xong khi:** chạy 2 lần chỉ còn 1 tiến trình; không xung đột file state/task.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** code xong 2026-11-23 (plugin đăng ký đầu tiên, gọi `show_main`; `cargo check -p yayl-desktop` pass). **Chưa chạy thử 2 tiến trình** trên máy này.
 
 ### T-09 Log cục bộ
 

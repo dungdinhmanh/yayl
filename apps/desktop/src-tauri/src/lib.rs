@@ -44,6 +44,11 @@ fn show_main(app: &tauri::AppHandle) {
 
 pub fn run() {
     tauri::Builder::default()
+        // Must be the first plugin: a second launch should focus the existing
+        // window instead of starting another process.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_main(app);
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::default())
