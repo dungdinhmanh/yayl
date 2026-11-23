@@ -46,6 +46,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/state.rs:46` (`let _ = std::fs::rename(&legacy, &path)`)
 - **Việc:** trả lỗi hoặc dùng file cũ có chủ đích và báo là chưa migrate. Không xoá file legacy trước khi state mới ghi xong.
 - **Xong khi:** test migrate thành công, thiếu legacy, đích đã có, rename lỗi.
+- **Trạng thái:** xong 2026-11-23 (ghi `manifest.json` durable trước, xoá legacy best-effort sau).
 - Owner: ____ Trạng thái: ____
 
 ### T-04 Rà `unwrap_or(0)` ở metadata trong downloader

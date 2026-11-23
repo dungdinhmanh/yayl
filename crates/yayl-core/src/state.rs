@@ -32,22 +32,40 @@ fn legacy_remote_manifest_path(root: &Path) -> PathBuf {
     state_dir(root).join(LEGACY_REMOTE_MANIFEST_FILE)
 }
 
-/// Load the raw server manifest, renaming the pre-rename file into place.
+/// Load the raw server manifest, promoting the pre-rename file to the current name.
+///
+/// A non-empty `manifest.json` wins over `remote-manifest.json` and the legacy
+/// copy is removed. When `manifest.json` is missing or empty, a non-empty
+/// legacy file is written to the current name with [`write_atomic`] (fsync plus
+/// atomic replace) and only then is the legacy copy removed. If that write
+/// fails the error is returned and the legacy file is left untouched, so no
+/// state is lost. No legacy file means there is nothing to migrate.
 pub fn load_remote_manifest(root: &Path) -> Result<Option<String>> {
     let path = remote_manifest_path(root);
     let legacy = legacy_remote_manifest_path(root);
     if let Some(body) = read_non_empty(&path)? {
-        let _ = std::fs::remove_file(&legacy);
+        remove_legacy_manifest(&legacy);
         return Ok(Some(body));
     }
     match read_non_empty(&legacy)? {
         Some(body) => {
-            let _ = std::fs::remove_file(&path);
-            let _ = std::fs::rename(&legacy, &path);
+            // Write the durable copy first; the legacy file stays in place
+            // until the new name is safely on disk.
+            write_atomic(&path, body.as_bytes())?;
+            remove_legacy_manifest(&legacy);
             Ok(Some(body))
         }
         None => Ok(None),
     }
+}
+
+/// Best-effort cleanup of the pre-rename manifest.
+///
+/// The current name already holds the durable copy, so a failed removal only
+/// leaves a harmless duplicate that the next load retries. `NotFound` simply
+/// means there was nothing to remove.
+fn remove_legacy_manifest(path: &Path) {
+    let _ = std::fs::remove_file(path);
 }
 
 fn read_non_empty(path: &Path) -> Result<Option<String>> {
@@ -178,6 +196,34 @@ mod tests {
         assert_eq!(body, "{\"file\":[]}");
         assert!(remote_manifest_path(dir.path()).exists());
         assert!(!legacy.exists());
+    }
+
+    #[test]
+    fn missing_legacy_manifest_is_not_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(state_dir(dir.path())).unwrap();
+
+        assert_eq!(load_remote_manifest(dir.path()).unwrap(), None);
+        assert!(!remote_manifest_path(dir.path()).exists());
+        assert!(!legacy_remote_manifest_path(dir.path()).exists());
+    }
+
+    #[test]
+    fn migration_failure_keeps_the_legacy_manifest_and_reports_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = remote_manifest_path(dir.path());
+        let legacy = legacy_remote_manifest_path(dir.path());
+        std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+        std::fs::write(&legacy, b"old").unwrap();
+        // Block the atomic write's temp path with a directory. The failure is
+        // reported as "access denied" on Windows and "is a directory" on Unix.
+        std::fs::create_dir_all(path.with_extension("tmp")).unwrap();
+
+        let error = load_remote_manifest(dir.path()).unwrap_err();
+
+        assert!(matches!(error.code, ErrorCode::Io | ErrorCode::Permission));
+        assert!(!path.exists());
+        assert_eq!(std::fs::read_to_string(&legacy).unwrap(), "old");
     }
 
     #[test]

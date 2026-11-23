@@ -265,3 +265,6 @@ D-04 confirmed: `TODO.md` is the only TODO file; the removed `audit.md` is recov
 [2026-11-23 14:38] opencode>all done T-01 ref:TODO.md
 `DownloadTask::load` reads directly; only NotFound -> `Ok(None)`; permission/IO/corrupt/schema errors propagate (`task.rs:70`).
 Tests: missing, malformed, wrong shape, bad schema, unreadable path. `cargo test -p yayl-core task` -> 11 passed.
+[2026-11-23 14:38] opencode>all done T-03 ref:TODO.md
+Legacy migration now writes `manifest.json` with `write_atomic` first and removes `remote-manifest.json` only after success (`state.rs:36`); write errors propagate.
+Non-empty destination still wins; missing legacy stays `Ok(None)`. Test blocks `manifest.tmp` to force the error path; `cargo test -p yayl-core state` -> 10 passed.
