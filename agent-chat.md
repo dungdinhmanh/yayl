@@ -271,3 +271,6 @@ Non-empty destination still wins; missing legacy stays `Ok(None)`. Test blocks `
 [2026-11-23 14:38] opencode>all done T-04 ref:TODO.md
 `file_len_or_zero` returns 0 only for NotFound and propagates other metadata errors (`downloader.rs:774`); applied at verify/resume/size/Range/missing-bytes sites.
 `remove_part` keeps `unwrap_or(0)` deliberately (cleanup accounting). Tests: truncated-part resume, absent part from zero, helper errors; `cargo test -p yayl-core downloader` -> 13 passed.
+[2026-11-23 14:38] opencode>all done T-06 ref:TODO.md
+`crc64_file_blocking` opens once and delegates to `crc64_reader` (`crc64.rs:82`); duplicate 1 MiB loop removed, wrong doc comment fixed, algorithm untouched.
+`cargo test -p yayl-core crc64` -> 7 passed incl. `0x995DC9BBDF1939FA`. Bench not re-run: no bench target/criterion in workspace.

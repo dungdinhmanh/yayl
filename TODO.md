@@ -69,6 +69,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/crc64.rs:82-108`
 - **Việc:** `crc64_file_blocking` mở file rồi gọi `crc64_reader`; sửa doc comment sai của `crc64_reader`. **Không đổi thuật toán.**
 - **Xong khi:** test vector cũ (`"123456789"` → `0x995DC9BBDF1939FA`) qua; bench không tụt so với 1953 MiB/s.
+- **Trạng thái:** xong phần code 2026-11-23. Vector qua; workspace không có `benches/`/criterion nên **không đo lại được** 1953 MiB/s — thuật toán và buffer 1 MiB giữ nguyên.
 - Owner: ____ Trạng thái: ____
 
 ### T-07 Ảnh nền tùy chỉnh: giới hạn dung lượng + tránh copy chính nó

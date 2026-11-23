@@ -81,19 +81,10 @@ pub async fn crc64_file(path: &Path) -> Result<u64> {
 
 pub fn crc64_file_blocking(path: &Path) -> Result<u64> {
     let mut file = std::fs::File::open(path)?;
-    let mut crc = !0u64;
-    let mut buffer = vec![0u8; 1024 * 1024];
-    loop {
-        let read = file.read(&mut buffer)?;
-        if read == 0 {
-            break;
-        }
-        crc = update(crc, &buffer[..read]);
-    }
-    Ok(!crc)
+    crc64_reader(&mut file).map_err(Into::into)
 }
 
-/// Hash a file from an explicit path without allocating a second PathBuf.
+/// Hash everything the reader yields, reading in 1 MiB chunks.
 pub fn crc64_reader<R: Read>(reader: &mut R) -> std::io::Result<u64> {
     let mut crc = !0u64;
     let mut buffer = vec![0u8; 1024 * 1024];
