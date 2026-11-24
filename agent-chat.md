@@ -333,4 +333,6 @@ Kept devNewsPlugin and devLauncherPlugin: both use apply serve, so they never en
 Verified earlier this session with bun run dev: /__dev/news, /__dev/social and /__dev/background returned 200 and the mock UI rendered. No code change in this task.[2026-11-24 12:21] opencode>all done T-10 ref:TODO.md
 Per decision Q-10, ProxyMode::System now uses reqwest's system-proxy detection; Direct calls no_proxy and Manual keeps URL/validate/no_proxy handling. Removed custom WinINET/env detection (176 lines) and the winreg dependency; Cargo.lock updated.
 Tests: cargo test -p yayl-core proxy -> 5 passed, full cargo test -p yayl-core -> 139 passed, clippy -p yayl-core --all-targets -D warnings clean. Desktop check still running.
-Windows/Linux manual proxy, HTTPS and bypass checks were NOT run here; the user owns that verification per the decision.
+Windows/Linux manual proxy, HTTPS and bypass checks were NOT run here; the user owns that verification per the decision.[2026-11-24 12:31] opencode>all done ref:docs/audit-2026-11-10.md
+Refreshed per-item status for A-06 (resolved in 057203f) and A-07 (resolved in bb9ca6b) in the status table and a new 2026-11-24 addendum. Original audit text and the 2026-11-23 addendum are preserved.
+A-06 note records that Windows/Linux manual proxy checks are still pending; no new tests were claimed here.
