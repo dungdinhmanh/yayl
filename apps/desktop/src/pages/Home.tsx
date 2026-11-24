@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { GAMES, STATE_META, serverOf, type GameId, type GameState } from "../data";
+import type { MockGame } from "../fixtures";
 import NewsWidget from "../components/NewsWidget";
 import BubbleProgress from "../components/BubbleProgress";
 import DownloadBadge from "../components/DownloadBadge";
@@ -31,6 +32,7 @@ interface Props {
   onRetry: () => void;
   onSettings: () => void;
   onSwitchServer: () => void;
+  sample?: MockGame;
 }
 
 const ICONS: Record<string, string> = {
@@ -115,6 +117,7 @@ export default function Home({
   onRetry,
   onSettings,
   onSwitchServer,
+  sample,
 }: Props) {
   const game = GAMES[gameId];
   const region = serverOf(serverId)?.region ?? game.region;
@@ -127,11 +130,11 @@ export default function Home({
   // Browser dev mode has no backend, so it shows a steady sample while downloading.
   const monitor =
     download ??
-    (!live && state === "downloading"
+    (!live && state === "downloading" && sample
       ? {
           speed: 12.4 * 1024 * 1024,
-          done: Math.round((game.downloadBytes * percent) / 100),
-          total: game.downloadBytes,
+          done: Math.round((sample.downloadBytes * percent) / 100),
+          total: sample.downloadBytes,
         }
       : null);
   // The lab keeps the static sample history; the real app shows the stored
@@ -140,13 +143,13 @@ export default function Home({
     ? formatPlaytime(playtime.seconds, t)
     : live
       ? t("home.meta.noPlaytime")
-      : game.playtime[lang];
+      : sample?.playtime[lang] ?? "";
   const lastPlayedText =
     playtime?.lastPlayed != null
       ? formatLastPlayed(playtime.lastPlayed, lang)
       : live
         ? t("home.meta.noPlaytime")
-        : game.lastPlayed[lang];
+        : sample?.lastPlayed[lang] ?? "";
   const vars = {
     game: game.name,
     percent,

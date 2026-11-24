@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { GAMES, HOME_STATES, type GameId, type GameState } from "../data";
+import { GAMES, STATE_META, type GameId, type GameState } from "../data";
 import type { Lang } from "../App";
+
+const DEV_STATES = (Object.keys(STATE_META) as GameState[]).filter((state) => state !== "complete");
 
 interface Props {
   gameId: GameId;
@@ -31,7 +33,7 @@ export default function DevBar({ gameId, state, lang, onGame, onState, onLang }:
             <div className="mock-field">
               <label htmlFor="dev-state">State</label>
               <select id="dev-state" value={state} onChange={(event) => onState(event.target.value as GameState)}>
-                {HOME_STATES.map((item) => (
+                {DEV_STATES.map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}
               </select>

@@ -132,7 +132,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/src/data.ts` (9 file production import)
 - **Việc:** tách hằng số thật (`GAMES`, `STATE_META`) khỏi fixture mock (`HOME_STATES`, `NEWS`, dữ liệu giả như `D:\Games\YAYL`); fixture chỉ nạp khi dev/mock mode. **Không** lazy-import cả file.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. `fixtures.ts` giữ NEWS/sample game/server; mọi import runtime đều là `import()` trong nhánh mock (`App`, `ipc`, `NewsWidget`), `data.ts` chỉ còn metadata thật. DevBar lấy state từ `STATE_META`, bỏ `HOME_STATES` chết. `bun run build` qua: fixture thành chunk riêng 2.41 kB (gzip 1.07), index giảm 327.5 → 325.9 kB. Đã mở `bun run dev`: fixtures.ts tải 200, mock playtime "126 giờ 42 phút" hiện đúng, không có lỗi console.
 
 ### T-17 Bỏ hardcode tên game
 

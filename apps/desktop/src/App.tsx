@@ -2,14 +2,15 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState }
 import type { CSSProperties } from "react";
 import {
   GAMES,
-  HOME_STATES,
   SERVERS,
   SERVER_LIST,
+  STATE_META,
   defaultServerId,
   serverOf,
   type GameId,
   type GameState,
 } from "./data";
+import type { MockGame } from "./fixtures";
 import { I18N } from "./i18n";
 import Rail from "./components/Rail";
 import Home from "./pages/Home";
@@ -86,7 +87,7 @@ function queryServer(gameId: GameId): string {
 
 function queryState(): GameState | null {
   const value = QUERY.get("state") as GameState | null;
-  return value && (HOME_STATES as readonly string[]).includes(value) ? value : null;
+  return value && value in STATE_META ? (value as GameState) : null;
 }
 
 function queryLang(): Lang {
@@ -186,7 +187,7 @@ function initialActiveServers(): Record<GameId, string> {
 
 function initialRoots(): Record<string, string> {
   const roots: Record<string, string> = {};
-  for (const server of SERVER_LIST) roots[server.id] = isTauri() ? "" : server.path;
+  for (const server of SERVER_LIST) roots[server.id] = "";
   return roots;
 }
 
@@ -237,6 +238,7 @@ export default function App() {
   const customActive = customFallback ? settings.backgroundPath : customSource;
   const custom = settings.background === "custom" && customSrc !== null;
   const [versions, setVersions] = useState<Partial<Record<string, GameVersion>>>({});
+  const [samples, setSamples] = useState<Partial<Record<GameId, MockGame>>>({});
   const [booted, setBooted] = useState(() => !isTauri());
 
   const state = states[serverId] ?? "install";
@@ -266,9 +268,12 @@ export default function App() {
       setBooted(true);
 
       if (!isTauri()) {
+        /* Browser-lab samples are a separate chunk, never loaded in the app. */
+        const { MOCK_GAMES, MOCK_SERVERS } = await import("./fixtures");
+        setSamples(MOCK_GAMES);
         const nextRoots: Record<string, string> = {};
         for (const profile of SERVER_LIST) {
-          nextRoots[profile.id] = loaded.installRoots[profile.id] || profile.path;
+          nextRoots[profile.id] = loaded.installRoots[profile.id] || MOCK_SERVERS[profile.id]?.path || "";
         }
         setRoots(nextRoots);
         return;
@@ -897,6 +902,7 @@ export default function App() {
                   state={state}
                   lang={lang}
                   t={t}
+                  sample={samples[gameId]}
                   installRoot={roots[serverId]}
                   progress={live[serverId]?.progress ?? null}
                   download={

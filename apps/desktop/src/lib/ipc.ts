@@ -1,6 +1,6 @@
 /* Typed wrappers for the Tauri command layer; components never call `invoke`. */
 
-import { GAMES, SERVER_LIST, serverOf } from "../data";
+import { SERVER_LIST } from "../data";
 import type { InvokeArgs } from "@tauri-apps/api/core";
 
 export interface DiskSpace {
@@ -255,7 +255,8 @@ export async function fetchDownloadBytes(profileId: string): Promise<number> {
   }
 
   await delay(650);
-  const bytes = serverOf(profileId)?.size ?? 0;
+  const { MOCK_SERVERS } = await import("../fixtures");
+  const bytes = MOCK_SERVERS[profileId]?.size ?? 0;
   if (bytes <= 0) throw new Error(`unknown server: ${profileId}`);
   downloadCache.set(profileId, bytes);
   return bytes;
@@ -316,7 +317,8 @@ export async function defaultInstallRoot(profileId: string): Promise<string> {
   if (IS_TAURI) {
     return invoke<string>("default_install_root", { game: profileId });
   }
-  return serverOf(profileId)?.path ?? GAMES.arknights.path;
+  const { MOCK_BASE, MOCK_SERVERS } = await import("../fixtures");
+  return MOCK_SERVERS[profileId]?.path ?? MOCK_BASE;
 }
 
 export async function loadSettings(): Promise<Settings> {
@@ -503,12 +505,13 @@ export async function gameProfiles(): Promise<GameProfiles> {
   if (IS_TAURI) {
     return invoke<GameProfiles>("game_profiles");
   }
+  const { MOCK_BASE, MOCK_SERVERS } = await import("../fixtures");
   return {
-    base: "D:\\Games\\YAYL",
+    base: MOCK_BASE,
     games: SERVER_LIST.map((server) => ({
       id: server.id,
       installDir: server.installDir,
-      defaultRoot: server.path,
+      defaultRoot: MOCK_SERVERS[server.id]?.path ?? MOCK_BASE,
     })),
   };
 }
@@ -601,8 +604,8 @@ export async function saveBackgroundCache(bytes: Uint8Array): Promise<Settings> 
 
 export async function gameVersion(profileId: string): Promise<GameVersion> {
   if (!IS_TAURI) {
-    const server = serverOf(profileId);
-    const local = server?.version ?? "0.0.0";
+    const { MOCK_SERVERS } = await import("../fixtures");
+    const local = MOCK_SERVERS[profileId]?.version ?? "0.0.0";
     return {
       local,
       latest: local,

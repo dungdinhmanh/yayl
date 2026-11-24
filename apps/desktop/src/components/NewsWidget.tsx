@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { NEWS } from "../data";
 import { isTauri, openExternal, type NewsFeed } from "../lib/ipc";
 import type { Lang } from "../App";
 
@@ -22,16 +21,6 @@ type TabView = {
   label: string;
   items: { title: string; date: string; url: string }[];
 };
-
-function mockBanners(lang: Lang): BannerView[] {
-  return NEWS.banners.map((item) => ({
-    id: item.id,
-    image: "",
-    kicker: item.kicker[lang],
-    title: item.title[lang],
-    url: "",
-  }));
-}
 
 /* The feed is untrusted input: only parsed https URLs are used. */
 function safeHttps(url: string) {
@@ -65,18 +54,6 @@ function sectionLabel(label: string, t: Props["t"]): string {
   return key ? t(key) : label;
 }
 
-function mockTabs(lang: Lang): TabView[] {
-  return NEWS.tabs.map((tab) => ({
-    id: tab.id,
-    label: tab.label[lang],
-    items: tab.items.map((item) => ({
-      title: item.title[lang],
-      date: item.date,
-      url: "",
-    })),
-  }));
-}
-
 export default function NewsWidget({ lang, t, news }: Props) {
   /* The browser lab shows a live feed when the dev bridge returns one and
      falls back to the static feed when it does not. */
@@ -86,12 +63,43 @@ export default function NewsWidget({ lang, t, news }: Props) {
     live &&
     (news === null ||
       (news !== undefined && news.banners.length === 0 && news.sections.length === 0));
+  const [mock, setMock] = useState<{ banners: BannerView[]; tabs: TabView[] } | null>(null);
+
+  /* Fixtures are a separate chunk: browser mode only. */
+  useEffect(() => {
+    if (live) return;
+    let active = true;
+    void import("../fixtures").then(({ NEWS }) => {
+      if (!active) return;
+      setMock({
+        banners: NEWS.banners.map((item) => ({
+          id: item.id,
+          image: "",
+          kicker: item.kicker[lang],
+          title: item.title[lang],
+          url: "",
+        })),
+        tabs: NEWS.tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label[lang],
+          items: tab.items.map((item) => ({
+            title: item.title[lang],
+            date: item.date,
+            url: "",
+          })),
+        })),
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [live, lang]);
 
   const data = useMemo(() => {
     /* Mock copy is a lab fallback only: in the app a failed fetch must not
        turn into fake tabs under the "no news" notice. */
     if (!live) {
-      return { banners: mockBanners(lang), tabs: mockTabs(lang) };
+      return mock ?? { banners: [] as BannerView[], tabs: [] as TabView[] };
     }
     if (!news) {
       return { banners: [] as BannerView[], tabs: [] as TabView[] };
@@ -116,7 +124,7 @@ export default function NewsWidget({ lang, t, news }: Props) {
         })),
       })),
     };
-  }, [live, news, lang, t]);
+  }, [live, news, lang, t, mock]);
 
   const [banner, setBanner] = useState(0);
   const [tabId, setTabId] = useState(() => data.tabs[0]?.id ?? "");
