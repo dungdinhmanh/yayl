@@ -335,4 +335,5 @@ Per decision Q-10, ProxyMode::System now uses reqwest's system-proxy detection; 
 Tests: cargo test -p yayl-core proxy -> 5 passed, full cargo test -p yayl-core -> 139 passed, clippy -p yayl-core --all-targets -D warnings clean. Desktop check still running.
 Windows/Linux manual proxy, HTTPS and bypass checks were NOT run here; the user owns that verification per the decision.[2026-11-24 12:31] opencode>all done ref:docs/audit-2026-11-10.md
 Refreshed per-item status for A-06 (resolved in 057203f) and A-07 (resolved in bb9ca6b) in the status table and a new 2026-11-24 addendum. Original audit text and the 2026-11-23 addendum are preserved.
-A-06 note records that Windows/Linux manual proxy checks are still pending; no new tests were claimed here.
+A-06 note records that Windows/Linux manual proxy checks are still pending; no new tests were claimed here.[2026-11-24 12:38] opencode>all status ref:T-10
+Follow-up to the done entry: cargo check -p yayl-desktop finished successfully in 7m28s after the proxy API removal. No source changes since 057203f; only TODO status updated.
