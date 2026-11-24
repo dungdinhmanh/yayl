@@ -10,7 +10,7 @@
 - #2 launch install-root check: fixed; `launch_game` and `game_version` call `ensure_allowed_root`.
 - Manifest total-size overflow: fixed with checked addition in `manifest.rs`.
 - Update/minimum-version flow: connected in `App.tsx` and `launch_game` (3 s server timeout; offline launches stay allowed).
-- Local manifest completeness: still open; the trust model for `LocalManifest::validate` is not decided.
+- Local manifest completeness: resolved 2026-11-24 in `d3365c2`; a bad per-file `vc` is now reported as damaged. See the addendum under "Local manifest completeness and launch integrity".
 
 ## Method and limits
 
@@ -50,11 +50,13 @@ The UI bootstrap loads settings and download status but does not fetch `game_ver
 
 `LocalManifest::validate` silently drops file entries with invalid per-file checksums (`crates/yayl-core/src/local_manifest.rs:96-108`), while `damaged_files` checks sizes only for entries remaining after validation (`crates/yayl-core/src/process.rs:92-118`). This can reduce the checked file set. However, the manifest is local user-writable state, and it is not established whether this crosses a security boundary beyond the same user's control. Determine the intended trust model and whether partial valid metadata can be produced by an untrusted input before treating it as a vulnerability.
 
+**Resolution (2026-11-24, `d3365c2`):** decision Q-05 defines bad `vc` as damaged. `validate` still removes untrusted entries from `files` (so a manifest diff cannot reuse a tampered hash/size), but records their paths in an internal, serde-skipped `invalid_files` field; the official on-disk format is unchanged. `process::damaged_files` now includes those paths, so `launch_game` refuses to start with `game_damaged` and the UI can offer repair. Tests cover a tampered `vc` and a quarantined entry; `cargo test -p yayl-core` passed with 140 tests.
+
 ## Comparison summary
 
 - **Both reviews identified:** the news URL validation gap and launch-time install-root inconsistency.
 - **Initial review only, retained as needs validation:** unchecked aggregate manifest size and update/minimum-version flow.
-- **Downgraded to needs validation:** local manifest completeness; impact depends on the local metadata trust model.
+- **Downgraded to needs validation:** local manifest completeness; impact depends on the local metadata trust model. Resolved in `d3365c2` (see addendum above).
 - **Withdrawn after checking the call chain:** arbitrary executable path through game config; `join_inside` rejects absolute and non-normal path components.
 - **Not assessed as findings:** generic hardening suggestions without a demonstrated boundary failure.
 

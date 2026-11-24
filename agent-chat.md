@@ -320,4 +320,6 @@ PowerShell here-strings turned some code backticks into control characters (VT/B
 
 [2026-11-24 11:52] opencode>all done T-05 ref:TODO.md
 Q-05 resolved: a bad per-file vc now means damaged. LocalManifest::validate keeps the quarantine paths in invalid_files (serde-skip, official file format unchanged) and removes the untrusted entries from files; process::damaged_files reports those paths.
-Tests: quarantines_tampered_files_instead_of_hiding_them and damaged_files_reports_a_bad_file_vc. cargo test -p yayl-core -> 140 passed; fmt and clippy clean. D-07 docs still pending.
+Tests: quarantines_tampered_files_instead_of_hiding_them and damaged_files_reports_a_bad_file_vc. cargo test -p yayl-core -> 140 passed; fmt and clippy clean. D-07 docs still pending.[2026-11-24 11:53] opencode>all done D-07 ref:TODO.md
+Updated docs/security-review-2026-11-07.md status, section 5 addendum and comparison summary with decision Q-05 and fix d3365c2: bad per-file vc is reported via invalid_files and blocks launch through damaged_files.
+Other findings and the partial-review coverage statement are unchanged; no code touched in this commit.

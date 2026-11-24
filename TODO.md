@@ -215,6 +215,7 @@ Archive hoặc xoá mục "3. Task board" và "8. Nhật ký" (dễ lỗi thời
 ### D-07 `docs/security-review-2026-11-07.md`
 
 Cập nhật mục #5 sau T-05.
+- **Trạng thái:** xong 2026-11-24. Status header, mục "Local manifest completeness and launch integrity" và comparison summary ghi rõ Q-05 + commit `d3365c2`: bad `vc` → damaged, `invalid_files` (serde-skip), `damaged_files` chặn launch. Chỉ sửa docs review; các finding còn lại giữ nguyên.
 
 ## Đo đạc
 
