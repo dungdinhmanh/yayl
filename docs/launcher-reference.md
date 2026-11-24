@@ -406,7 +406,7 @@ When a proxy is active, the launcher exports `HTTP_PROXY`, `HTTPS_PROXY`, `http_
 YAYL mapping:
 
 - `ProxyMode::Direct` — same default as the official launcher.
-- `ProxyMode::System` — same WinINET registry read on Windows, then environment fallback when the registry has no active proxy; environment only on non-Windows platforms.
+- `ProxyMode::System` — delegates to reqwest's `system-proxy` detection (WinINET on Windows, environment variables elsewhere); YAYL no longer reads the registry itself.
 - `ProxyMode::Manual` — YAYL extension for an explicit HTTP/HTTPS/SOCKS URL and `no_proxy` list.
 
 ## Game identities

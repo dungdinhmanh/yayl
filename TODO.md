@@ -96,7 +96,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/proxy.rs` (`env_proxy`, `windows_system_proxy`, `parse_proxy_server`; dep `winreg`)
 - **Việc:** workspace đã bật `reqwest` feature `system-proxy`; thử để mode `System` dùng hành vi mặc định, giữ `Direct` và `Manual` rõ ràng. Bỏ `winreg` nếu không còn dùng.
 - **Xong khi:** test tay: không proxy, HTTP, HTTPS, bypass/no-proxy trên **Windows và Linux**. Nếu thiếu hành vi cần thiết thì giữ code cũ.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** code xong 2026-11-24 theo Q-10. `System` để reqwest tự detect, `Direct` gọi `.no_proxy()`, `Manual` vẫn validate URL/`no_proxy`; xoá custom WinINET/env detection và dep `winreg`. `cargo test -p yayl-core proxy` 5 pass, full `cargo test -p yayl-core` 139 pass, `clippy -p yayl-core --all-targets -D warnings` sạch; backend-worklog/launcher-reference đã cập nhật. **Chưa test tay Windows/Linux** (người dùng nhận phần này).
 
 ### T-11 Gom setup chung của download/verify/repair
 

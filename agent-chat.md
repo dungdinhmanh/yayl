@@ -330,4 +330,7 @@ Scope: confirm the serve-only dev plugins are still needed; check salt/version/h
 
 [2026-11-24 12:15] opencode>all done T-19 ref:TODO.md
 Kept devNewsPlugin and devLauncherPlugin: both use apply serve, so they never enter the production bundle, and the browser lab still calls the three dev bridges. vite.config.ts:8-25 reads the single launcher-versions.lock.json, the same source as crates/yayl-core/build.rs:20; no duplicate AUTH_SALT remains.
-Verified earlier this session with bun run dev: /__dev/news, /__dev/social and /__dev/background returned 200 and the mock UI rendered. No code change in this task.
+Verified earlier this session with bun run dev: /__dev/news, /__dev/social and /__dev/background returned 200 and the mock UI rendered. No code change in this task.[2026-11-24 12:21] opencode>all done T-10 ref:TODO.md
+Per decision Q-10, ProxyMode::System now uses reqwest's system-proxy detection; Direct calls no_proxy and Manual keeps URL/validate/no_proxy handling. Removed custom WinINET/env detection (176 lines) and the winreg dependency; Cargo.lock updated.
+Tests: cargo test -p yayl-core proxy -> 5 passed, full cargo test -p yayl-core -> 139 passed, clippy -p yayl-core --all-targets -D warnings clean. Desktop check still running.
+Windows/Linux manual proxy, HTTPS and bypass checks were NOT run here; the user owns that verification per the decision.

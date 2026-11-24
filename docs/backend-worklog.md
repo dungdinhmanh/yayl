@@ -54,9 +54,9 @@
   - File nhỏ xong trước giúp game sớm có đủ file khởi động; file lớn chạy sau.
 - **Proxy:** `ProxyMode::{Direct, System, Manual}`.
   - `Direct` là mặc định, giống launcher chính thức.
-  - `System` đọc WinINET registry trên Windows (`ProxyEnable`, `ProxyServer`, `ProxyOverride`); nền tảng khác dùng biến môi trường.
+  - `System` dùng cơ chế phát hiện có sẵn của reqwest (feature `system-proxy`: WinINET trên Windows, biến môi trường ở nền tảng khác).
   - `Manual` nhận HTTP/HTTPS/SOCKS4/SOCKS5 và `no_proxy`.
-  - Luôn thêm `localhost`, `127.0.0.1`, `::1` vào bypass khi đọc system proxy.
+  - `Direct` gọi `.no_proxy()`; reqwest tự áp dụng bypass cho `System`.
 - **Trạng thái bền vững:** tách `plan.json` và `task.json`.
   - `.yayl/plan.json` = desired state bất biến: game config, CDN, manifest snapshot, jobs, order.
   - `.yayl/task.json` = execution state thay đổi: progress, failures, timestamps.

@@ -1,10 +1,9 @@
 //! Proxy settings and HTTP client construction.
-//! System mode reads WinINET on Windows and standard env vars elsewhere.
+//! System mode uses reqwest's `system-proxy` feature; Direct and Manual are explicit.
 
 use crate::error::{Error, ErrorCode, Result};
 use reqwest::{Client, NoProxy, Proxy};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::time::Duration;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -27,21 +26,6 @@ pub struct ProxySettings {
     pub url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub no_proxy: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DetectedProxy {
-    pub url: String,
-    pub no_proxy: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ResolvedProxy {
-    Direct,
-    Manual {
-        url: String,
-        no_proxy: Option<String>,
-    },
 }
 
 impl ProxySettings {
@@ -103,30 +87,11 @@ impl ProxySettings {
         }
         Ok(())
     }
-
-    pub fn resolve(&self) -> Result<ResolvedProxy> {
-        match self.mode {
-            ProxyMode::Direct => Ok(ResolvedProxy::Direct),
-            ProxyMode::System => Ok(detect_system_proxy()
-                .map(|proxy| ResolvedProxy::Manual {
-                    url: proxy.url,
-                    no_proxy: proxy.no_proxy,
-                })
-                .unwrap_or(ResolvedProxy::Direct)),
-            ProxyMode::Manual => {
-                self.validate()?;
-                let url = normalize_proxy_url(self.url.as_deref().unwrap_or_default().trim())
-                    .ok_or_else(|| Error::new(ErrorCode::InvalidInput, "proxy URL is invalid"))?;
-                Ok(ResolvedProxy::Manual {
-                    url,
-                    no_proxy: self.no_proxy.as_deref().and_then(normalize_no_proxy),
-                })
-            }
-        }
-    }
 }
 
 /// Build the shared reqwest client used by the API and downloader.
+/// Direct mode disables even environment proxies; System mode leaves reqwest's
+/// built-in detection enabled; Manual mode applies the saved URL and bypass list.
 pub fn build_client(settings: &ProxySettings) -> Result<Client> {
     let builder = Client::builder()
         .user_agent(concat!("YAYL/", env!("CARGO_PKG_VERSION")))
@@ -134,16 +99,20 @@ pub fn build_client(settings: &ProxySettings) -> Result<Client> {
         // Idle timeout per read; large downloads must not be cut off.
         .read_timeout(Duration::from_secs(30));
 
-    let builder = match settings.resolve()? {
-        ResolvedProxy::Direct => builder.no_proxy(),
-        ResolvedProxy::Manual { url, no_proxy } => {
+    let builder = match settings.mode {
+        ProxyMode::Direct => builder.no_proxy(),
+        ProxyMode::System => builder,
+        ProxyMode::Manual => {
+            settings.validate()?;
+            let url = normalize_proxy_url(settings.url.as_deref().unwrap_or_default().trim())
+                .ok_or_else(|| Error::new(ErrorCode::InvalidInput, "proxy URL is invalid"))?;
             let mut proxy = Proxy::all(url.as_str()).map_err(|error| {
                 Error::new(
                     ErrorCode::InvalidInput,
                     format!("invalid proxy URL: {error}"),
                 )
             })?;
-            if let Some(no_proxy) = no_proxy {
+            if let Some(no_proxy) = settings.no_proxy.as_deref().and_then(normalize_no_proxy) {
                 proxy = proxy.no_proxy(NoProxy::from_string(&no_proxy));
             }
             builder.proxy(proxy)
@@ -151,115 +120,6 @@ pub fn build_client(settings: &ProxySettings) -> Result<Client> {
     };
 
     builder.build().map_err(Into::into)
-}
-
-/// Read the OS proxy, or `None` when disabled.
-pub fn detect_system_proxy() -> Option<DetectedProxy> {
-    #[cfg(windows)]
-    {
-        windows_system_proxy().or_else(env_proxy)
-    }
-    #[cfg(not(windows))]
-    {
-        env_proxy()
-    }
-}
-
-fn env_proxy() -> Option<DetectedProxy> {
-    let raw = [
-        "HTTPS_PROXY",
-        "https_proxy",
-        "HTTP_PROXY",
-        "http_proxy",
-        "ALL_PROXY",
-        "all_proxy",
-    ]
-    .iter()
-    .find_map(|name| std::env::var(name).ok())
-    .filter(|value| !value.trim().is_empty())?;
-    let url = normalize_proxy_url(&raw)?;
-    let no_proxy = ["NO_PROXY", "no_proxy"]
-        .iter()
-        .find_map(|name| std::env::var(name).ok())
-        .and_then(|value| normalize_no_proxy(&value));
-    Some(DetectedProxy { url, no_proxy })
-}
-
-#[cfg(windows)]
-fn windows_system_proxy() -> Option<DetectedProxy> {
-    use winreg::RegKey;
-    use winreg::enums::{HKEY_CURRENT_USER, KEY_READ};
-
-    const INTERNET_SETTINGS: &str = r"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-
-    let key = RegKey::predef(HKEY_CURRENT_USER)
-        .open_subkey_with_flags(INTERNET_SETTINGS, KEY_READ)
-        .ok()?;
-
-    let enabled = key
-        .get_value::<u32, _>("ProxyEnable")
-        .map(|value| value != 0)
-        .or_else(|_| {
-            key.get_value::<String, _>("ProxyEnable")
-                .map(|value| matches!(value.trim(), "1" | "0x1" | "0X1"))
-        })
-        .ok()?;
-    if !enabled {
-        return None;
-    }
-
-    let server: String = key.get_value("ProxyServer").ok()?;
-    let url = parse_proxy_server(&server)?;
-    let override_value: String = key.get_value("ProxyOverride").unwrap_or_default();
-    let mut no_proxy = normalize_no_proxy(&override_value)
-        .map(|value| value.split(',').map(str::to_owned).collect::<Vec<_>>())
-        .unwrap_or_default();
-    for host in ["localhost", "127.0.0.1", "::1"] {
-        if !no_proxy.iter().any(|entry| entry == host) {
-            no_proxy.push(host.to_owned());
-        }
-    }
-    Some(DetectedProxy {
-        url,
-        no_proxy: normalize_no_proxy(&no_proxy.join(",")),
-    })
-}
-
-/// Parse WinINET `ProxyServer` (`host:port`, URL, or protocol list).
-pub fn parse_proxy_server(value: &str) -> Option<String> {
-    let value = value.trim();
-    if value.is_empty() {
-        return None;
-    }
-    if value.starts_with("http://")
-        || value.starts_with("https://")
-        || value.starts_with("socks://")
-        || value.starts_with("socks4://")
-        || value.starts_with("socks4a://")
-        || value.starts_with("socks5://")
-        || value.starts_with("socks5h://")
-    {
-        return normalize_proxy_url(value);
-    }
-    if value.contains('=') {
-        let mut proxies = BTreeMap::new();
-        for pair in value.split(';') {
-            if let Some((scheme, host)) = pair.split_once('=') {
-                proxies.insert(scheme.trim().to_ascii_lowercase(), host.trim());
-            }
-        }
-        if let Some(host) = proxies.get("http").filter(|host| !host.is_empty()) {
-            return Some(format!("http://{host}"));
-        }
-        if let Some(host) = proxies.get("socks").filter(|host| !host.is_empty()) {
-            return Some(format!("socks5://{host}"));
-        }
-        if let Some(host) = proxies.get("https").filter(|host| !host.is_empty()) {
-            return Some(format!("http://{host}"));
-        }
-        return None;
-    }
-    Some(format!("http://{value}"))
 }
 
 /// Normalize proxy spellings; `socks://` becomes SOCKS5.
@@ -277,7 +137,7 @@ pub fn normalize_proxy_url(value: &str) -> Option<String> {
     Some(format!("http://{value}"))
 }
 
-/// Convert `ProxyOverride` to reqwest's comma-separated list.
+/// Normalize a comma/semicolon bypass list for reqwest.
 pub fn normalize_no_proxy(value: &str) -> Option<String> {
     let entries: Vec<&str> = value
         .split([',', ';'])
@@ -299,28 +159,7 @@ mod tests {
     fn defaults_to_direct_like_the_official_launcher() {
         let settings = ProxySettings::default();
         assert_eq!(settings.mode, ProxyMode::Direct);
-        assert!(matches!(settings.resolve().unwrap(), ResolvedProxy::Direct));
-    }
-
-    #[test]
-    fn parses_wininet_proxy_server_forms() {
-        assert_eq!(
-            parse_proxy_server("127.0.0.1:7890"),
-            Some("http://127.0.0.1:7890".to_owned())
-        );
-        assert_eq!(
-            parse_proxy_server("http://proxy.local:8080"),
-            Some("http://proxy.local:8080".to_owned())
-        );
-        assert_eq!(
-            parse_proxy_server("http=proxy.local:8080;https=secure.local:8443"),
-            Some("http://proxy.local:8080".to_owned())
-        );
-        assert_eq!(
-            parse_proxy_server("socks=127.0.0.1:1080"),
-            Some("socks5://127.0.0.1:1080".to_owned())
-        );
-        assert_eq!(parse_proxy_server(""), None);
+        assert!(build_client(&settings).is_ok());
     }
 
     #[test]
