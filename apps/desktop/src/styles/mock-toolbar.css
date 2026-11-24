@@ -1,0 +1,562 @@
+/* --------------------------------------------------------------------------
+   Mock toolbar
+   -------------------------------------------------------------------------- */
+
+.mock-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(8, 11, 17, 0.9);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(18px);
+  font-family: var(--font-ui);
+  font-size: 12.6px;
+}
+
+.mock-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-right: 7px;
+  border-right: 1px solid var(--border);
+}
+
+.mock-group:last-of-type {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.mock-label {
+  color: var(--muted-3);
+  font-size: 12.6px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 3px;
+}
+
+.mock-select {
+  height: 25px;
+  max-width: 104px;
+  padding: 0 22px 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: 0;
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.04);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2398a2b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  color: var(--text-soft);
+  font-size: 12.6px;
+  cursor: pointer;
+}
+
+.mock-toggle {
+  height: 25px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12.6px;
+}
+
+.mock-toggle:hover,
+.mock-toggle.is-active {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+}
+
+.mock-close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: var(--muted-3);
+}
+
+.mock-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+/* Toast stack */
+.toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 60px;
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 300px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(13, 18, 28, 0.94);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(16px);
+  animation: toast-in 260ms var(--ease-out) both;
+  pointer-events: auto;
+}
+
+.toast.is-error {
+  border-color: rgba(255, 93, 122, 0.25);
+}
+
+.toast svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--success);
+}
+
+.toast.is-error svg {
+  color: var(--danger);
+}
+
+.toast-title {
+  color: var(--text-soft);
+  font-size: 12.6px;
+  font-weight: 600;
+}
+
+.toast-text {
+  margin-top: 1px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal preview */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 5, 8, 0.66);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(440px, 100%);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: linear-gradient(150deg, #131a26, #0a0e16);
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 220ms var(--ease-out) both;
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+
+.modal-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.modal-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.modal-icon.is-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.modal-icon.is-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-text {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12.6px;
+  line-height: 1.6;
+}
+
+.modal-body {
+  padding: 16px 20px 0;
+}
+
+.modal-path {
+  padding: 9px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+  word-break: break-all;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 18px 20px 20px;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer 1.4s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Image fallbacks */
+.backdrop-art.is-missing,
+.game-thumb.is-missing,
+.top-tab-thumb.is-missing,
+.lab-card-art.is-missing,
+.game-settings-tab img.is-missing {
+  display: none !important;
+}
+
+/* Additional status tones */
+.status-pill.is-neutral {
+  color: var(--muted);
+}
+
+.status-pill.is-neutral .status-dot {
+  background: var(--muted-2);
+  box-shadow: 0 0 8px rgba(152, 162, 179, 0.35);
+}
+
+.status-pill.is-warning {
+  border-color: rgba(245, 181, 68, 0.24);
+  background: rgba(245, 181, 68, 0.07);
+  color: #f5cf8b;
+}
+
+.status-pill.is-warning .status-dot {
+  background: var(--warning);
+  box-shadow: 0 0 8px rgba(245, 181, 68, 0.55);
+}
+
+.status-pill.is-update .status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.status-pill.is-info .status-dot {
+  background: var(--info);
+  box-shadow: 0 0 8px rgba(92, 200, 255, 0.55);
+}
+
+.status-pill.is-error .status-dot {
+  background: var(--danger);
+  box-shadow: 0 0 8px rgba(255, 93, 122, 0.55);
+}
+
+.status-pill.is-ready .status-dot {
+  background: var(--success);
+  box-shadow: 0 0 8px rgba(69, 214, 160, 0.55);
+}
+
+/* Modal confirmation checkbox */
+.modal-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13.2px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.modal-check input {
+  width: 13px;
+  height: 13px;
+  margin: 1px 0 0;
+  accent-color: var(--danger);
+  flex: 0 0 auto;
+}
+
+/* Compact mock lab launcher */
+.mock-fab {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 201;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.32);
+  border-radius: 999px;
+  background: rgba(8, 11, 17, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  backdrop-filter: blur(16px);
+  transition: background var(--dur-fast), transform var(--dur-fast);
+}
+
+.mock-fab:hover {
+  background: rgba(18, 24, 36, 0.96);
+  transform: translateY(-1px);
+}
+
+.mock-fab svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mock-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 56px;
+  z-index: 201;
+  width: 292px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 13px;
+  background: rgba(8, 11, 17, 0.94);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(20px);
+  animation: modal-in 180ms var(--ease-out) both;
+}
+
+.mock-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.mock-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.mock-panel-title svg {
+  width: 13px;
+  height: 13px;
+  color: var(--accent);
+}
+
+.mock-panel-close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: var(--muted-3);
+}
+
+.mock-panel-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.mock-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: min(420px, calc(100vh - 150px));
+  overflow-y: auto;
+  padding: 11px 12px 12px;
+}
+
+.mock-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mock-field label {
+  color: var(--muted-2);
+  font-size: 12.6px;
+  font-weight: 600;
+}
+
+.mock-field select {
+  width: 148px;
+  height: 27px;
+  padding: 0 22px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: 0;
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.04);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2398a2b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  color: var(--text-soft);
+  font-size: 12.6px;
+}
+
+.mock-panel-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.mock-panel-actions .mock-toggle {
+  flex: 1;
+}
+
+.mock-panel-note {
+  margin-top: 3px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--muted-3);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.mock-panel-note code {
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+}
+
+/* Utility */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.muted-2 {
+  color: var(--muted-2);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.success {
+  color: var(--success);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.gap-4 {
+  gap: 4px;
+}
+
+.gap-6 {
+  gap: 6px;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-10 {
+  gap: 10px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+.spacer {
+  flex: 1;
+}
+

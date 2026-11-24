@@ -1,0 +1,342 @@
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1200px) {
+  :root {
+    --sidebar-w: 208px;
+    --content-pad: 30px;
+  }
+
+  .hero-title {
+    font-size: clamp(40px, 4.8vw, 58px);
+  }
+
+  .meta-card {
+    padding: 11px 12px;
+  }
+
+  .download-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  }
+
+  .ring-wrap {
+    width: 150px;
+    height: 150px;
+  }
+
+  .ring-value {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --sidebar-w: 196px;
+    --content-pad: 26px;
+  }
+
+  .hero-title {
+    font-size: 46px;
+  }
+
+  .hero-sub {
+    font-size: 14.4px;
+  }
+
+  .hero-actions .btn-primary {
+    min-width: 170px;
+  }
+
+  .meta-value {
+    font-size: 14.4px;
+  }
+
+  .meta-value.is-mono {
+    font-size: 13.2px;
+  }
+
+  .settings-shell {
+    grid-template-columns: 158px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .setting-control.is-wide {
+    width: 230px;
+  }
+
+  .download-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .download-ring-row {
+    gap: 18px;
+  }
+
+  .download-stat-grid {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  :root {
+    --sidebar-w: 76px;
+  }
+
+  .sidebar {
+    align-items: center;
+  }
+
+  .sidebar-scroll {
+    width: 100%;
+    padding: 14px 8px 10px;
+  }
+
+  .sidebar-section,
+  .game-info,
+  .nav-label,
+  .nav-badge,
+  .server-state span,
+  .sidebar-version span,
+  .lab-tag {
+    display: none;
+  }
+
+  .game-card {
+    justify-content: center;
+    padding: 7px;
+  }
+
+  .game-card.is-active::before {
+    top: 8px;
+    bottom: 8px;
+  }
+
+  .game-thumb-wrap {
+    width: 42px;
+    height: 52px;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar-footer {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .server-state {
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .sidebar-version {
+    justify-content: center;
+  }
+
+  .meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .meta-card:last-child {
+    display: none;
+  }
+
+  .download-grid {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+
+  .download-side-card {
+    min-height: auto;
+  }
+
+  .settings-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .settings-nav-item {
+    white-space: nowrap;
+  }
+
+  .lab-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lab-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lab-side {
+    width: 100%;
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --content-pad: 20px;
+  }
+
+  .titlebar-note,
+  .top-tab-region,
+  .hero-status {
+    display: none;
+  }
+
+  .hero-title {
+    font-size: 38px;
+  }
+
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .meta-card:last-child {
+    display: flex;
+  }
+
+  .download-ring-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .kit-grid,
+  .lab-grid,
+  .lab-notes {
+    grid-template-columns: 1fr;
+  }
+
+  .kit-card.is-full {
+    grid-column: auto;
+  }
+
+  .lab-title {
+    font-size: 42px;
+  }
+
+  .lab-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mock-toolbar {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mock-group {
+    border-right: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-height: 690px) {
+  .home-page {
+    padding-top: 22px;
+    padding-bottom: 22px;
+  }
+
+  .hero {
+    gap: 18px;
+  }
+
+  .hero-title {
+    font-size: 44px;
+  }
+
+  .hero-sub {
+    margin-top: 10px;
+  }
+
+  .meta-card {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .download-page {
+    padding-top: 18px;
+    padding-bottom: 18px;
+    gap: 14px;
+  }
+
+  .download-main-card,
+  .download-side-card {
+    padding: 16px 18px;
+  }
+
+  .ring-wrap {
+    width: 126px;
+    height: 126px;
+  }
+
+  .ring-value {
+    font-size: 28px;
+  }
+
+  .speed-chart {
+    margin-top: 12px;
+    padding: 8px 10px 7px;
+  }
+
+  .speed-bars {
+    height: 34px;
+  }
+
+  .download-stat-grid {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .download-stat {
+    padding: 7px 8px;
+  }
+
+  .phase-item {
+    min-height: 36px;
+    padding-bottom: 6px;
+  }
+
+  .recent-file {
+    font-size: 12px;
+  }
+
+  .download-footer {
+    padding-top: 0;
+  }
+
+  .settings-page,
+  .kit-page {
+    padding-top: 20px;
+    padding-bottom: 22px;
+  }
+
+  .setting-row {
+    min-height: 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

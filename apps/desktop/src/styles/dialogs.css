@@ -1,0 +1,635 @@
+/* Install location dialog */
+.install-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 5, 8, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.install-dialog {
+  display: flex;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 32px);
+  flex-direction: column;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: linear-gradient(155deg, #141b28, #0a0e16 62%);
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 220ms var(--ease-out) both;
+}
+
+.install-dialog:focus {
+  outline: none;
+}
+
+.confirm-dialog {
+  width: min(440px, 100%);
+}
+
+/* Server switcher reuses the install dialog shell. */
+.server-dialog {
+  width: min(460px, 100%);
+}
+
+.server-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.server-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  text-align: left;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.server-row:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.server-row.is-current {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.server-region {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.server-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.server-name {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.server-meta {
+  display: flex;
+  gap: 10px;
+  color: var(--muted-2);
+  font-size: 12.4px;
+}
+
+.server-size {
+  font-family: var(--font-mono);
+}
+
+.server-check {
+  color: var(--accent);
+}
+
+.server-check svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.confirm-path {
+  overflow: hidden;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-size: 12.6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+
+.install-head-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.install-head-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.install-head-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.install-title {
+  font-size: 19.2px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.install-sub {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13.2px;
+  line-height: 1.55;
+}
+
+.install-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.install-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.install-close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.install-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 0;
+}
+
+.install-location,
+.install-storage {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.install-label {
+  padding: 10px 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.install-path-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 12px;
+}
+
+.install-path-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--muted);
+}
+
+.install-path-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.install-path-input {
+  min-width: 0;
+  height: 34px;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 13.8px;
+  text-overflow: ellipsis;
+}
+
+.install-path-input:focus {
+  color: var(--text);
+  outline: none;
+}
+
+.install-location:focus-within {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
+}
+
+.install-change {
+  height: 32px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-soft);
+  font-size: 13.2px;
+  font-weight: 650;
+}
+
+.install-change:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.install-storage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.install-storage-head .is-total {
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.install-storage-body {
+  padding: 9px 12px 12px;
+}
+
+.install-bar {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.install-bar-used,
+.install-bar-game {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 420ms var(--ease-out), left 420ms var(--ease-out);
+}
+
+.install-bar-used {
+  left: 0;
+  background: linear-gradient(90deg, #4f8fd8, #3c6fb0);
+}
+
+.install-bar-game {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.install-bar.is-short .install-bar-game {
+  background: linear-gradient(90deg, #e0654f, #d64562);
+}
+
+.install-bar-skeleton {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  background-size: 200% 100%;
+  animation: install-shimmer 1.2s linear infinite;
+}
+
+.install-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.6px;
+}
+
+.install-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.install-legend i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.install-legend .is-used {
+  color: #6aa7e8;
+}
+
+.install-legend .is-game {
+  color: var(--accent);
+}
+
+.install-legend .is-free {
+  color: var(--muted-2);
+}
+
+.install-legend b {
+  color: var(--text-soft);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.install-size-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 12.6px;
+}
+
+.install-size-row div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.install-size-row b {
+  color: var(--text);
+  font-size: 14.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.install-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid rgba(214, 69, 98, 0.34);
+  border-radius: 9px;
+  background: rgba(214, 69, 98, 0.1);
+  color: #f08fa1;
+  font-size: 13.2px;
+}
+
+.install-warning[hidden] {
+  display: none;
+}
+
+.install-warning svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.install-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.install-locate {
+  color: var(--muted);
+  font-size: 13.2px;
+  text-decoration: none;
+}
+
+.install-locate:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.install-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.install-confirm {
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 13.8px;
+  font-weight: 800;
+}
+
+.install-confirm:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.install-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.install-skeleton {
+  display: inline-block;
+  width: 54px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  background-size: 200% 100%;
+  animation: install-shimmer 1.2s linear infinite;
+}
+
+@keyframes install-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.home-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+}
+
+.home-icon-btn:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.11);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.home-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.home-play {
+  position: relative;
+  display: flex;
+  flex: 0 0 260px;
+  align-items: center;
+  justify-content: center;
+  width: 260px;
+  height: 62px;
+  padding: 0 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  transition: filter var(--dur-fast), transform var(--dur-fast), background var(--dur-fast);
+}
+
+/* Keep the icon and label above the liquid fill. */
+.home-play > :not(.bp) {
+  z-index: 2;
+}
+
+.home-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+}
+
+.home-play:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.home-play:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.home-play svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+/* Single centered label. The sub-line was removed on purpose. */
+.home-play-label {
+  position: relative;
+  z-index: 2;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Install: purple pill, black ring, purple inner disc, animated download glyph. */
+.home-play.is-install .home-play-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #05070b;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+.home-play.is-install .home-play-icon .dl-badge {
+  --dl-badge-bg: var(--accent);
+  --dl-badge-fg: #ffffff;
+  box-shadow: none;
+}
+
+.home-play.is-install .home-play-icon .dl-badge__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Downloading states: dark glass base so the liquid fill and bubbles read. */
+.home-play.is-downloading,
+.home-play.is-paused,
+.home-play.is-verifying {
+  border-color: var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 46%, rgba(0, 0, 0, 0.06)),
+    var(--bg-1);
+  color: var(--text);
+}
+
+/* Paused reads yellow at a glance, not just in the liquid fill. No border. */
+.home-play.is-paused {
+  --accent-rgb: 245, 181, 68;
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, rgba(245, 181, 68, 0.3), rgba(245, 181, 68, 0.12) 48%, rgba(0, 0, 0, 0.12)),
+    var(--bg-1);
+}
+
+.home-play.is-error {
+  background: #d64562;
+  color: #fff;
+}
+
+.home-play.is-offline,
+.home-play.is-running {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  box-shadow: none;
+}
+

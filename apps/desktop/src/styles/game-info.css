@@ -1,0 +1,39 @@
+/* Playtime / last played pill */
+.hero-stats {
+  position: absolute;
+  top: 16px;
+  right: 26px;
+  z-index: 6;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(4, 6, 10, 0.62);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
+.hero-stat {
+  min-width: 132px;
+  padding: 9px 13px;
+}
+
+.hero-stat + .hero-stat {
+  border-left: 1px solid var(--border-soft);
+}
+
+.hero-stat-label {
+  color: var(--muted);
+  font-size: 12.6px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.hero-stat-value {
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+

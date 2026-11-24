@@ -1,0 +1,187 @@
+/* ==========================================================================
+   Rail layout, news widget, action bar, game info
+   ========================================================================== */
+
+body[data-layout="rail"] {
+  --sidebar-w: 76px;
+}
+
+body[data-layout="rail"] .sidebar {
+  align-items: center;
+  background: linear-gradient(180deg, rgba(5, 8, 13, 0.94), rgba(5, 8, 13, 0.82));
+}
+
+body[data-layout="rail"] .sidebar-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 9px 10px;
+}
+
+body[data-layout="rail"] .sidebar-section,
+body[data-layout="rail"] .game-info,
+body[data-layout="rail"] .nav-label,
+body[data-layout="rail"] .nav-badge,
+body[data-layout="rail"] .server-state,
+body[data-layout="rail"] .sidebar-version {
+  display: none;
+}
+
+body[data-layout="rail"] .game-list,
+body[data-layout="rail"] .nav {
+  gap: 8px;
+}
+
+body[data-layout="rail"] .game-card {
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--card-accent);
+}
+
+body[data-layout="rail"] .game-card:hover,
+body[data-layout="rail"] .game-card.is-active {
+  border: 0;
+  background: none;
+}
+
+body[data-layout="rail"] .game-card.is-active::before {
+  display: none;
+}
+
+body[data-layout="rail"] .game-badge {
+  display: none;
+}
+
+body[data-layout="rail"] .game-thumb-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  transition: box-shadow var(--dur-fast), transform var(--dur-fast);
+}
+
+body[data-layout="rail"] .game-card:hover .game-thumb-wrap {
+  transform: scale(1.04);
+}
+
+body[data-layout="rail"] .rail-progress {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+body[data-layout="rail"] .rail-progress-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 3;
+}
+
+body[data-layout="rail"] .rail-progress-fill {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 6px rgba(var(--card-accent-rgb), 0.55));
+  transition: stroke-dashoffset var(--dur-base) linear, stroke var(--dur-fast) linear;
+}
+
+/* The ring itself is the selected / focused indicator: a full accent ring. */
+body[data-layout="rail"] .game-card.is-ring-selected .rail-progress-bg {
+  stroke: rgba(var(--card-accent-rgb), 0.25);
+}
+
+body[data-layout="rail"] .game-card.is-ring-selected .rail-progress-fill {
+  stroke: rgb(var(--card-accent-rgb));
+  filter: drop-shadow(0 0 8px rgba(var(--card-accent-rgb), 0.75));
+}
+
+body[data-layout="rail"] .game-card.is-ring-selected .game-thumb-wrap {
+  transform: scale(1.02);
+}
+
+body[data-layout="rail"] .game-thumb-wrap::after {
+  display: none;
+}
+
+body[data-layout="rail"] .game-thumb-wrap .dl-badge--corner {
+  right: 2px;
+  bottom: 2px;
+  box-shadow:
+    0 0 0 2px rgba(6, 9, 14, 0.9),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+body[data-layout="rail"] .game-thumb {
+  position: absolute;
+  inset: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  object-fit: contain;
+}
+
+/* Region code on the active server, opposite the download badge. */
+body[data-layout="rail"] .game-region {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  z-index: 3;
+  padding: 1px 4px;
+  border-radius: 6px;
+  background: rgba(6, 9, 14, 0.94);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+body[data-layout="rail"] .nav-item {
+  justify-content: center;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+body[data-layout="rail"] .nav-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+body[data-layout="rail"] .nav-item.is-active {
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--text);
+}
+
+body[data-layout="rail"] .nav-item.is-active svg {
+  color: var(--accent);
+}
+
+body[data-layout="rail"] .sidebar-footer {
+  display: none;
+}
+
+body[data-layout="rail"] .backdrop {
+  left: var(--sidebar-w);
+}
+
+body[data-layout="rail"] .backdrop-scrim {
+  background:
+    linear-gradient(0deg, rgba(4, 6, 10, 0.97) 0%, rgba(4, 6, 10, 0.5) 26%, rgba(4, 6, 10, 0.08) 58%, rgba(4, 6, 10, 0.32) 100%),
+    radial-gradient(110% 90% at 78% 14%, transparent 0%, rgba(4, 6, 10, 0.3) 100%);
+}
+

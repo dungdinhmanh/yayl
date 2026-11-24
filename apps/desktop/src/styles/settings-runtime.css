@@ -1,0 +1,55 @@
+/* --------------------------------------------------------------------------
+   Settings runtime states
+   -------------------------------------------------------------------------- */
+
+body[data-background="solid"] .backdrop-art,
+body[data-background="solid"] .backdrop-blur {
+  display: none;
+}
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.boot-screen {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.boot-mark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-accent);
+  color: var(--accent-ink);
+}
+
+.boot-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.settings-status {
+  margin-top: 6px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+.settings-status.is-saved {
+  color: var(--success);
+}
+
+.settings-status.is-error {
+  color: var(--danger);
+}

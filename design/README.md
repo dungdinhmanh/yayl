@@ -74,6 +74,7 @@ settings.html?tab=network
 - No `fetch()` of local JSON; use the data in `assets/js/mock-data.js`.
 - No external fonts, icon CDNs, or analytics.
 - `assets/css/tokens.css` is the source of truth for design tokens.
+- Keep `design/assets/css/` and `apps/desktop/src/styles/` in sync. `src/styles/tokens.css` mirrors the lab tokens; the app's shared CSS is split into per-component files under `src/styles/` and imported in the original cascade order by `src/styles/app.css`. When a shared style changes, update both `assets/css/app.css` here and the matching `src/styles/` file so the lab and the React app stay identical; never duplicate token values in a component file.
 - `assets/css/components/` contains standalone, scalable components. The download badge lives there and is scaled with `--dl-badge-size`; the chosen download effect is `bubble-progress.css` + `assets/js/bubble-progress.js` (`YAYL_BUBBLES.create(host)`).
 - `assets/vendor/` holds locally vendored libraries. No CDN at runtime.
 - The update-button animation proposals use anime.js (MIT) with a CSS fallback.

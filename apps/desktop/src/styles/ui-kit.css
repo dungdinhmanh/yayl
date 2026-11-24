@@ -1,0 +1,146 @@
+/* --------------------------------------------------------------------------
+   UI kit
+   -------------------------------------------------------------------------- */
+
+.kit-page {
+  min-height: 100%;
+  padding: 28px var(--content-pad) 36px;
+}
+
+.kit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.kit-card {
+  padding: 18px;
+}
+
+.kit-card.is-full {
+  grid-column: 1 / -1;
+}
+
+.kit-label {
+  margin-bottom: 12px;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.kit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.kit-row + .kit-row {
+  margin-top: 12px;
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.swatch {
+  min-height: 54px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--swatch);
+}
+
+.swatch span {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.type-sample {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.type-sample strong {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.type-sample span {
+  color: var(--muted);
+  font-size: 13.2px;
+}
+
+.kit-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(14, 20, 30, 0.92);
+  box-shadow: var(--shadow-md);
+}
+
+.kit-toast svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--success);
+}
+
+.kit-toast.is-error svg {
+  color: var(--danger);
+}
+
+.kit-toast-copy {
+  min-width: 0;
+}
+
+.kit-toast-title {
+  color: var(--text-soft);
+  font-size: 12.6px;
+  font-weight: 600;
+}
+
+.kit-toast-text {
+  margin-top: 1px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+.kit-modal {
+  max-width: 360px;
+  padding: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: rgba(12, 17, 26, 0.96);
+  box-shadow: var(--shadow-lg);
+}
+
+.kit-modal h4 {
+  font-size: 16.8px;
+}
+
+.kit-modal p {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.kit-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 16px;
+}
+

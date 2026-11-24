@@ -1,0 +1,102 @@
+/* Action menu: same height as the play button, opens upwards. */
+.home-menu {
+  position: relative;
+  display: flex;
+}
+
+.home-menu-btn {
+  display: grid;
+  place-items: center;
+  width: var(--action-menu-size);
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.home-menu-btn:hover,
+.home-menu-btn[aria-expanded="true"] {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.home-menu-btn svg {
+  width: 40px;
+  height: 40px;
+}
+
+.home-menu-pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 20;
+  display: flex;
+  min-width: 196px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(12, 16, 24, 0.96);
+  box-shadow: var(--shadow-md);
+}
+
+.home-menu-item {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 14.4px;
+  text-align: left;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.home-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.home-menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.home-menu-item:disabled:hover {
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.home-error {
+  margin-right: calc(var(--action-menu-size) + 10px);
+  color: var(--danger);
+  font-size: 12.8px;
+  text-align: right;
+}
+
+/* Sits under the primary button, centered with it. Only the locate word is a link. */
+.home-action-note {
+  width: 260px;
+  margin-right: calc(var(--action-menu-size) + 10px);
+  padding: 4px 0;
+  color: var(--muted);
+  font-size: 13.2px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-action-link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: filter var(--dur-fast);
+}
+
+.home-action-link:hover {
+  filter: brightness(1.18);
+}
+

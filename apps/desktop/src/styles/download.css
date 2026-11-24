@@ -1,0 +1,481 @@
+/* --------------------------------------------------------------------------
+   Download page
+   -------------------------------------------------------------------------- */
+
+.download-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100%;
+  padding: 24px var(--content-pad) 26px;
+}
+
+.download-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.download-header .page-title {
+  font-size: clamp(24px, 2.8vw, 32px);
+}
+
+.download-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.download-main-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+  padding: 24px;
+}
+
+.download-ring-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.ring-wrap {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  flex: 0 0 auto;
+}
+
+.ring-wrap svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 8;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: url(#ringGradient);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 452.39;
+  stroke-dashoffset: 262.39;
+  filter: drop-shadow(0 0 7px rgba(var(--accent-rgb), 0.35));
+  transition: stroke-dashoffset 500ms var(--ease-out);
+}
+
+.ring-stop-1 {
+  stop-color: var(--accent);
+}
+
+.ring-stop-2 {
+  stop-color: var(--accent-2);
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ring-value {
+  font-family: var(--font-mono);
+  font-size: 38px;
+  font-weight: 650;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.ring-value span {
+  font-size: 19.2px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.ring-label {
+  margin-top: 7px;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.download-stats {
+  min-width: 0;
+  flex: 1;
+}
+
+.download-stats-title {
+  color: var(--muted-2);
+  font-size: 12.6px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.download-stats-value {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.download-stats-value span {
+  color: var(--muted);
+  font-size: 13.2px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.download-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.download-stat {
+  padding: 9px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.download-stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.download-stat-value {
+  margin-top: 3px;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 13.2px;
+}
+
+.download-progress-block {
+  margin-top: 18px;
+}
+
+.download-current-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13.2px;
+}
+
+.download-current-file svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: var(--info);
+}
+
+.download-current-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.speed-chart {
+  margin-top: 20px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.speed-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.speed-chart-head span:last-child {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.speed-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 52px;
+}
+
+.speed-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(180deg, var(--accent), rgba(var(--accent-rgb), 0.16));
+  opacity: 0.9;
+}
+
+.download-side-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 20px;
+}
+
+.phase-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 16px;
+}
+
+.phase-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-height: 46px;
+  padding-bottom: 10px;
+}
+
+.phase-item:last-child {
+  min-height: 0;
+  padding-bottom: 0;
+}
+
+.phase-item::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 18px;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.phase-item:last-child::before {
+  display: none;
+}
+
+.phase-marker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-solid);
+  color: var(--muted-2);
+}
+
+.phase-marker svg {
+  width: 9px;
+  height: 9px;
+}
+
+.phase-item.is-done .phase-marker {
+  border-color: rgba(69, 214, 160, 0.4);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.phase-item.is-active .phase-marker {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.24);
+}
+
+.phase-item.is-active .phase-marker::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.phase-copy {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.phase-title {
+  color: var(--text-soft);
+  font-size: 13.8px;
+  font-weight: 600;
+}
+
+.phase-item.is-active .phase-title {
+  color: var(--text);
+}
+
+.phase-item.is-done .phase-title {
+  color: var(--muted);
+}
+
+.phase-sub {
+  margin-top: 2px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+.phase-item.is-active .phase-sub {
+  color: var(--muted);
+}
+
+.download-side-divider {
+  height: 1px;
+  margin: 18px 0 14px;
+  background: var(--border-soft);
+}
+
+.recent-files {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.recent-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+}
+
+.recent-file svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  color: var(--success);
+}
+
+.recent-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-file em {
+  margin-left: auto;
+  color: var(--muted-3);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.download-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-top: 2px;
+}
+
+.download-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+
+.download-footer-note svg {
+  width: 13px;
+  height: 13px;
+}
+
+.download-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-queue-panel {
+  margin-top: 2px;
+}
+
+/* Download error state */
+.download-error-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 93, 122, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 93, 122, 0.08);
+}
+
+.download-error-card .error-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  background: rgba(255, 93, 122, 0.16);
+  color: var(--danger);
+}
+
+.download-error-card .error-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.download-error-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.download-error-title {
+  color: #ffb0bf;
+  font-size: 13.2px;
+  font-weight: 650;
+}
+
+.download-error-text {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13.2px;
+}
+
+.download-error-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+

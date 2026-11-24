@@ -144,7 +144,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/src/styles/app.css` (6350 dòng)
 - **Việc:** tách theo component bằng import CSS của Vite, không đổi giao diện. Vì giữ `design/`, ghi quy tắc đồng bộ token/CSS giữa `design/` và `src/` vào `design/README.md`.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. 29 file con theo component; `app.css` chỉ còn 30 dòng `@import` (dòng 1 cũ + 29 file theo thứ tự). Đối chiếu byte: nối 29 file = thân `app.css` cũ (115960 B); CSS phát ra giữ SHA256 `7D81E478…` (90664 B / gzip 17.43 kB). `bun run build` qua. `design/README.md:77` ghi quy tắc đồng bộ token/CSS. Không mở app; byte-identical CSS nên không đổi giao diện.
 
 ### T-19 Dev plugins trong `vite.config.ts`
 

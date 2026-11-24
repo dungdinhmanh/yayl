@@ -1,0 +1,77 @@
+/* Settings: game hero */
+.game-hero {
+  position: relative;
+  height: 152px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0b0f17;
+}
+
+.game-hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.game-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 6, 10, 0.97) 0%, rgba(4, 6, 10, 0.62) 55%, rgba(4, 6, 10, 0.2) 100%),
+    linear-gradient(0deg, rgba(4, 6, 10, 0.66), transparent 62%);
+}
+
+.game-hero-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  height: 100%;
+  padding: 16px 18px;
+}
+
+.game-hero-icon {
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.game-hero-info {
+  min-width: 0;
+}
+
+.game-hero-name {
+  font-size: 21.6px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.game-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.game-hero-badge {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+

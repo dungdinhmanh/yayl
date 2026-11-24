@@ -1,0 +1,42 @@
+/* --------------------------------------------------------------------------
+   Panels / cards
+   -------------------------------------------------------------------------- */
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, rgba(17, 24, 36, 0.76), rgba(8, 12, 19, 0.58));
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px 0;
+}
+
+.panel-title {
+  font-size: 16.8px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.panel-subtitle {
+  margin-top: 4px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+}
+
+.panel-body {
+  padding: 20px 22px 22px;
+}
+
+.panel-divider {
+  height: 1px;
+  margin: 0 22px;
+  background: var(--border-soft);
+}
+

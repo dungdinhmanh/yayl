@@ -1,0 +1,36 @@
+/* --------------------------------------------------------------------------
+   Progress primitives
+   -------------------------------------------------------------------------- */
+
+.progress-track {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.35);
+  transition: width 280ms linear;
+}
+
+.progress-fill.is-info {
+  background: linear-gradient(90deg, #3ba9dd, var(--info));
+  box-shadow: 0 0 14px rgba(92, 200, 255, 0.3);
+}
+
+.progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+}
+

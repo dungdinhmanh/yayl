@@ -1,0 +1,292 @@
+/* News widget */
+.home-page {
+  position: relative;
+}
+
+/* Official channels, pinned to the top-right corner under the titlebar. */
+.social-rail {
+  position: absolute;
+  top: calc(var(--titlebar-h) + 14px);
+  right: 28px;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.social-link {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(8, 11, 17, 0.52);
+  color: var(--text-soft);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.social-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+.social-link:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.social-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-link {
+    transition: none;
+  }
+
+  .social-link:hover {
+    transform: none;
+  }
+}
+
+.home-news {
+  position: absolute;
+  left: 44px;
+  top: 132px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 440px;
+  max-width: min(440px, 44vw);
+}
+
+.banner-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 460 / 220;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0b0f17;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+}
+
+.news-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 13.8px;
+  text-align: center;
+}
+
+.news-placeholder-row {
+  min-height: 38px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Actual source of the backdrop gradient is the slide itself; a banner
+   without art still reads as a designed card instead of an empty frame. */
+.banner-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(120% 130% at 14% 0%, rgba(var(--accent-rgb), 0.22), transparent 58%),
+    linear-gradient(150deg, #131b29 0%, #0b0f17 68%);
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.banner-slide.is-active {
+  opacity: 1;
+}
+
+.banner-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Manual carousel controls: visible only while the banner is hovered or focused. */
+.banner-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(4, 6, 10, 0.6);
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.92);
+  transition: opacity var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast),
+    transform var(--dur-fast);
+}
+
+.banner-card:hover .banner-nav,
+.banner-card:focus-within .banner-nav {
+  opacity: 0.72;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.banner-card .banner-nav:hover,
+.banner-card .banner-nav:focus-visible {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(4, 6, 10, 0.88);
+  opacity: 1;
+}
+
+.banner-nav svg {
+  width: 14px;
+  height: 14px;
+}
+
+.banner-nav-prev {
+  left: 10px;
+}
+
+.banner-nav-next {
+  right: 10px;
+}
+
+.banner-copy {
+  position: absolute;
+  right: 74px;
+  bottom: 14px;
+  left: 16px;
+  z-index: 2;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
+}
+
+.banner-kicker {
+  color: var(--accent);
+  font-size: 12.6px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.banner-title {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 20.4px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.banner-dots {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast);
+}
+
+.banner-card:hover .banner-dots,
+.banner-card:focus-within .banner-dots {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.banner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  transition: width var(--dur-base), background var(--dur-base);
+}
+
+.banner-dot.is-active {
+  width: 16px;
+  background: var(--accent);
+}
+
+.news-panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(4, 6, 10, 0.58);
+  backdrop-filter: blur(16px);
+}
+
+.news-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.news-tab {
+  flex: 1;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 13.2px;
+  font-weight: 600;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.news-tab:hover {
+  color: var(--text-soft);
+}
+
+.news-tab.is-active {
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--accent);
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px 12px 12px;
+}
+
+.news-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.news-title {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 13.8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast);
+}
+
+.news-item:hover .news-title {
+  color: var(--accent);
+}
+
+.news-date {
+  flex: 0 0 auto;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  font-size: 13.2px;
+}
+

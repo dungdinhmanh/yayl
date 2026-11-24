@@ -1,0 +1,85 @@
+/* Download queue */
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.queue-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.queue-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.queue-name {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 13.8px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-meta {
+  margin-top: 2px;
+  color: var(--muted-2);
+  font-size: 13.2px;
+}
+
+.queue-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.queue-empty {
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted-2);
+  font-size: 12.6px;
+  text-align: center;
+}
+
+body[data-layout="rail"] .game-card[data-game-id="arknights"] .game-thumb {
+  object-position: 72% 24%;
+}
+
+body[data-layout="rail"] .game-card[data-game-id="stella"] .game-thumb {
+  object-position: 58% 20%;
+}
+
+body[data-page="settings"] .backdrop-scrim,
+body[data-page="download"] .backdrop-scrim {
+  background:
+    linear-gradient(180deg, rgba(4, 6, 10, 0.92) 0%, rgba(4, 6, 10, 0.8) 34%, rgba(4, 6, 10, 0.72) 100%),
+    radial-gradient(120% 90% at 78% 10%, transparent 0%, rgba(4, 6, 10, 0.5) 100%);
+}
+
+/* Keep the lab launcher away from the launcher's own bottom-right actions. */
+.mock-fab {
+  right: auto;
+  left: 16px;
+}
+
+.mock-panel {
+  right: auto;
+  left: 16px;
+}
+
