@@ -298,4 +298,7 @@ Download/verify/repair failures log `code` + `detail` (`download.rs`); startup a
 Scope: move the identical download/verify/repair setup (settings, client, plan load/prepare, file/byte totals) into one helper; keep per-operation flow, cancellation and terminal events unchanged.[2026-11-24 07:54] opencode>all done T-11 ref:TODO.md
 OperationSetup::load now owns the shared setup for download/verify/repair: settings -> client -> plan (PlanSource::Resume/Saved) -> Downloader -> file/byte totals (download.rs:246).
 Each un_* keeps its own flow, cancel checks and terminal events; desktop no longer repeats clamp(1, 32) because erify.rs:101 and downloader.rs:194 clamp.
-Runs: cargo fmt, clippy -p yayl-desktop --all-targets -- -D warnings, cargo test -p yayl-desktop -> 14 passed (new plan_totals test). Real download/repair not exercised in the app.
+Runs: cargo fmt, clippy -p yayl-desktop --all-targets -- -D warnings, cargo test -p yayl-desktop -> 14 passed (new plan_totals test). Real download/repair not exercised in the app.[2026-11-24 07:55] opencode>all claim T-15 ref:TODO.md
+Scope: drop i18n keys no source file references, excluding the settings.nav./settings.network. template families; keep vi/en parity; verify with 	sc -b, ite build, design:check.[2026-11-24 07:58] opencode>all done T-15 ref:TODO.md
+Pruned i18n.ts to keys referenced by pps/desktop/src (literal or template prefix), keeping the settings.nav./settings.network. families: 408 -> 170 keys per locale, vi/en still identical, all nim.*/kit.*/lab keys gone.
+Runs: un run build (tsc -b + vite, 89 modules) and un run design:check (missing none). App not opened; post-prune unused scan reports 0.

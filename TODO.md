@@ -126,7 +126,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/src/i18n.ts` (1009 dòng); script `scripts/check-design-i18n.mjs`
 - **Việc:** xoá key của design lab trong app (`anim.*`, `kit.*`, `server.*`, ≥ 67 key) và chuỗi demo kiểu `settings.toast.detect.text`. Rà tiếp key không dùng nhưng **loại trừ key động** (`settings.nav.${id}`, `firstRun.step${n}`, `settings.network.${...}`). Giữ `bun run design:check` chạy được.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. Script đối chiếu mọi file `src/**/*.ts(x)` (literal + template `${}`) và chỉ giữ `settings.nav.`/`settings.network.`; xoá 238 key/locale (408 → 170, vi/en khớp nhau), gồm toàn bộ `anim.*`, `kit.*` và key lab. `bun run build` (tsc + vite) và `bun run design:check` qua; chưa mở app để xem UI.
 
 ### T-16 Tách `data.ts`
 
