@@ -2,11 +2,19 @@
 
 import { SERVER_LIST } from "../data";
 import type { InvokeArgs } from "@tauri-apps/api/core";
+import type { AppInfoView } from "./generated/app-info";
+import type { DiskSpaceView } from "./generated/disk-space";
+import type { DownloadEvent } from "./generated/download-event";
+import type { DownloadSnapshot as GeneratedDownloadSnapshot } from "./generated/download-snapshot";
+import type { GameProfileView } from "./generated/game-profile";
+import type { GameProfilesView } from "./generated/game-profiles";
+import type { GameVersionView } from "./generated/game-version";
+import type { IoStatsView } from "./generated/io-stats";
+import type { PlaytimeView } from "./generated/playtime";
+import type { VerifyIssueView } from "./generated/verify-issue";
+import type { VerifyView } from "./generated/verify-view";
 
-export interface DiskSpace {
-  freeBytes: number;
-  totalBytes: number;
-}
+export type DiskSpace = DiskSpaceView;
 
 export interface InstallPlan {
   path: string;
@@ -36,37 +44,17 @@ export type DownloadPhase =
   | "paused"
   | "failed";
 
-export interface DownloadSnapshot {
-  game: string;
-  version: string;
+export type DownloadSnapshot = Omit<GeneratedDownloadSnapshot, "state"> & {
   state: DownloadState;
-  filesDone: number;
-  filesTotal: number;
-  bytesDone: number;
-  bytesTotal: number;
-  installed: boolean;
-  resumable: boolean;
-  active: boolean;
-}
+};
 
-export interface DownloadProgress {
-  game: string;
+export type DownloadProgress = Omit<DownloadEvent, "phase" | "code" | "detail"> & {
   phase: DownloadPhase;
-  downloaded: number;
-  downloadTotal: number;
-  installed: number;
-  installTotal: number;
-  bytesPerSec: number;
-  filesDone: number;
-  filesTotal: number;
   code?: string;
   detail?: string;
-}
+};
 
-export interface IoStats {
-  read: number;
-  write: number;
-}
+export type IoStats = IoStatsView;
 
 export type ProxyMode = "direct" | "system" | "manual";
 export type DownloadOrder = "smallest_first" | "largest_first" | "manifest";
@@ -98,26 +86,13 @@ export interface Settings {
   closeToTray: boolean;
 }
 
-export interface GameProfileInfo {
-  id: string;
-  installDir: string;
-  defaultRoot: string;
-}
+export type GameProfileInfo = GameProfileView;
 
-export interface GameProfiles {
-  base: string;
-  games: GameProfileInfo[];
-}
+export type GameProfiles = GameProfilesView;
 
-export interface AppInfo {
-  version: string;
-  debug: boolean;
-}
+export type AppInfo = AppInfoView;
 
-export interface PlaytimeEntry {
-  seconds: number;
-  lastPlayed: number | null;
-}
+export type PlaytimeEntry = PlaytimeView;
 
 export interface GameExitEvent {
   game: string;
@@ -125,20 +100,13 @@ export interface GameExitEvent {
   lastPlayed: number;
 }
 
-export interface VerifyIssue {
-  path: string;
+export type VerifyIssue = Omit<VerifyIssueView, "kind"> & {
   kind: "missing" | "size_mismatch" | "checksum_mismatch";
-  expectedSize: number;
-  actualSize: number | null;
-}
+};
 
-export interface VerifyReport {
-  files: number;
-  verified: number;
-  bytesVerified: number;
-  bytesToRepair: number;
+export type VerifyReport = Omit<VerifyView, "issues"> & {
   issues: VerifyIssue[];
-}
+};
 
 export interface NewsBanner {
   image: string;
@@ -163,13 +131,7 @@ export interface NewsFeed {
   sections: NewsSection[];
 }
 
-export interface GameVersion {
-  local: string | null;
-  latest: string | null;
-  minimum: string | null;
-  updateAvailable: boolean;
-  updateRequired: boolean;
-}
+export type GameVersion = GameVersionView;
 
 export function defaultSettings(): Settings {
   return {

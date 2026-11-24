@@ -114,7 +114,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/src/lib/ipc.ts` (type chép tay), các DTO trong `src-tauri`
 - **Việc:** thêm `ts-rs` 12.0.1; bắt đầu từ DTO request/response ổn định, sinh vào thư mục riêng, có lệnh tái sinh được ghi trong docs. Không dùng `tauri-specta` (Tauri 2 mới có bản rc). Type chỉ của UI vẫn viết tay.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. `ts-rs` 12.0.1 chỉ annotate 13 DTO ổn định; `.cargo/config.toml` gốc đặt `TS_RS_EXPORT_DIR=apps/desktop/src/lib/generated` và `TS_RS_LARGE_INT=number`. `cargo test -p yayl-desktop export_bindings` 13 pass; `bun run build` (tsc -b + vite) qua, bundle không đổi kích thước. `ipc.ts` chỉ alias type sinh, giữ enum hẹp của UI; lệnh tái sinh ghi tại `docs/backend-worklog.md`.
 
 ### T-14 Tách `ipc.ts` thành bản Tauri và bản mock
 

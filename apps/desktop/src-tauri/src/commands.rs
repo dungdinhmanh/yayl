@@ -8,6 +8,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
+use ts_rs::TS;
 use yayl_core::download_plan::RemoteGame;
 use yayl_core::downloader::DownloadOrder;
 use yayl_core::path::nearest_existing;
@@ -46,8 +47,9 @@ pub async fn download_bytes(
     Ok(bytes)
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "disk-space.ts")]
 pub struct DiskSpaceView {
     pub free_bytes: u64,
     pub total_bytes: u64,
@@ -249,8 +251,9 @@ pub fn save_window_behavior(
     Ok(settings.into())
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "first-run-input.ts")]
 pub struct FirstRunInput {
     pub language: String,
     pub roots: BTreeMap<String, String>,
@@ -306,16 +309,18 @@ pub fn reset_settings(app: AppHandle) -> Result<SettingsView, CommandError> {
     Ok(next.into())
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "game-profile.ts")]
 pub struct GameProfileView {
     pub id: String,
     pub install_dir: String,
     pub default_root: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "game-profiles.ts")]
 pub struct GameProfilesView {
     pub base: String,
     pub games: Vec<GameProfileView>,
@@ -341,8 +346,9 @@ pub fn game_profiles(app: AppHandle) -> Result<GameProfilesView, CommandError> {
     })
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "io-stats.ts")]
 pub struct IoStatsView {
     pub read: u64,
     pub write: u64,
@@ -358,8 +364,9 @@ pub fn io_stats() -> IoStatsView {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "app-info.ts")]
 pub struct AppInfoView {
     pub version: String,
     pub debug: bool,
@@ -378,8 +385,9 @@ const GAME_EXIT_EVENT: &str = "game-exit";
 /// Serialize playtime writes when two games run at once.
 static PLAYTIME_LOCK: Mutex<()> = Mutex::new(());
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "playtime.ts")]
 pub struct PlaytimeView {
     pub seconds: u64,
     pub last_played: Option<u64>,
@@ -801,8 +809,9 @@ pub fn open_external(app: AppHandle, url: String) -> Result<(), CommandError> {
         .map_err(|error| CommandError::new("unknown", error.to_string()))
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "game-version.ts")]
 pub struct GameVersionView {
     pub local: Option<String>,
     pub latest: Option<String>,

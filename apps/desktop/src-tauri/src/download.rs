@@ -4,6 +4,7 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::{AppHandle, Emitter, Manager, State};
+use ts_rs::TS;
 use yayl_core::download_plan::DownloadPlan;
 use yayl_core::downloader::{CancelToken, Downloader, Phase, Progress};
 use yayl_core::profile::{self, GameProfile};
@@ -17,8 +18,9 @@ use crate::state::AppState;
 
 pub const PROGRESS_EVENT: &str = "download-progress";
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "download-event.ts")]
 pub struct DownloadEvent {
     pub game: String,
     pub phase: String,
@@ -135,8 +137,9 @@ fn phase_name(phase: Phase) -> &'static str {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "download-snapshot.ts")]
 pub struct DownloadSnapshot {
     pub game: String,
     pub version: String,
@@ -394,8 +397,9 @@ fn discard_state(root: &Path) -> Result<(), CommandError> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "verify-issue.ts")]
 pub struct VerifyIssueView {
     pub path: String,
     pub kind: &'static str,
@@ -403,8 +407,9 @@ pub struct VerifyIssueView {
     pub actual_size: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "verify-view.ts")]
 pub struct VerifyView {
     pub files: usize,
     pub verified: usize,

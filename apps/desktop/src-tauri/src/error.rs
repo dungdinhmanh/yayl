@@ -4,10 +4,12 @@
 //! never be rendered on the home screen.
 
 use serde::Serialize;
+use ts_rs::TS;
 use yayl_core::{Error as CoreError, ErrorCode};
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "command-error.ts")]
 pub struct CommandError {
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]

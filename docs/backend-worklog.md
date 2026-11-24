@@ -133,6 +133,9 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 
+# Sinh lại type IPC từ DTO Rust (ts-rs 12)
+cargo test -p yayl-desktop export_bindings
+
 # live probes
 cargo run -p yayl-cli -- probe --game arknights
 cargo run -p yayl-cli -- news --game stella
@@ -147,6 +150,8 @@ cargo run -p yayl-cli -- diff --game arknights --root D:\Games\Arknights_EN
 ```
 
 > Trên PowerShell, `cargo` có thể trả exit code 1 vì ghi stderr; kiểm tra dòng `Finished`/`test result: ok` thay vì chỉ exit code.
+
+Lệnh `export_bindings` dùng cấu hình trong `.cargo/config.toml` ở gốc workspace: ghi vào `apps/desktop/src/lib/generated/` và ép `u64` thành `number` (JSON không mang `bigint`). Chỉ các DTO ổn định được đánh dấu `#[ts(export)]`; type thuần UI (state/phase enum hẹp, settings view...) vẫn viết tay trong `ipc.ts`. Mỗi lần đổi DTO Rust thì chạy lại lệnh và commit file sinh.
 
 ## 6. Ghi chú resume/power-loss
 
