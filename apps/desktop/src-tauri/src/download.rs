@@ -240,6 +240,76 @@ pub fn resume_plan(root: &Path, game: &str) -> Result<Option<DownloadPlan>, Comm
     }
 }
 
+/// Where an operation gets its plan from.
+#[derive(Clone, Copy)]
+enum PlanSource {
+    /// Reuse an unfinished saved plan; fetch a fresh one otherwise.
+    Resume,
+    /// Use any saved plan (verify/repair); fetch a fresh one when absent.
+    Saved,
+}
+
+/// Plan, downloader and totals shared by download, verify and repair.
+struct OperationSetup {
+    plan: DownloadPlan,
+    downloader: Downloader,
+    concurrency: usize,
+    files_total: usize,
+    bytes_total: u64,
+}
+
+impl OperationSetup {
+    async fn load(
+        app: &AppHandle,
+        profile: &GameProfile,
+        root: &Path,
+        source: PlanSource,
+    ) -> Result<Self, CommandError> {
+        let settings = settings::load(app).unwrap_or_default();
+        let client = yayl_core::proxy::build_client(&settings.proxy)?;
+        let saved = match source {
+            PlanSource::Resume => resume_plan(root, profile.id)?,
+            PlanSource::Saved if core_state::plan_path(root).is_file() => {
+                Some(DownloadPlan::load(root)?)
+            }
+            PlanSource::Saved => None,
+        };
+        let plan = match saved {
+            Some(plan) => plan,
+            None => {
+                DownloadPlan::prepare_with(
+                    *profile,
+                    root.to_path_buf(),
+                    profile.protocol_version,
+                    client.clone(),
+                    settings.download_order,
+                )
+                .await?
+            }
+        };
+        // Both verify and the downloader clamp this to 1-32.
+        let concurrency = settings.concurrency;
+        let downloader = Downloader::with_client(client)
+            .concurrency(concurrency)
+            .order(settings.download_order);
+        let (files_total, bytes_total) = plan_totals(&plan);
+        Ok(Self {
+            plan,
+            downloader,
+            concurrency,
+            files_total,
+            bytes_total,
+        })
+    }
+}
+
+fn plan_totals(plan: &DownloadPlan) -> (usize, u64) {
+    (
+        plan.document.jobs.len(),
+        plan.document.jobs.iter().map(|job| job.size).sum(),
+    )
+}
+
 #[tauri::command]
 pub fn download_status(
     app: AppHandle,
@@ -439,23 +509,13 @@ async fn run_verify(
     cancel: CancelToken,
 ) -> Result<VerifyView, CommandError> {
     let game = profile.id.to_owned();
-    let settings = settings::load(&app).unwrap_or_default();
-    let client = yayl_core::proxy::build_client(&settings.proxy)?;
-    let plan = if core_state::plan_path(&root).is_file() {
-        DownloadPlan::load(&root)?
-    } else {
-        DownloadPlan::prepare_with(
-            profile,
-            root.clone(),
-            profile.protocol_version,
-            client,
-            settings.download_order,
-        )
-        .await?
-    };
-
-    let files_total = plan.document.jobs.len();
-    let bytes_total: u64 = plan.document.jobs.iter().map(|job| job.size).sum();
+    let OperationSetup {
+        plan,
+        concurrency,
+        files_total,
+        bytes_total,
+        ..
+    } = OperationSetup::load(&app, &profile, &root, PlanSource::Saved).await?;
     emit(
         &app,
         DownloadEvent::verifying(&game, 0, bytes_total, 0, files_total),
@@ -464,21 +524,18 @@ async fn run_verify(
     let progress_app = app.clone();
     let progress_game = game.clone();
     let report = plan
-        .verify_with_progress(
-            settings.concurrency.clamp(1, 32),
-            move |files_done, checked| {
-                emit(
-                    &progress_app,
-                    DownloadEvent::verifying(
-                        &progress_game,
-                        checked,
-                        bytes_total,
-                        files_done,
-                        files_total,
-                    ),
-                );
-            },
-        )
+        .verify_with_progress(concurrency, move |files_done, checked| {
+            emit(
+                &progress_app,
+                DownloadEvent::verifying(
+                    &progress_game,
+                    checked,
+                    bytes_total,
+                    files_done,
+                    files_total,
+                ),
+            );
+        })
         .await;
 
     match report {
@@ -503,24 +560,13 @@ async fn run_repair(
     cancel: CancelToken,
 ) -> Result<VerifyView, CommandError> {
     let game = profile.id.to_owned();
-    let settings = settings::load(&app).unwrap_or_default();
-    let concurrency = settings.concurrency.clamp(1, 32);
-    let client = yayl_core::proxy::build_client(&settings.proxy)?;
-    let plan = if core_state::plan_path(&root).is_file() {
-        DownloadPlan::load(&root)?
-    } else {
-        DownloadPlan::prepare_with(
-            profile,
-            root.clone(),
-            profile.protocol_version,
-            client.clone(),
-            settings.download_order,
-        )
-        .await?
-    };
-
-    let files_total = plan.document.jobs.len();
-    let bytes_total: u64 = plan.document.jobs.iter().map(|job| job.size).sum();
+    let OperationSetup {
+        plan,
+        downloader,
+        concurrency,
+        files_total,
+        bytes_total,
+    } = OperationSetup::load(&app, &profile, &root, PlanSource::Saved).await?;
     emit(
         &app,
         DownloadEvent::verifying(&game, 0, bytes_total, 0, files_total),
@@ -552,9 +598,6 @@ async fn run_repair(
         return Ok(VerifyView::from(&report));
     }
 
-    let downloader = Downloader::with_client(client)
-        .concurrency(concurrency)
-        .order(settings.download_order);
     let last = Arc::new(Mutex::new(None::<Progress>));
     let result = {
         let last = last.clone();
@@ -631,37 +674,21 @@ async fn run_download(
     let game = profile.id.to_owned();
     emit(&app, DownloadEvent::preparing(&game, 0, 0));
 
-    let settings = settings::load(&app).unwrap_or_default();
-    let order = settings.download_order;
-    let concurrency = settings.concurrency.clamp(1, 32);
-    let client = yayl_core::proxy::build_client(&settings.proxy)?;
-    let plan = match resume_plan(&root, &game) {
-        Ok(Some(plan)) => plan,
-        Ok(None) => match DownloadPlan::prepare_with(
-            profile,
-            root.clone(),
-            profile.protocol_version,
-            client.clone(),
-            order,
-        )
+    let OperationSetup {
+        plan,
+        downloader,
+        files_total,
+        bytes_total,
+        ..
+    } = OperationSetup::load(&app, &profile, &root, PlanSource::Resume)
         .await
-        {
-            Ok(plan) => plan,
-            Err(error) => return Err(fail_core(&app, &game, error)),
-        },
-        Err(error) => return Err(fail_command(&app, &game, error)),
-    };
+        .map_err(|error| fail_command(&app, &game, error))?;
 
-    let files_total = plan.document.jobs.len();
-    let bytes_total: u64 = plan.document.jobs.iter().map(|job| job.size).sum();
     emit(
         &app,
         DownloadEvent::preparing(&game, bytes_total, files_total),
     );
 
-    let downloader = Downloader::with_client(client)
-        .concurrency(concurrency)
-        .order(order);
     let last = Arc::new(Mutex::new(None::<Progress>));
 
     let result = {
@@ -830,6 +857,13 @@ mod tests {
     fn missing_plan_has_no_snapshot() {
         let dir = tempfile::tempdir().unwrap();
         assert!(load_snapshot(dir.path(), |_| false).unwrap().is_none());
+    }
+
+    #[test]
+    fn plan_totals_sum_every_job() {
+        let dir = tempfile::tempdir().unwrap();
+        let plan = sample_plan(dir.path(), "demo");
+        assert_eq!(plan_totals(&plan), (1, 4));
     }
 
     #[test]

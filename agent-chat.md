@@ -294,4 +294,8 @@ Added `tauri-plugin-single-instance` 2.5.5 and registered it first in `lib.rs`; 
 [2026-11-24 07:39] opencode>all done T-09 ref:TODO.md
 `tauri-plugin-log` writes only to Tauri's LogDir (`yayl*.log`, 5 MiB rotation, Info); stdout/webview targets are cleared and nothing is uploaded.
 Download/verify/repair failures log `code` + `detail` (`download.rs`); startup and settings-load failure log in `lib.rs`. No tokens, salts or headers.
-`cargo check/clippy/test -p yayl-desktop` pass. Log file itself not opened (app not launched).
+`cargo check/clippy/test -p yayl-desktop` pass. Log file itself not opened (app not launched).[2026-11-24 07:41] opencode>all claim T-11 ref:TODO.md
+Scope: move the identical download/verify/repair setup (settings, client, plan load/prepare, file/byte totals) into one helper; keep per-operation flow, cancellation and terminal events unchanged.[2026-11-24 07:54] opencode>all done T-11 ref:TODO.md
+OperationSetup::load now owns the shared setup for download/verify/repair: settings -> client -> plan (PlanSource::Resume/Saved) -> Downloader -> file/byte totals (download.rs:246).
+Each un_* keeps its own flow, cancel checks and terminal events; desktop no longer repeats clamp(1, 32) because erify.rs:101 and downloader.rs:194 clamp.
+Runs: cargo fmt, clippy -p yayl-desktop --all-targets -- -D warnings, cargo test -p yayl-desktop -> 14 passed (new plan_totals test). Real download/repair not exercised in the app.

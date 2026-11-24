@@ -102,7 +102,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/src-tauri/src/download.rs` (`run_download`, `run_verify`, `run_repair`)
 - **Việc:** chỉ trích phần setup giống hệt (load settings, build client, load/prepare plan, tổng file/byte). Giữ rõ luồng riêng, huỷ và sự kiện kết thúc.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. `OperationSetup` gom settings → client → plan (`PlanSource::Resume`/`Saved`) → `Downloader` → tổng file/byte; `run_*` giữ nguyên luồng riêng, cancel và event kết thúc. Bỏ clamp 1–32 ở desktop vì `verify.rs:101` và `downloader.rs:194` đã clamp; `plan_totals` có test. `cargo fmt`, `clippy -p yayl-desktop --all-targets -D warnings`, `cargo test -p yayl-desktop` (14 test) qua.
 
 ### T-12 Tổ chức lại state của `App.tsx`
 
