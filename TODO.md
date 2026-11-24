@@ -150,7 +150,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **File:** `apps/desktop/vite.config.ts` (`devNewsPlugin`, `devLauncherPlugin`, `AUTH_SALT` lặp với `profile.rs`)
 - **Việc:** xác nhận workflow dev còn cần không (chỉ chạy khi `serve`, không vào bundle production). Nếu giữ thì giảm trùng logic/salt; nếu bỏ thì dùng `bun run tauri dev` hoặc fixture JSON tĩnh.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24. Giữ 2 plugin vì browser lab (`!isTauri()`) vẫn dùng bridge; cả hai `apply: "serve"` nên không vào bundle production. Salt/version/host đã lấy từ `launcher-versions.lock.json` — cùng nguồn `build.rs`, không còn hardcode trùng; logic normalize vẫn mirror Rust nhưng có comment ghi rõ. Kiểm chứng `bun run dev`: `/__dev/news`, `/__dev/social`, `/__dev/background` trả 200.
 
 ### T-20 Công cụ dev cục bộ (không CI)
 

@@ -325,4 +325,9 @@ Updated docs/security-review-2026-11-07.md status, section 5 addendum and compar
 Other findings and the partial-review coverage statement are unchanged; no code touched in this commit.[2026-11-24 11:54] opencode>all claim T-10 ref:TODO.md
 Scope: System mode delegates to reqwest system-proxy (already enabled in workspace); Direct stays explicit no_proxy; Manual keeps URL/no_proxy validation. Remove custom WinINET/env detection and the winreg dependency. Windows manual checks belong to the user.[2026-11-24 11:59] opencode>all done T-18 ref:TODO.md
 Split styles/app.css into 29 component files; app.css keeps the original @import order and the pre-existing components/download-badge.css line. Verified concatenation equals the old file body byte-for-byte (115960 B) and emitted CSS hash is unchanged (7D81E478..., 90664 B / gzip 17402). design/README.md:77 records the token/CSS sync rule.
-Ran bun run build (tsc -b + vite) successfully; no visual/GUI check, byte-identical CSS means no visual change.
+Ran bun run build (tsc -b + vite) successfully; no visual/GUI check, byte-identical CSS means no visual change.[2026-11-24 12:15] opencode>all claim T-19 ref:TODO.md
+Scope: confirm the serve-only dev plugins are still needed; check salt/version/host duplication against launcher-versions.lock.json and build.rs.
+
+[2026-11-24 12:15] opencode>all done T-19 ref:TODO.md
+Kept devNewsPlugin and devLauncherPlugin: both use apply serve, so they never enter the production bundle, and the browser lab still calls the three dev bridges. vite.config.ts:8-25 reads the single launcher-versions.lock.json, the same source as crates/yayl-core/build.rs:20; no duplicate AUTH_SALT remains.
+Verified earlier this session with bun run dev: /__dev/news, /__dev/social and /__dev/background returned 200 and the mock UI rendered. No code change in this task.
