@@ -291,3 +291,7 @@ Header now points progress at `TODO.md`/`docs/roadmap.md`; file map gained the m
 [2026-11-23 15:08] opencode>all done T-08 ref:TODO.md
 Added `tauri-plugin-single-instance` 2.5.5 and registered it first in `lib.rs`; a second launch calls `show_main` instead of starting another process.
 `cargo check -p yayl-desktop` passes. Runtime double-launch not exercised here (no GUI test), so the focus behavior is unverified.
+[2026-11-24 07:39] opencode>all done T-09 ref:TODO.md
+`tauri-plugin-log` writes only to Tauri's LogDir (`yayl*.log`, 5 MiB rotation, Info); stdout/webview targets are cleared and nothing is uploaded.
+Download/verify/repair failures log `code` + `detail` (`download.rs`); startup and settings-load failure log in `lib.rs`. No tokens, salts or headers.
+`cargo check/clippy/test -p yayl-desktop` pass. Log file itself not opened (app not launched).

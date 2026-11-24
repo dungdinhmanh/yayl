@@ -12,6 +12,20 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
+use tauri_plugin_log::{Target, TargetKind};
+
+/// Local-only file logging. No remote target is configured, so nothing leaves
+/// the machine; the default stdout/webview targets are cleared.
+fn log_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    tauri_plugin_log::Builder::new()
+        .clear_targets()
+        .target(Target::new(TargetKind::LogDir {
+            file_name: Some("yayl".into()),
+        }))
+        .level(log::LevelFilter::Info)
+        .max_file_size(5 * 1024 * 1024)
+        .build()
+}
 
 fn tray_menu(app: &tauri::AppHandle, lang: &str) -> tauri::Result<Menu<tauri::Wry>> {
     let (open, quit) = if lang == "en" {
@@ -49,11 +63,20 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             show_main(app);
         }))
+        .plugin(log_plugin())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::default())
         .setup(|app| {
-            let settings = settings::load(app.handle()).unwrap_or_default();
+            log::info!("YAYL {} starting", env!("CARGO_PKG_VERSION"));
+            let settings = settings::load(app.handle()).unwrap_or_else(|error| {
+                log::warn!(
+                    "settings load failed, using defaults: {} {}",
+                    error.code,
+                    error.detail.unwrap_or_default()
+                );
+                Default::default()
+            });
             let lang = settings.language.clone().unwrap_or_else(|| "vi".to_owned());
             // The picked backdrop sits outside the bundled asset scope.
             if let Some(source) = settings

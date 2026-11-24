@@ -281,12 +281,11 @@ pub async fn start_download(
     tauri::async_runtime::spawn(async move {
         let result = run_download(handle.clone(), profile, root, cancel).await;
         handle.state::<AppState>().finish(&game, handle_id);
-        if let Err(_error) = result {
-            #[cfg(debug_assertions)]
-            eprintln!(
-                "download {game} stopped: {} {}",
-                _error.code,
-                _error.detail.unwrap_or_default()
+        if let Err(error) = result {
+            log::error!(
+                "download {game} failed: {} {}",
+                error.code,
+                error.detail.unwrap_or_default()
             );
         }
     });
@@ -389,6 +388,13 @@ pub async fn verify_game(
     };
     let result = run_verify(app.clone(), profile, root, cancel).await;
     state.finish(&game, handle_id);
+    if let Err(error) = &result {
+        log::warn!(
+            "verify {game} failed: {} {}",
+            error.code,
+            error.detail.as_deref().unwrap_or_default()
+        );
+    }
     result
 }
 
@@ -416,6 +422,13 @@ pub async fn repair_game(
     };
     let result = run_repair(app.clone(), profile, root, cancel).await;
     state.finish(&game, handle_id);
+    if let Err(error) = &result {
+        log::warn!(
+            "repair {game} failed: {} {}",
+            error.code,
+            error.detail.as_deref().unwrap_or_default()
+        );
+    }
     result
 }
 

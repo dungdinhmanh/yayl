@@ -85,7 +85,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 - **Việc:** thêm `tauri-plugin-log` 2.10.1 (bản stable, không lấy 3.0 alpha), chỉ ghi file local; **không upload** (ràng buộc "no telemetry"). Không log token/salt/URL có credential.
 - **Xong khi:** lỗi tải/verify để lại log đọc được; đã rà log không lộ dữ liệu nhạy cảm.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** code xong 2026-11-23. `tauri-plugin-log` 2.10.x chỉ target `LogDir` (`yayl*.log`, ~5 MiB xoay vòng), level Info; log lỗi download/verify/repair theo `code` + `detail`, không log header/token/salt. `cargo check/clippy/test -p yayl-desktop` qua; **chưa mở app để đọc file log thật**.
 
 ---
 

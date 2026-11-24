@@ -93,6 +93,10 @@ http://localhost:5173/?state=downloading&game=arknights&lang=en
 
 To run the Tauri shell instead of the browser prototype, use `bun run tauri dev` from `apps/desktop`; build a bundle with `bun run tauri build`. Run Rust tests from the repository root with `cargo test --workspace`.
 
+## Logs
+
+The desktop app writes a local log in Tauri's app log directory, `%LOCALAPPDATA%\app.yayl.launcher\logs` on Windows. Only the local file target is enabled; nothing is uploaded. Download, verify, and repair failures are recorded there with their stable error code.
+
 ## Legal
 
 YAYL is an unofficial community project. It is not affiliated with Yostar, Hypergryph, or Studio Muscat. Game names, artwork, and trademarks belong to their respective owners. The launcher does not include or redistribute game files.
