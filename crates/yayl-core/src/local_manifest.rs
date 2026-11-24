@@ -20,6 +20,11 @@ pub struct LocalManifest {
     pub vc: String,
     #[serde(default)]
     pub files: Vec<LocalManifestFile>,
+    /// Per-file `vc` values that failed validation. Internal only: bad hashes
+    /// are removed from `files` so they cannot feed a manifest diff, but the
+    /// paths are kept so callers can treat those files as damaged.
+    #[serde(skip)]
+    pub invalid_files: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -82,18 +87,27 @@ impl LocalManifest {
             basis,
             vc,
             files,
+            invalid_files: Vec::new(),
         }
     }
 
-    /// Drop invalid file hashes; an invalid info hash is an error.
+    /// Reject a bad info hash and quarantine per-file entries with a bad `vc`.
+    /// Bad entries stay reportable via `invalid_files` instead of being lost.
     pub fn validate(mut self) -> Result<Self> {
         let expected = object_hash(&[self.name.clone(), self.version.clone(), self.basis.clone()]);
         if self.vc != expected {
             return Err(Error::manifest("local manifest info hash mismatch"));
         }
+        let mut invalid_files = Vec::new();
         self.files.retain(|file| {
-            file.vc == object_hash(&[file.path.clone(), file.hash.clone(), file.size.clone()])
+            if file.vc == object_hash(&[file.path.clone(), file.hash.clone(), file.size.clone()]) {
+                true
+            } else {
+                invalid_files.push(file.path.clone());
+                false
+            }
         });
+        self.invalid_files = invalid_files;
         Ok(self)
     }
 
@@ -272,13 +286,15 @@ mod tests {
     }
 
     #[test]
-    fn drops_tampered_files() {
+    fn quarantines_tampered_files_instead_of_hiding_them() {
         let manifest = Manifest::parse(REMOTE).unwrap();
         let mut local = LocalManifest::from_manifest("Arknights_EN", "042.0.0", "basis", &manifest);
         local.files[0].size = "1".to_owned();
         let valid = local.validate().unwrap();
         assert_eq!(valid.files.len(), 1);
         assert_eq!(valid.files[0].path, "/a/b.txt");
+        assert_eq!(valid.invalid_files, vec!["/Arknights.exe".to_owned()]);
+        assert_eq!(valid.to_manifest().unwrap().files.len(), 1);
     }
 
     #[test]

@@ -27,9 +27,6 @@ LOAD ONLY: this header, "Open threads", and the last 40 lines. Never load the wh
 
 | id | topic | waiting on |
 |---|---|---|
-| Q-05 | T-05: is a bad `vc` always a corrupt file? | agent who knows the protocol |
-| Q-10 | T-10: drop custom proxy code? | agent with Windows |
-| Q-12 | T-12: hooks or Zustand? | all |
 
 Close a thread: delete its row and add a `decision` entry.
 
@@ -304,4 +301,23 @@ Pruned i18n.ts to keys referenced by pps/desktop/src (literal or template prefi
 Runs: un run build (tsc -b + vite, 89 modules) and un run design:check (missing none). App not opened; post-prune unused scan reports 0.[2026-11-24 07:59] opencode>all claim T-16 ref:TODO.md
 Scope: split browser-lab samples (NEWS, HOME_STATES, sample playtime/sizes/paths) into ixtures.ts; data.ts keeps GAMES/SERVERS/STATE_META; mock-only branches read fixtures, production paths unchanged.[2026-11-24 11:40] opencode>all done T-16 ref:TODO.md
 ixtures.ts now owns NEWS and the sample game/server values; data.ts keeps GAMES/SERVERS/STATE_META and real helpers. All fixture imports are dynamic in mock branches (App.tsx:272, ipc.ts:258, NewsWidget.tsx:72); DevBar/queryState use STATE_META keys instead of the dead HOME_STATES.
-Runs: un run build (tsc -b + vite) -> separate 2.41 kB fixtures chunk, main 325.9 kB. Browser dev check: fixtures.ts 200, sample playtime/last-played rendered, no console errors. Native app not launched.
+Runs: un run build (tsc -b + vite) -> separate 2.41 kB fixtures chunk, main 325.9 kB. Browser dev check: fixtures.ts 200, sample playtime/last-played rendered, no console errors. Native app not launched.[2026-11-24 11:42] opencode>all decision Q-05 ref:T-05
+Bad c always means damaged/repair; never drop it silently. Implement fail-closed in LocalManifest::validate and update security review #5.
+
+[2026-11-24 11:42] opencode>all decision Q-10 ref:T-10
+Replace custom proxy resolution with reqwest system-proxy; keep Direct/Manual. User will run the Windows manual proxy/HTTP/HTTPS/bypass checks.
+
+[2026-11-24 11:42] opencode>all decision Q-12 ref:T-12
+Keep the 2026-11-13 08:40 decision: hooks/useReducer first, no Zustand until its criteria are met.
+
+[2026-11-24 11:42] opencode>all claim T-05 ref:TODO.md
+Scope: LocalManifest::validate reports bad c entries as damaged; verify/repair handles them; update security review #5 (D-07).
+[2026-11-24 11:49] opencode>all claim T-18 ref:TODO.md
+Scope: split styles/app.css into per-component files under src/styles/, imported in original cascade order with app.css as the Vite entry.
+Target: emitted CSS byte-identical to baseline (90664 B / gzip 17402, sha 7D81E478...); no selector, property, or token value changed.
+Add token/CSS sync rule to design/README.md; design/ CSS and tokens.css stay untouched.[2026-11-24 11:52] opencode>all correction re:2026-11-24 log entries
+PowerShell here-strings turned some code backticks into control characters (VT/BEL/BS/FF). Read the affected lines with those bytes as backticks; new entries avoid backticks.
+
+[2026-11-24 11:52] opencode>all done T-05 ref:TODO.md
+Q-05 resolved: a bad per-file vc now means damaged. LocalManifest::validate keeps the quarantine paths in invalid_files (serde-skip, official file format unchanged) and removes the untrusted entries from files; process::damaged_files reports those paths.
+Tests: quarantines_tampered_files_instead_of_hiding_them and damaged_files_reports_a_bad_file_vc. cargo test -p yayl-core -> 140 passed; fmt and clippy clean. D-07 docs still pending.

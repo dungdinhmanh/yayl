@@ -59,7 +59,7 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/local_manifest.rs:96-108`, `process.rs:92-118`
 - **Việc:** entry có checksum `vc` sai không bị bỏ im lặng mà coi là **damaged/cần tải lại**, để verify/repair xử lý.
 - **Xong khi:** test manifest hỏng 1 entry → `damaged_files` báo đúng entry đó; cập nhật `docs/security-review` mục #5.
-- Owner: ____ Trạng thái: ____
+- **Trạng thái:** xong 2026-11-24 theo Q-05 (bad `vc` = damaged). `LocalManifest::validate` vẫn loại entry khỏi `files` để diff không dùng hash sai, nhưng lưu path vào `invalid_files` (`#[serde(skip)]`, không đổi format); `process::damaged_files` đưa các path này vào danh sách damaged. Test `quarantines_tampered_files_instead_of_hiding_them` và `damaged_files_reports_a_bad_file_vc`; `cargo test -p yayl-core` 140 pass, fmt/clippy sạch. D-07 cập nhật riêng.
 
 ### T-06 Gộp vòng lặp CRC trùng
 

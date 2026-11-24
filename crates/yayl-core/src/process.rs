@@ -70,6 +70,7 @@ pub fn launch(root: &Path, profile: &GameProfile) -> Result<Child> {
 }
 
 /// Compare installed sizes with `manifest.json`; a corrupt manifest is an error.
+/// Entries whose per-file `vc` failed validation count as damaged as well.
 pub fn damaged_files(root: &Path) -> Result<Vec<String>> {
     validate_install_root(root)?;
     let path = manifest_path(root);
@@ -77,7 +78,7 @@ pub fn damaged_files(root: &Path) -> Result<Vec<String>> {
         return Ok(Vec::new());
     }
     let manifest = LocalManifest::load(&path)?;
-    let mut damaged = Vec::new();
+    let mut damaged = manifest.invalid_files;
     for file in &manifest.files {
         let Ok(relative) = normalize_manifest_path(&file.path) else {
             damaged.push(file.path.clone());
@@ -182,6 +183,26 @@ mod tests {
             damaged,
             vec!["/wrong.txt".to_owned(), "/gone.txt".to_owned()]
         );
+    }
+
+    #[test]
+    fn damaged_files_reports_a_bad_file_vc() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("ok.txt"), b"1234").unwrap();
+        std::fs::write(dir.path().join("bad.txt"), b"1234").unwrap();
+        write_manifest(dir.path(), &[("/ok.txt", 4), ("/bad.txt", 4)]);
+        let path = manifest_path(dir.path());
+        let mut value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        value["files"][1]["vc"] = serde_json::Value::String("tampered".to_owned());
+        std::fs::write(&path, value.to_string()).unwrap();
+
+        assert_eq!(
+            damaged_files(dir.path()).unwrap(),
+            vec!["/bad.txt".to_owned()]
+        );
+        let local = LocalManifest::load(&path).unwrap();
+        assert_eq!(local.files.len(), 1);
     }
 
     #[test]
