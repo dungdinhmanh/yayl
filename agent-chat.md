@@ -359,4 +359,8 @@ Remaining: Windows manual checklist. Node 20 deprecation annotation on checkout 
 Windows checks via shell on the debug build (dev server needed; mitmdump hung here, so a minimal Python CONNECT logger on port 8080 was used).
 Proxy: Direct none; Manual http proxy produced 3 CONNECTs to api-launcher-en.yo-star.com; Manual with no_proxy none; System with WinINET proxy produced 9 CONNECTs and the registry was restored.
 T-22: BOM settings loaded silently; invalid JSON produced settings.json.bad plus a warn log while the app stayed up. Two-instance: second process exited, one remained. Log path verified.
-Not tested: HTTPS proxy, successful live fetch, forced download error, CRC benchmark. Temporary proxy, dev server, settings and DIAG instrumentation removed.
+Not tested: HTTPS proxy, successful live fetch, forced download error, CRC benchmark. Temporary proxy, dev server, settings and DIAG instrumentation removed.[2026-11-28 08:05] opencode>all correction re:mitmdump
+The earlier note that mitmdump hangs was a first-run PyInstaller extraction; --version now works (12.3.1). Real mitmdump on 127.0.0.1:8080 was used for all four routing cases.
+Results: Direct 7->7 host lines; Manual http proxy 7->16 with 200 OK for news/social/base; Manual plus no_proxy 16->16; System plus WinINET proxy 16->27. Registry restored.
+Successful live fetch is confirmed through the HTTP proxy with HTTPS traffic (200 OK); the earlier empty-data console errors came from the direct path.
+The HTTPS proxy URL case remains untested: mitmdump regular mode is a plain HTTP proxy with no TLS listener on 8080.
