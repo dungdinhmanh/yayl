@@ -11,14 +11,9 @@ use std::path::Path;
 
 /// Write `value` as JSON, replacing `path` in one step.
 pub fn store<T: Serialize>(path: &Path, value: &T) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
     let body = serde_json::to_vec(value)?;
-    let temp = path.with_extension("part");
-    fs::write(&temp, body)?;
-    fs::rename(&temp, path)?;
-    Ok(())
+    // A cache can be rebuilt from the network, so skip the fsync.
+    crate::state::write_atomic_with(path, &body, crate::state::Durability::Relaxed)
 }
 
 /// Read a cached value. A missing, unreadable or corrupt file is `None`.

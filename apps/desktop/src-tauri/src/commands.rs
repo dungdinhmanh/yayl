@@ -691,8 +691,8 @@ pub async fn fetch_news(
             let _ = yayl_core::cache::store(&path, &feed);
             Ok(feed)
         }
-        Err(error) => match yayl_core::cache::load(&path) {
-            Some(feed) => Ok(feed),
+        Err(error) => match yayl_core::cache::load::<yayl_core::api::NewsFeed>(&path) {
+            Some(feed) => Ok(feed.sanitized()),
             None => Err(error.into()),
         },
     }
@@ -713,8 +713,11 @@ pub async fn fetch_social(
             let _ = yayl_core::cache::store(&path, &links);
             Ok(links)
         }
-        Err(error) => match yayl_core::cache::load(&path) {
-            Some(links) => Ok(links),
+        Err(error) => match yayl_core::cache::load::<Vec<yayl_core::api::SocialLink>>(&path) {
+            Some(links) => Ok(links
+                .into_iter()
+                .filter_map(yayl_core::api::SocialLink::sanitized)
+                .collect()),
             None => Err(error.into()),
         },
     }

@@ -171,24 +171,36 @@ impl SocialResource {
         self.social_media_resource_list
             .iter()
             .filter_map(|item| {
-                let url = item.jump_url.trim();
-                if url.is_empty() || crate::url::validate_remote_url(url).is_err() {
-                    return None;
+                SocialLink {
+                    channel: item.social_media_channel.clone(),
+                    url: item.jump_url.clone(),
+                    qr: item.qr_img.clone(),
                 }
-                let channel = item.social_media_channel.trim().to_owned();
-                let qr = item.qr_img.trim();
-                let qr = if !qr.is_empty() && crate::url::validate_remote_url(qr).is_ok() {
-                    qr.to_owned()
-                } else {
-                    String::new()
-                };
-                Some(SocialLink {
-                    channel,
-                    url: url.to_owned(),
-                    qr,
-                })
+                .sanitized()
             })
             .collect()
+    }
+}
+
+impl SocialLink {
+    /// Trim the fields and keep the link only when its URL is safe; an unsafe
+    /// QR image URL is blanked. Also used on links read back from the cache.
+    pub fn sanitized(self) -> Option<Self> {
+        let url = self.url.trim();
+        if url.is_empty() || crate::url::validate_remote_url(url).is_err() {
+            return None;
+        }
+        let qr = self.qr.trim();
+        let qr = if !qr.is_empty() && crate::url::validate_remote_url(qr).is_ok() {
+            qr.to_owned()
+        } else {
+            String::new()
+        };
+        Some(Self {
+            channel: self.channel.trim().to_owned(),
+            url: url.to_owned(),
+            qr,
+        })
     }
 }
 
@@ -314,6 +326,47 @@ fn safe_url(raw: &str) -> String {
         url.to_owned()
     } else {
         String::new()
+    }
+}
+
+impl NewsFeed {
+    /// Apply the URL rules again to a feed that was read back from the cache, so
+    /// a stale or edited file cannot hand the UI a URL the network path would
+    /// have dropped.
+    pub fn sanitized(self) -> Self {
+        let banners = self
+            .banners
+            .into_iter()
+            .filter_map(|banner| {
+                let image = safe_url(&banner.image);
+                if image.is_empty() {
+                    return None;
+                }
+                Some(NewsBanner {
+                    image,
+                    url: safe_url(&banner.url),
+                    remark: banner.remark,
+                })
+            })
+            .collect();
+        let sections = self
+            .sections
+            .into_iter()
+            .map(|section| NewsSectionView {
+                label: section.label,
+                items: section
+                    .items
+                    .into_iter()
+                    .map(|item| NewsItemView {
+                        title: item.title,
+                        url: safe_url(&item.url),
+                        date: item.date,
+                        image: safe_url(&item.image),
+                    })
+                    .collect(),
+            })
+            .collect();
+        Self { banners, sections }
     }
 }
 
@@ -784,6 +837,56 @@ mod tests {
         assert_eq!(links[0].channel, "官网");
         assert_eq!(links[0].url, "https://stellasora.global/");
         assert_eq!(links[1].qr, "https://cdn.example.com/qr.png");
+    }
+
+    #[test]
+    fn cached_news_gets_the_same_url_rules_as_fresh_news() {
+        let feed = NewsFeed {
+            banners: vec![
+                NewsBanner {
+                    image: "https://cdn.example.com/a.png".into(),
+                    url: "http://insecure.example.com/".into(),
+                    remark: "ok".into(),
+                },
+                NewsBanner {
+                    image: "javascript:alert(1)".into(),
+                    url: "https://example.com/".into(),
+                    remark: "dropped".into(),
+                },
+            ],
+            sections: vec![NewsSectionView {
+                label: "News".into(),
+                items: vec![NewsItemView {
+                    title: "t".into(),
+                    url: "https://example.com/n".into(),
+                    date: "2026-11-01".into(),
+                    image: "data:text/html,x".into(),
+                }],
+            }],
+        };
+        let clean = feed.sanitized();
+        assert_eq!(clean.banners.len(), 1);
+        assert_eq!(clean.banners[0].url, "");
+        assert_eq!(clean.sections[0].items[0].url, "https://example.com/n");
+        assert_eq!(clean.sections[0].items[0].image, "");
+    }
+
+    #[test]
+    fn cached_social_links_are_checked_again() {
+        let keep = SocialLink {
+            channel: " X ".into(),
+            url: "https://x.com/StellaSoraEN".into(),
+            qr: "javascript:alert(1)".into(),
+        };
+        let drop = SocialLink {
+            channel: "Bad".into(),
+            url: "javascript:alert(1)".into(),
+            qr: String::new(),
+        };
+        let kept = keep.sanitized().unwrap();
+        assert_eq!(kept.channel, "X");
+        assert_eq!(kept.qr, "");
+        assert!(drop.sanitized().is_none());
     }
 
     #[test]
