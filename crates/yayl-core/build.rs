@@ -55,6 +55,19 @@ fn main() {
         en.contains("-en."),
         "launcher-versions.lock.json: arknights.apiBase has no -en. region code"
     );
+    // The host is compiled into every build and receives signed requests, so a
+    // refreshed lock must not be able to point it at another domain.
+    let host = en.strip_prefix("https://").unwrap_or_else(|| {
+        panic!("launcher-versions.lock.json: arknights.apiBase must start with https://")
+    });
+    assert!(
+        host.ends_with(".yo-star.com")
+            && host
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-'),
+        "launcher-versions.lock.json: arknights.apiBase must be a bare https://*.yo-star.com host \
+         (no path, port or credentials)"
+    );
     writeln!(generated, "pub const API_HOST_EN: &str = {en:?};")
         .expect("write generated constants");
     for (code, name) in [("jp", "JP"), ("kr", "KR")] {

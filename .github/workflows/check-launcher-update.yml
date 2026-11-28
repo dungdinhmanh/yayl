@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -37,8 +38,10 @@ jobs:
       group: launcher-lock-write
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      # Pinned to commit SHAs: a moved tag must not change what runs here with
+      # a write token.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.2
 
@@ -77,18 +80,45 @@ jobs:
           # Prove the rewritten entry satisfies the feed before committing it.
           bun scripts/check-launcher-versions.mjs ${{ matrix.launcher }}
 
+      # version, size and sha512 are checked against the published feed, so they
+      # are pushed directly. authSalt and apiBase are read from the installer and
+      # compiled into every build, so a change to either goes through a pull
+      # request that a person has to merge.
       - name: Commit
         if: steps.check.outputs.drift == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAUNCHER: ${{ matrix.launcher }}
         run: |
           if git diff --quiet -- launcher-versions.lock.json; then
             echo "the lock already matches the published installer"
             exit 0
           fi
+          sensitive=$(jq -n --arg id "$LAUNCHER" \
+            --slurpfile old <(git show HEAD:launcher-versions.lock.json) \
+            --slurpfile new launcher-versions.lock.json \
+            '[ $old[0].launchers[$id].authSalt != $new[0].launchers[$id].authSalt,
+               $old[0].launchers[$id].apiBase != $new[0].launchers[$id].apiBase ] | any')
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$sensitive" = "true" ]; then
+            branch="launcher-lock/$LAUNCHER"
+            git switch -c "$branch"
+            git add launcher-versions.lock.json
+            git commit -m "chore(deps): refresh $LAUNCHER in the launcher lock (needs review)" \
+              -m "authSalt or apiBase changed. Both are compiled into every build: check them before merging."
+            git push --force origin "$branch"
+            if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')" ]; then
+              gh pr create --head "$branch" --base "$GITHUB_REF_NAME" \
+                --title "Launcher lock: $LAUNCHER auth salt or API host changed" \
+                --body "The published $LAUNCHER installer carries a different authSalt or apiBase. Verify the new values before merging; build.rs only accepts a bare https://*.yo-star.com host."
+            fi
+            echo "::warning::$LAUNCHER authSalt/apiBase changed; opened or updated PR $branch"
+            exit 0
+          fi
           git add launcher-versions.lock.json
-          git commit -m "chore(deps): refresh ${{ matrix.launcher }} in the launcher lock" \
-            -m "Read from the published installer: version, size, sha512, auth salt and API host. The build takes the protocol version and salt from this file."
+          git commit -m "chore(deps): refresh $LAUNCHER in the launcher lock" \
+            -m "Read from the published installer: version, size and sha512."
           for attempt in 1 2 3; do
             if git push; then
               exit 0
