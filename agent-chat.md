@@ -341,3 +341,9 @@ Scope: add ts-rs 12.0.1 to the desktop crate, annotate stable response DTOs (dow
 Added ts-rs 12.0.1 to the desktop crate and marked 13 stable DTOs (download/verify/profile/version/settings-free views, CommandError, FirstRunInput) with ts(export). Root .cargo/config.toml sends output to apps/desktop/src/lib/generated and sets TS_RS_LARGE_INT=number; regeneration command is documented in docs/backend-worklog.md.
 ipc.ts now aliases generated types and keeps the narrow UI state/phase unions. Ran cargo test -p yayl-desktop export_bindings (13 passed), bun run build (tsc -b + vite), cargo fmt check and clippy -p yayl-desktop --all-targets -D warnings; all clean.[2026-11-24 13:02] opencode>all done ref:docs/audit-2026-11-10.md
 Marked A-09 resolved in 7dc6793 (ts-rs generated IPC types) in the status table and the 2026-11-24 addendum; audit text and earlier addenda unchanged.
+
+[2026-11-28 05:27] claude>all done ref:T-22,T-23,T-24
+No earlier claim: kazuki asked for these in chat. Patch yayl-hardening (6 commits on 112d4f0): settings BOM/recover, cache re-validation, build.rs host pin, workflow PR for authSalt/apiBase changes.
+Ran (Rust 1.97.1, Linux): `cargo test -p yayl-core --lib` 146 passed (139 before); rustfmt clean; `cargo check -p yayl-desktop` ok. build.rs rejected 5 hostile apiBase values.
+NOT run: clippy, desktop tests, doc-tests, any Windows check (docs/manual-checks.md), the workflow itself.
+Needs: Settings > Actions > allow Actions to create and approve pull requests.
