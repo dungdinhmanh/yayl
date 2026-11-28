@@ -184,17 +184,17 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 - **File:** `crates/yayl-core/src/settings.rs`, `apps/desktop/src-tauri/src/settings.rs`
 - **Việc:** bỏ UTF-8 BOM khi đọc; `Settings::load_or_recover` chuyển file không parse được sang `settings.json.bad` rồi dùng mặc định (lỗi I/O thật vẫn trả về). Desktop `settings::load` dùng nó và ghi `log::warn!`.
 - **Xong khi:** test BOM, JSON hỏng, UTF-16, `.bad` cũ bị thay. Kiểm tay: `docs/manual-checks.md`.
-- Owner: ____ Trạng thái: code + test trong patch yayl-hardening (chưa merge); core 146 test qua, desktop `cargo check` qua; chưa chạy clippy, test desktop, kiểm tay Windows
+- Owner: ____ Trạng thái: xong code 2026-11-28 (`9d723a2`, bản vá được `git am` vào `main`). Kiểm chứng lại sau merge: `cargo test -p yayl-core` 146 pass, `cargo test -p yayl-desktop` 27 pass, `cargo fmt --all -- --check` + `clippy -p yayl-core -p yayl-desktop --all-targets -D warnings` sạch. Chưa kiểm tay Windows (`docs/manual-checks.md`).
 
 ### T-23 Cache tin tức/social: validate lại khi đọc, dùng chung hàm ghi atomic
 - **File:** `crates/yayl-core/src/api.rs` (`NewsFeed::sanitized`, `SocialLink::sanitized`), `cache.rs`, `commands.rs`
 - **Việc:** dữ liệu đọc từ cache đi qua cùng luật URL như dữ liệu mạng; `cache::store` dùng `state::write_atomic_with(.., Relaxed)` thay vì `.part` cố định.
-- Owner: ____ Trạng thái: như T-22; thêm 2 test (cache news/social); chưa chạy clippy/test desktop
+- Owner: ____ Trạng thái: xong code 2026-11-28 (`c25b0fd`). 2 test cache news/social nằm trong 146 test core đã qua; desktop 27 test qua, fmt/clippy sạch. Chưa kiểm tay Windows/offline.
 
 ### T-24 Workflow lock: ghim host và duyệt thay đổi nhạy cảm
 - **File:** `.github/workflows/check-launcher-update.yml`, `crates/yayl-core/build.rs`
 - **Việc:** `build.rs` chỉ nhận `apiBase` dạng `https://*.yo-star.com` thuần; workflow chỉ push thẳng khi `version`/`size`/`sha512` đổi, còn `authSalt`/`apiBase` đổi thì mở PR để người duyệt; action ghim theo SHA. Cần bật "Allow GitHub Actions to create and approve pull requests" trong Settings → Actions.
-- Owner: ____ Trạng thái: patch yayl-hardening; build.rs từ chối 5 host xấu (đã thử), jq phát hiện đổi salt/host (đã thử 4 ca); workflow chạy `cargo check` rồi mở PR kèm kết quả; PR/Actions chưa chạy thật, cần bật cài đặt Actions
+- Owner: ____ Trạng thái: xong code 2026-11-28 (`8280e3e`, `9072f06`). Đã thử `cargo check -p yayl-core --locked`: host hợp lệ exit 0, 5 host xấu (domain khác, http, có path, có credential, có port) exit 101 đúng thông báo; step `Commit` qua `bash -n`. Workflow chạy build rules rồi mở/cập nhật PR kèm verdict. Chưa chạy Actions thật; cần bật "Allow GitHub Actions to create and approve pull requests" và kiểm tay Windows.
 
 ## Docs
 

@@ -347,3 +347,8 @@ No earlier claim: kazuki asked for these in chat. Patch yayl-hardening (6 commit
 Ran (Rust 1.97.1, Linux): `cargo test -p yayl-core --lib` 146 passed (139 before); rustfmt clean; `cargo check -p yayl-desktop` ok. build.rs rejected 5 hostile apiBase values.
 NOT run: clippy, desktop tests, doc-tests, any Windows check (docs/manual-checks.md), the workflow itself.
 Needs: Settings > Actions > allow Actions to create and approve pull requests.
+[2026-11-28 05:35] opencode>all done ref:T-22,T-23,T-24
+Applied the 6-commit hardening patch with git am (8280e3e..755c9a8) on top of 112d4f0; prior verification used a detached worktree with identical diff content.
+Checks: cargo test -p yayl-core 146 pass, cargo test -p yayl-desktop 27 pass, cargo fmt --all -- --check and clippy -p yayl-core -p yayl-desktop --all-targets -D warnings clean.
+Host rule probed with 6 apiBase values: 1 accepted, 5 rejected with the expected build.rs messages; the workflow Commit step passed bash -n.
+Corrected 3 stale TODO lines that still said clippy and desktop tests were not run. Not verified: live Actions run, the repo setting, and the Windows manual checklist.
