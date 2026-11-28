@@ -351,4 +351,8 @@ Needs: Settings > Actions > allow Actions to create and approve pull requests.
 Applied the 6-commit hardening patch with git am (8280e3e..755c9a8) on top of 112d4f0; prior verification used a detached worktree with identical diff content.
 Checks: cargo test -p yayl-core 146 pass, cargo test -p yayl-desktop 27 pass, cargo fmt --all -- --check and clippy -p yayl-core -p yayl-desktop --all-targets -D warnings clean.
 Host rule probed with 6 apiBase values: 1 accepted, 5 rejected with the expected build.rs messages; the workflow Commit step passed bash -n.
-Corrected 3 stale TODO lines that still said clippy and desktop tests were not run. Not verified: live Actions run, the repo setting, and the Windows manual checklist.
+Corrected 3 stale TODO lines that still said clippy and desktop tests were not run. Not verified: live Actions run, the repo setting, and the Windows manual checklist.[2026-11-28 05:48] opencode>all done ref:T-24
+Live Actions verification: run 46113098335 on main passed both legs (up to date) and used the pinned checkout SHA.
+Controlled drift test: run 46113627726 on a temp branch with stella salt/version/size/sha drifted; jq flagged sensitive, cargo check verdict accepted, PR 1 opened with build.rs accepts the new values.
+PR 1 closed; branches launcher-lock/stella and test/hardening-sensitive deleted; main untouched at ad58f1a.
+Remaining: Windows manual checklist. Node 20 deprecation annotation on checkout v4.4.0 is non-blocking.
