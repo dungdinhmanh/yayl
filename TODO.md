@@ -180,6 +180,22 @@ Cột **Owner** và **Trạng thái** để trống cho người nhận việc.
 
 ---
 
+### T-22 Settings: BOM và file hỏng không làm hỏng mọi lệnh
+- **File:** `crates/yayl-core/src/settings.rs`, `apps/desktop/src-tauri/src/settings.rs`
+- **Việc:** bỏ UTF-8 BOM khi đọc; `Settings::load_or_recover` chuyển file không parse được sang `settings.json.bad` rồi dùng mặc định (lỗi I/O thật vẫn trả về). Desktop `settings::load` dùng nó và ghi `log::warn!`.
+- **Xong khi:** test BOM, JSON hỏng, UTF-16, `.bad` cũ bị thay. Kiểm tay: `docs/manual-checks.md`.
+- Owner: ____ Trạng thái: ____
+
+### T-23 Cache tin tức/social: validate lại khi đọc, dùng chung hàm ghi atomic
+- **File:** `crates/yayl-core/src/api.rs` (`NewsFeed::sanitized`, `SocialLink::sanitized`), `cache.rs`, `commands.rs`
+- **Việc:** dữ liệu đọc từ cache đi qua cùng luật URL như dữ liệu mạng; `cache::store` dùng `state::write_atomic_with(.., Relaxed)` thay vì `.part` cố định.
+- Owner: ____ Trạng thái: ____
+
+### T-24 Workflow lock: ghim host và duyệt thay đổi nhạy cảm
+- **File:** `.github/workflows/check-launcher-update.yml`, `crates/yayl-core/build.rs`
+- **Việc:** `build.rs` chỉ nhận `apiBase` dạng `https://*.yo-star.com` thuần; workflow chỉ push thẳng khi `version`/`size`/`sha512` đổi, còn `authSalt`/`apiBase` đổi thì mở PR để người duyệt; action ghim theo SHA. Cần bật "Allow GitHub Actions to create and approve pull requests" trong Settings → Actions.
+- Owner: ____ Trạng thái: ____
+
 ## Docs
 
 ### D-01 `AGENTS.md`: sửa mục Stack
