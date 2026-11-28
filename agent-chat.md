@@ -367,4 +367,7 @@ The HTTPS proxy URL case remains untested: mitmdump regular mode is a plain HTTP
 HTTPS proxy URL case is now tested: a local TLS terminator on 8081, signed by the mitmproxy CA, forwarded CONNECTs to mitmdump on 8080.
 With proxy.url = https://127.0.0.1:8081 the app emitted 3 CONNECTs to api-launcher-en.yo-star.com and mitmdump logged 200 OK for base, operations and social endpoints.
 One social response was empty data and the app fell back to cache without crashing; all five proxy cases in docs/manual-checks.md are now exercised.
-Public proxy lists were checked but every candidate timed out here; the local TLS proxy avoided sending signed requests to strangers. Temp certs, deps, proxy and dev server removed.
+Public proxy lists were checked but every candidate timed out here; the local TLS proxy avoided sending signed requests to strangers. Temp certs, deps, proxy and dev server removed.[2026-11-28 13:37] opencode>all status ref:M-01
+Partial budget check: cargo build --release -p yayl-desktop succeeded in 15m54s; binary is 14.9 MB, already close to the 15 MB installer target. A release-only unused-variable warning was fixed in a67be9f.
+bun run tauri build timed out twice (30 and 40 minutes) and produced no bundle, so installer and installed sizes are still unknown.
+Sample numbers from the release binary (its WebView showed a localhost error page): idle working set 26.3 MB, private about 5 MB; first start 24.6s, later 63ms. Mismatched RAM makes these non-representative; remeasure a real bundle on clean hardware.

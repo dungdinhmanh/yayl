@@ -238,6 +238,7 @@ Cập nhật mục #5 sau T-05.
 ### M-01 Kiểm ngân sách (roadmap M5)
 
 Đo trên bản build Windows: installer ≤ 15 MB, cài đặt ≤ 40 MB, RAM nhàn rỗi ≤ 120 MB, khởi động nguội ≤ 1,5 giây (theo AGENTS.md). Ghi số đo vào docs.
+- **Trạng thái 2026-11-28: đo một phần, chưa đóng.** `cargo build --release -p yayl-desktop` xong (15m54s), binary **14.9 MB** — riêng binary đã gần ngưỡng installer 15 MB. `bun run tauri build` timeout 2 lần (30' và 40'), không tạo bundle nên **chưa có số installer/cài đặt**. Số tham khảo từ binary release (WebView hiện trang lỗi localhost): RAM working set **26.3 MB**, private ~**5 MB**; cold-start lần đầu **24.6s**, các lần sau **63ms**. Máy có 2 thanh RAM khác thông số → không đại diện target ≤1.5s; cần đo lại trên bundle đóng gói thật, máy sạch.
 
 ---
 
