@@ -102,7 +102,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ "$sensitive" = "true" ]; then
+            # Run the real build.rs rules on the new values, so the reviewer sees
+            # the verdict instead of finding out at the next local build.
+            if check=$(cargo check -p yayl-core --locked 2>&1); then
+              verdict="build.rs accepts the new values."
+            else
+              verdict="build.rs REJECTS the new values: $(printf '%s\n' "$check" | grep -m1 -E '^[[:space:]]*launcher-versions\.lock\.json: ' || echo 'see the workflow log')"
+            fi
             branch="launcher-lock/$LAUNCHER"
+            body="The published $LAUNCHER installer carries a different authSalt or apiBase. $verdict Verify the new values before merging."
             git switch -c "$branch"
             git add launcher-versions.lock.json
             git commit -m "chore(deps): refresh $LAUNCHER in the launcher lock (needs review)" \
@@ -111,9 +119,14 @@ jobs:
             if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')" ]; then
               gh pr create --head "$branch" --base "$GITHUB_REF_NAME" \
                 --title "Launcher lock: $LAUNCHER auth salt or API host changed" \
-                --body "The published $LAUNCHER installer carries a different authSalt or apiBase. Verify the new values before merging; build.rs only accepts a bare https://*.yo-star.com host."
+                --body "$body" || {
+                echo "::error::Could not open the PR. Branch $branch is pushed. Enable Settings > Actions > Allow GitHub Actions to create and approve pull requests, or open the PR by hand."
+                exit 1
+              }
+            else
+              gh pr edit "$branch" --body "$body"
             fi
-            echo "::warning::$LAUNCHER authSalt/apiBase changed; opened or updated PR $branch"
+            echo "::warning::$LAUNCHER authSalt/apiBase changed. $verdict PR: $branch"
             exit 0
           fi
           git add launcher-versions.lock.json
