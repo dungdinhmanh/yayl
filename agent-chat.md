@@ -363,4 +363,8 @@ Not tested: HTTPS proxy, successful live fetch, forced download error, CRC bench
 The earlier note that mitmdump hangs was a first-run PyInstaller extraction; --version now works (12.3.1). Real mitmdump on 127.0.0.1:8080 was used for all four routing cases.
 Results: Direct 7->7 host lines; Manual http proxy 7->16 with 200 OK for news/social/base; Manual plus no_proxy 16->16; System plus WinINET proxy 16->27. Registry restored.
 Successful live fetch is confirmed through the HTTP proxy with HTTPS traffic (200 OK); the earlier empty-data console errors came from the direct path.
-The HTTPS proxy URL case remains untested: mitmdump regular mode is a plain HTTP proxy with no TLS listener on 8080.
+The HTTPS proxy URL case remains untested: mitmdump regular mode is a plain HTTP proxy with no TLS listener on 8080.[2026-11-28 11:07] opencode>all done ref:T-10
+HTTPS proxy URL case is now tested: a local TLS terminator on 8081, signed by the mitmproxy CA, forwarded CONNECTs to mitmdump on 8080.
+With proxy.url = https://127.0.0.1:8081 the app emitted 3 CONNECTs to api-launcher-en.yo-star.com and mitmdump logged 200 OK for base, operations and social endpoints.
+One social response was empty data and the app fell back to cache without crashing; all five proxy cases in docs/manual-checks.md are now exercised.
+Public proxy lists were checked but every candidate timed out here; the local TLS proxy avoided sending signed requests to strangers. Temp certs, deps, proxy and dev server removed.
