@@ -509,6 +509,8 @@ fn record_session(app: &AppHandle, game: &str, seconds: u64, ended: u64) -> Play
     if let Err(error) = store.save(&path) {
         #[cfg(debug_assertions)]
         eprintln!("cannot save playtime: {error}");
+        #[cfg(not(debug_assertions))]
+        let _ = error;
     }
     updated
 }
