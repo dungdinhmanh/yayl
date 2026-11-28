@@ -130,8 +130,34 @@ impl Settings {
         if !path.exists() {
             return Ok(Self::default());
         }
-        let body = std::fs::read_to_string(path)?;
-        let mut value: serde_json::Value = serde_json::from_str(&body)?;
+        Self::parse(&std::fs::read(path)?)
+    }
+
+    /// Like [`Settings::load`], but a file that cannot be parsed is not fatal.
+    ///
+    /// The unreadable file is moved to `<name>.bad` (replacing an older one) so
+    /// the user can recover it by hand, and defaults are returned together with
+    /// that path. Plain I/O errors still propagate.
+    pub fn load_or_recover(path: &Path) -> Result<(Self, Option<PathBuf>)> {
+        if !path.exists() {
+            return Ok((Self::default(), None));
+        }
+        match Self::parse(&std::fs::read(path)?) {
+            Ok(settings) => Ok((settings, None)),
+            Err(_) => {
+                let mut name = path.as_os_str().to_owned();
+                name.push(".bad");
+                let bad = PathBuf::from(name);
+                std::fs::rename(path, &bad)?;
+                Ok((Self::default(), Some(bad)))
+            }
+        }
+    }
+
+    fn parse(bytes: &[u8]) -> Result<Self> {
+        // Some editors save UTF-8 with a byte order mark, which serde_json rejects.
+        let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+        let mut value: serde_json::Value = serde_json::from_slice(bytes)?;
         // Existing users are not sent through onboarding again.
         if let Some(object) = value.as_object_mut() {
             object
@@ -241,5 +267,69 @@ mod tests {
         assert!(settings.install_roots.is_empty());
         assert!(!settings.onboarding_complete);
         assert_eq!(settings.concurrency, DEFAULT_CONCURRENCY);
+    }
+
+    #[test]
+    fn load_accepts_a_utf8_byte_order_mark() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let mut body = b"\xEF\xBB\xBF".to_vec();
+        body.extend_from_slice(br#"{"language":"vi","onboarding_complete":true}"#);
+        std::fs::write(&path, body).unwrap();
+        assert_eq!(
+            Settings::load(&path).unwrap().language.as_deref(),
+            Some("vi")
+        );
+    }
+
+    #[test]
+    fn load_or_recover_keeps_a_valid_file_untouched() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let settings = Settings {
+            language: Some("en".into()),
+            ..Settings::default()
+        };
+        settings.save(&path).unwrap();
+        let (loaded, recovered) = Settings::load_or_recover(&path).unwrap();
+        assert_eq!(loaded.language.as_deref(), Some("en"));
+        assert!(recovered.is_none());
+        assert!(path.exists());
+    }
+
+    #[test]
+    fn load_or_recover_moves_an_unparsable_file_aside() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(&path, b"{ not json").unwrap();
+        let (loaded, recovered) = Settings::load_or_recover(&path).unwrap();
+        assert_eq!(loaded.language, Settings::default().language);
+        let bad = recovered.expect("the broken file is reported");
+        assert_eq!(bad, dir.path().join("settings.json.bad"));
+        assert_eq!(std::fs::read(&bad).unwrap(), b"{ not json");
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn load_or_recover_treats_utf16_as_unparsable() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let utf16: Vec<u8> = "{}"
+            .encode_utf16()
+            .flat_map(|unit| unit.to_le_bytes())
+            .collect();
+        std::fs::write(&path, [&[0xFF, 0xFE][..], &utf16].concat()).unwrap();
+        let (_, recovered) = Settings::load_or_recover(&path).unwrap();
+        assert!(recovered.is_some());
+    }
+
+    #[test]
+    fn load_or_recover_replaces_an_older_bad_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(dir.path().join("settings.json.bad"), b"old").unwrap();
+        std::fs::write(&path, b"nope").unwrap();
+        let (_, recovered) = Settings::load_or_recover(&path).unwrap();
+        assert_eq!(std::fs::read(recovered.unwrap()).unwrap(), b"nope");
     }
 }

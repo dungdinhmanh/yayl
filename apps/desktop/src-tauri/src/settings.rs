@@ -95,8 +95,14 @@ pub fn path(app: &AppHandle) -> Result<PathBuf, CommandError> {
     Ok(data.join("yayl").join(SETTINGS_FILE))
 }
 
+/// Settings that cannot be parsed do not block every command: the file is kept
+/// as `settings.json.bad` and defaults are used until the user saves again.
 pub fn load(app: &AppHandle) -> Result<Settings, CommandError> {
-    Ok(Settings::load(&path(app)?)?)
+    let (settings, recovered) = Settings::load_or_recover(&path(app)?)?;
+    if let Some(bad) = recovered {
+        log::warn!("settings could not be read; kept as {}", bad.display());
+    }
+    Ok(settings)
 }
 
 pub fn save(app: &AppHandle, settings: &Settings) -> Result<(), CommandError> {
