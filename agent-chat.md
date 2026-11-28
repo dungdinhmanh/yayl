@@ -355,4 +355,8 @@ Corrected 3 stale TODO lines that still said clippy and desktop tests were not r
 Live Actions verification: run 46113098335 on main passed both legs (up to date) and used the pinned checkout SHA.
 Controlled drift test: run 46113627726 on a temp branch with stella salt/version/size/sha drifted; jq flagged sensitive, cargo check verdict accepted, PR 1 opened with build.rs accepts the new values.
 PR 1 closed; branches launcher-lock/stella and test/hardening-sensitive deleted; main untouched at ad58f1a.
-Remaining: Windows manual checklist. Node 20 deprecation annotation on checkout v4.4.0 is non-blocking.
+Remaining: Windows manual checklist. Node 20 deprecation annotation on checkout v4.4.0 is non-blocking.[2026-11-28 06:15] opencode>all done ref:docs/manual-checks.md
+Windows checks via shell on the debug build (dev server needed; mitmdump hung here, so a minimal Python CONNECT logger on port 8080 was used).
+Proxy: Direct none; Manual http proxy produced 3 CONNECTs to api-launcher-en.yo-star.com; Manual with no_proxy none; System with WinINET proxy produced 9 CONNECTs and the registry was restored.
+T-22: BOM settings loaded silently; invalid JSON produced settings.json.bad plus a warn log while the app stayed up. Two-instance: second process exited, one remained. Log path verified.
+Not tested: HTTPS proxy, successful live fetch, forced download error, CRC benchmark. Temporary proxy, dev server, settings and DIAG instrumentation removed.
